@@ -8,18 +8,19 @@ from bbtautau.utils import true_mhh, features_table
 if __name__ == '__main__':
 
     parser = ArgumentParser()
+    parser.add_argument('--debug', default=False, action='store_true')
     parser.add_argument('--fit', default=False, action='store_true')
     parser.add_argument('--gridsearch', default=False, action='store_true')
-    parser.add_argument('--debug', default=False, action='store_true')
     args = parser.parse_args()
 
-    max_entries=None
+    # use all root files by default
+    max_files = None
     if args.debug:
-        max_entries = 10000
+        max_files = 1
 
     from bbtautau.database import dihiggs_01, dihiggs_10
-    dihiggs_01.process(verbose=True, max_entries=max_entries)
-    dihiggs_10.process(verbose=True, max_entries=max_entries)
+    dihiggs_01.process(verbose=True, max_files=max_files)
+    dihiggs_10.process(verbose=True, max_files=max_files)
 
     
     if not args.fit:
