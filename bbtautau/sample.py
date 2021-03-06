@@ -2,6 +2,8 @@ import uproot
 import os
 
 from .fields import FIELDS
+from . import log; log = log.getChild(__name__)
+
 class sample(object):
 
     def __init__(
@@ -68,12 +70,16 @@ class sample(object):
                             self._path, _dir, _file)
                         _fullpath += ':' + self._tree
                         _paths.append(_fullpath)
+        # opening a limited amount of files
+        # in debug mode
         if max_files != None:
             if not isinstance(max_files, int):
                 raise ValueError
             _paths = _paths[:max_files]
-            # _fullpath = self._path + '/*' + str(_dsid) + '*/*.root:' + self._tree
-        # _paths =             _fullpath = self._path + '/*' + str(_dsid) + '/*.root:' + self._tree
+        log.info('sample {}, using files:'.format(self.name))
+        for _f in _paths:
+            log.info('\t' + _f)
+        # use uproot.concatenate (for now)
         self._ak_array = uproot.concatenate(_paths, FIELDS, how='zip')
                                        
     def process(self, max_files=None, **kwargs):

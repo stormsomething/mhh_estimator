@@ -1,4 +1,6 @@
 import awkward as ak
+from . import log
+log = log.getChild(__name__)
 
 def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
     """
@@ -9,7 +11,8 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
         cutflow_dict['initial'] = len(ak_array)
 
     if verbose:
-        print 'intial:', cutflow_dict['initial']
+        log.info('--- cutflow ---')
+        log.info('initial: {}'.format(cutflow_dict['initial']))
 
     # build the higgs object (subset of truth particles)
     if truth_based:
@@ -21,7 +24,7 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
             cutflow_dict['two higges'] = len(ak_array)
 
         if verbose:
-            print 'two higges:', cutflow_dict['two higges']
+            log.info('two higges: {}'.format(cutflow_dict['two higges']))
 
     # build the selected taus container (simple truth matching selection)
     if truth_based:
@@ -32,7 +35,7 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
             cutflow_dict['two taus'] = len(ak_array)
 
         if verbose:
-            print 'two taus:', cutflow_dict['two taus']
+            log.info('two taus: {}'.format(cutflow_dict['two taus']))
 
     # apply tau ID
     ak_array['taus'] = ak_array.taus[ak_array.taus.isRNNMedium == 1]
@@ -43,7 +46,7 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
         cutflow_dict['two medium taus'] = len(ak_array)
         
     if verbose:
-        print 'two medium taus:', cutflow_dict['two medium taus']
+        log.info('two medium taus: {}'.format(cutflow_dict['two medium taus']))
 
 
     # build the selected b-jets container (simple truth matching selection)
@@ -56,6 +59,6 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
             cutflow_dict['two b-jets'] = len(ak_array)
         
         if verbose:
-            print 'two b-jets:', cutflow_dict['two b-jets']
+            log.info('two b-jets: {}'.format(cutflow_dict['two b-jets']))
 
     return ak_array
