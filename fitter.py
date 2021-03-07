@@ -44,7 +44,7 @@ if __name__ == '__main__':
             from sklearn.model_selection import GridSearchCV
             from sklearn.ensemble import GradientBoostingRegressor
             parameters = {
-                'n_estimators': [100, 200, 400, 600],#, 800, 1000, 2000],
+                'n_estimators': [100, 200, 400, 600, 800, 1000, 2000],
                 'learning_rate': [0.01, 0.05, 0.1],
                 'max_depth': [3, 4, 5, 6, 7, 8],
                 'loss': ['ls'],
