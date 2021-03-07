@@ -32,6 +32,14 @@ if __name__ == '__main__':
         regressor = joblib.load('cache/latest_scikit.clf')
 
     else:
+        log.info('prepare training data')
+        train_target = ak.concatenate([
+            ak.flatten(true_mhh(dihiggs_01.fold_0_array)),
+            ak.flatten(true_mhh(dihiggs_10.fold_0_array))])
+        train_features = np.concatenate([
+            features_table(dihiggs_01.fold_0_array),
+            features_table(dihiggs_10.fold_0_array)])
+
         if args.gridsearch:
             from sklearn.model_selection import GridSearchCV
             from sklearn.ensemble import GradientBoostingRegressor
@@ -43,9 +51,10 @@ if __name__ == '__main__':
                 }
             gbr = GradientBoostingRegressor()
             regressor_cv = GridSearchCV(gbr, parameters, n_jobs=4, verbose=True)
+            log.info('fitting')
+            regressor_cv.fit(train_features, train_target)
             regressor = regressor_cv.best_estimator_
-            joblib.dump(regressor, 'training/best.clf')
-            # add a plot?
+            joblib.dump(regressor, 'cache/best_scikit_gridsearch.clf')
         else:
             from sklearn.ensemble import GradientBoostingRegressor
             regressor = GradientBoostingRegressor(
@@ -56,15 +65,9 @@ if __name__ == '__main__':
                 loss='ls',
                 verbose=True)
 
-        train_target = ak.concatenate([
-            ak.flatten(true_mhh(dihiggs_01.fold_0_array)),
-            ak.flatten(true_mhh(dihiggs_10.fold_0_array))])
-        train_features = np.concatenate([
-            features_table(dihiggs_01.fold_0_array),
-            features_table(dihiggs_10.fold_0_array)])
-        log.info('fitting')
-        regressor.fit(train_features, train_target)
-        joblib.dump(regressor, 'cache/latest_scikit.clf')
+            log.info('fitting')
+            regressor.fit(train_features, train_target)
+            joblib.dump(regressor, 'cache/latest_scikit.clf')
 
 
     log.info('plotting')
