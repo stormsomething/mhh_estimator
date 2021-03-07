@@ -1,6 +1,7 @@
 import os
 import joblib
 import awkward as ak
+import numpy as np
 from argparse import ArgumentParser
 from bbtautau.utils import true_mhh, features_table
 from bbtautau import log; log = log.getChild('fitter')
@@ -32,7 +33,19 @@ if __name__ == '__main__':
 
     else:
         if args.gridsearch:
-            pass
+            from sklearn.model_selection import GridSearchCV
+            from sklearn.ensemble import GradientBoostingRegressor
+            parameters = {
+                'n_estimators': [100, 200, 400, 600],#, 800, 1000, 2000],
+                'learning_rate': [0.01, 0.05, 0.1],
+                'max_depth': [3, 4, 5, 6, 7, 8],
+                'loss': ['ls'],
+                }
+            gbr = GradientBoostingRegressor()
+            regressor_cv = GridSearchCV(gbr, parameters, n_jobs=4, verbose=True)
+            regressor = regressor_cv.best_estimator_
+            joblib.dump(regressor, 'training/best.clf')
+            # add a plot?
         else:
             from sklearn.ensemble import GradientBoostingRegressor
             regressor = GradientBoostingRegressor(
@@ -43,8 +56,12 @@ if __name__ == '__main__':
                 loss='ls',
                 verbose=True)
 
-        train_target = ak.flatten(true_mhh(dihiggs_01.fold_0_array))
-        train_features = features_table(dihiggs_01.fold_0_array)
+        train_target = ak.concatenate([
+            ak.flatten(true_mhh(dihiggs_01.fold_0_array)),
+            ak.flatten(true_mhh(dihiggs_10.fold_0_array))])
+        train_features = np.concatenate([
+            features_table(dihiggs_01.fold_0_array),
+            features_table(dihiggs_10.fold_0_array)])
         log.info('fitting')
         regressor.fit(train_features, train_target)
         joblib.dump(regressor, 'cache/latest_scikit.clf')
