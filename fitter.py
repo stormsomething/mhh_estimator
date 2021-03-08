@@ -43,6 +43,7 @@ if __name__ == '__main__':
         if args.gridsearch:
             from sklearn.model_selection import GridSearchCV
             from sklearn.ensemble import GradientBoostingRegressor
+            # running time is prohibitive on laptop
             parameters = {
                 'n_estimators': [100, 200, 400, 600, 800, 1000, 2000],
                 'learning_rate': [0.01, 0.05, 0.1],
@@ -79,166 +80,13 @@ if __name__ == '__main__':
     predictions_HH_10 = regressor.predict(features_test_HH_10)
     test_target_HH_10 = ak.flatten(true_mhh(dihiggs_10.fold_1_array))
 
-    from bbtautau.plotting import signal_pred_target_comparison
+    from bbtautau.plotting import signal_pred_target_comparison, signal_features
+    # 
     signal_pred_target_comparison(
         predictions_HH_10, predictions_HH_01,
         test_target_HH_10, test_target_HH_01,
         dihiggs_10, dihiggs_01)
+    # 
+    signal_features(dihiggs_01, dihiggs_10)
 
-
-    # import matplotlib as mpl
-    # import matplotlib.pyplot as plt
-    # import mplhep as hep
-    # hep.set_style("ATLAS") 
-    # mpl.rc('font', **{'family':'serif','serif':['Palatino']})
-    # mpl.rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
-    # mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
-
-
-    # fig = plt.figure()
-    # plt.hist(
-    #     predictions_HH_10,
-    #     bins=80,
-    #     range=(0, 3000),
-    #     label=dihiggs_10.title + ' - pred.',
-    #     color=dihiggs_10.color,
-    #     linestyle='solid',
-    #     linewidth=2,
-    #     # cumulative=True,
-    #     histtype='step')
-    # plt.hist(
-    #     predictions_HH_01,
-    #     bins=80,
-    #     range=(0, 3000),
-    #     label=dihiggs_01.title + ' - pred.',
-    #     color=dihiggs_01.color,
-    #     linestyle='solid',
-    #     linewidth=2,
-    #     # cumulative=True,
-    #     histtype='step')
-    # plt.hist(
-    #     test_target_HH_10,
-    #     bins=80,
-    #     range=(0, 3000),
-    #     label=dihiggs_10.title + ' - truth.',
-    #     color=dihiggs_10.color,
-    #     linestyle='dashed',
-    #     linewidth=2,
-    #     # cumulative=True,
-    #     histtype='step')
-    # plt.hist(
-    #     test_target_HH_01,
-    #     bins=80,
-    #     range=(0, 3000),
-    #     label=dihiggs_01.title + ' - truth.',
-    #     color=dihiggs_01.color,
-    #     linestyle='dashed',
-    #     linewidth=2,
-    #     # cumulative=True,
-    #     histtype='step')
-    
-    # plt.xlabel(r'$m_{hh}$ [GeV]')
-    # plt.ylabel('Raw Simulation Entries')
-    # plt.legend(fontsize='small', numpoints=3)
-    # fig.savefig('plots/distributions.pdf')
-    # plt.close(fig)
-    
-    # fig = plt.figure()
-    # plt.hist(
-    #     [
-    #         predictions_HH_01 - test_target_HH_01,
-    #         predictions_HH_10 - test_target_HH_10,
-    #     ],
-    #     label=[
-    #         dihiggs_01.title,
-    #         dihiggs_10.title,
-    #     ],
-    #     color=[
-    #         dihiggs_01.color,
-    #         dihiggs_10.color,
-    #     ],
-    #     bins=160,
-    #     range=(-400, 400),
-    #     histtype='step')
-    # plt.xlabel(r'$m_{hh}$: prediction - truth [GeV]')
-    # plt.ylabel('Raw Simulation Entries')
-    # plt.legend(fontsize='small', numpoints=3)
-    # fig.savefig('plots/deltas.pdf')
-    # plt.close(fig)
-    
-    # fig = plt.figure()
-    # plt.hist(
-    #     [
-    #         predictions_HH_01 / test_target_HH_01,
-    #         predictions_HH_10 / test_target_HH_10
-    #     ],
-    #     label=[
-    #         dihiggs_01.title,
-    #         dihiggs_10.title,
-    #     ],
-    #     color=[
-    #         dihiggs_01.color,
-    #         dihiggs_10.color,
-    #     ],
-    #     bins=160,
-    #     range=(0., 3.),
-    #     histtype='step')
-    # plt.xlabel(r'$m_{hh}$: prediction / truth [GeV]')
-    # plt.ylabel('Raw Simulation Entries')
-    # plt.legend(fontsize='small', numpoints=3)
-    # fig.savefig('plots/ratios.pdf')
-    # plt.close(fig)
-
-    # fig = plt.figure()
-    # plt.hist(ak.flatten(dihiggs_01.fold_1_array['taus']['nTracks']))
-    # plt.xlabel('nTracks')
-    # fig.savefig('plots/nTracks.pdf')
-    # plt.close(fig)
-    
-    # fig = plt.figure()
-    # plt.hist(ak.flatten(dihiggs_01.fold_1_array['taus']['isRNNMedium']))
-    # plt.xlabel('RNN Medium ID Decision')
-    # fig.savefig('plots/rnn_medium_id.pdf')
-    # plt.close(fig)
-
-
-    # fig = plt.figure()
-    # plt.hist([
-    #     ak.flatten(true_mhh(dihiggs_01.fold_1_array)),
-    #     ak.flatten(true_mhh(dihiggs_10.fold_1_array))],
-    #          label=[
-    #              dihiggs_01.title,
-    #              dihiggs_10.title,
-    #          ],
-    #          color=[
-    #              dihiggs_01.color,
-    #              dihiggs_10.color,
-    #         ],
-    #          bins=80,
-    #          linewidth=2,
-    #          histtype='step')
-    # plt.xlabel(r'True $m_{hh}$ [GeV]')
-    # plt.legend(fontsize='small', numpoints=3)
-    # fig.savefig('plots/true_mhh_signal_comparison.pdf')
-    # plt.close(fig)
-
-    # fig = plt.figure()
-    # plt.hist([
-    #     predictions_HH_01,
-    #     predictions_HH_10],
-    #          label=[
-    #              dihiggs_01.title,
-    #              dihiggs_10.title,
-    #         ],
-    #          color=[
-    #              dihiggs_01.color,
-    #              dihiggs_10.color,
-    #         ],
-    #          bins=80,
-    #          linewidth=2,
-    #          histtype='step')
-    # plt.xlabel(r'Estimated $m_{hh}$ [GeV]')
-    # plt.legend(fontsize='small', numpoints=3)
-    # fig.savefig('plots/estimated_mhh_signal_comparison.pdf')
-    # plt.close(fig)
 
