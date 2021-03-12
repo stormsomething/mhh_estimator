@@ -102,6 +102,12 @@ if __name__ == '__main__':
                             verbose=True, save_best_only=True)
                     ])
                 regressor.save(_filename)
+                from bbtautau.plotting import nn_history
+                for k in history.history.keys():
+                    if 'val' in k:
+                        continue
+                    nn_history(history, metric=k)
+                    
             except KeyboardInterrupt:
                 log.info('Ended early..')
         else:
