@@ -11,10 +11,15 @@ def true_mhh(ak_array):
     return _true_mhh
 
 def features_table(ak_array):
-    # build a rectilinear table for training using  pt, eta, phi, m of the taus and b-jets
+    #  b-jets
     table = ak.concatenate([
-        ak_array[obj][var][:, idx, None]
-        for obj, var, idx in product(["taus", "bjets"], ["pt", "eta", "phi", "m"], range(2))
+        ak_array['bjets'][var][:, idx, None]
+        for var, idx in product(["pt", "eta", "phi", "m"], range(2))
+    ], axis=1)
+    # taus 
+    table = ak.concatenate([table] + [
+        ak_array['taus'][var][:, idx, None]
+        for var, idx in product(["pt", "eta", "phi"], range(2))
     ], axis=1)
     # adding the MET
     table = ak.concatenate([
@@ -30,3 +35,5 @@ def train_test_split(ak_array, modulus=3):
     _train = ak_array[ak_array['EventInfo___NominalAuxDyn.eventNumber'] % modulus != 0]
     _test  = ak_array[ak_array['EventInfo___NominalAuxDyn.eventNumber'] % modulus == 0]
     return _train, _test
+
+

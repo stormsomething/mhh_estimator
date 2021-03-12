@@ -1,7 +1,9 @@
 
 # list the branches of interests
 FIELDS = [
+    'EventInfo___NominalAuxDyn.MCEventWeight',
     'EventInfo___NominalAuxDyn.eventNumber',
+    'EventInfo___NominalAuxDyn.mcChannelNumber',
     # truth
     'TruthParticles___NominalAuxDyn.pdgId',
     'TruthParticles___NominalAuxDyn.px',
