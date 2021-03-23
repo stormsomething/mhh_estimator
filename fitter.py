@@ -140,3 +140,19 @@ if __name__ == '__main__':
     signal_features(dihiggs_01, dihiggs_10)
 
 
+    import ROOT
+    import bbtautau.cpp
+    for evt in dihiggs_01.ak_array:
+        mmc_val = ROOT.HackedMMC.MMC(
+            evt['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']['mpx'][0] / 1000.,
+            evt['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']['mpy'][0] / 1000.,
+            evt['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']['sumet'][0] / 1000.,
+            2,
+            evt['taus']['pt'][0] / 1000.,
+            evt['taus']['eta'][0],
+            evt['taus']['phi'][0],
+            evt['taus']['pt'][1] / 1000.,
+            evt['taus']['eta'][1],
+            evt['taus']['phi'][1],
+            evt['EventInfo___NominalAuxDyn.eventNumber'])
+        print (mmc_val)

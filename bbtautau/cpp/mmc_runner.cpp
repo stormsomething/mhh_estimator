@@ -141,16 +141,12 @@ namespace HackedMMC {
   // }
 
 
-  float MMC(float met_et, float met_phi, float met_sumet, int njets,
+  float MMC(float met_px, float met_py, float met_sumet, int njets,
 	    float tau_0_pt, float tau_0_eta, float tau_0_phi,
 	    float tau_1_pt, float tau_1_eta, float tau_1_phi,
 	    int event_number,
 	    int channel=HackedMMC::hh)
   {
-    TVector2 met;
-    met.SetMagPhi(met_et, met_phi);
-
-
     int tau0=8;
     int tau1=8;
 
@@ -159,34 +155,34 @@ namespace HackedMMC {
 
     // pantau convention: 0:1p0n, 1:1p1n, 2:1pXn, 3:3p0n, 4:3pXn, 5:2p/4p
     // use truth decay rates for now, this will need to be replaced
-    // if(histPtDict::m_taus_type[0]==PtCorrHelper::tau)
-    //   {
-    // 	rnd_number = random_object_picker.Rndm();
-    // 	if(rnd_number < 1.0)
-    // 	  tau0=4;
-    // 	if(rnd_number < 0.923)
-    // 	  tau0=3;
-    // 	if(rnd_number < 0.763)
-    // 	  tau0=2;
-    // 	if(rnd_number < 0.61)
-    // 	  tau0=1;
-    // 	if(rnd_number < 0.19)
-    // 	  tau0=0;
-    //   }
-    // if(histPtDict::m_taus_type[1]==PtCorrHelper::tau)
-    //   {
-    // 	rnd_number = random_object_picker.Rndm();
-    // 	if(rnd_number < 1.0)
-    // 	  tau1=4;
-    // 	if(rnd_number < 0.923)
-    // 	  tau1=3;
-    // 	if(rnd_number < 0.763)
-    // 	  tau1=2;
-    // 	if(rnd_number < 0.61)
-    // 	  tau1=1;
-    // 	if(rnd_number < 0.19)
-    // 	  tau1=0;	
-    //   }
+    if(true)
+      {
+	rnd_number = random_object_picker.Rndm();
+	if(rnd_number < 1.0)
+	  tau0=4;
+	if(rnd_number < 0.923)
+	  tau0=3;
+	if(rnd_number < 0.763)
+	  tau0=2;
+	if(rnd_number < 0.61)
+	  tau0=1;
+	if(rnd_number < 0.19)
+	  tau0=0;
+      }
+    if(true)
+      {
+	rnd_number = random_object_picker.Rndm();
+	if(rnd_number < 1.0)
+	  tau1=4;
+	if(rnd_number < 0.923)
+	  tau1=3;
+	if(rnd_number < 0.763)
+	  tau1=2;
+	if(rnd_number < 0.61)
+	  tau1=1;
+	if(rnd_number < 0.19)
+	  tau1=0;	
+      }
 
     bool leplep = false;
     if (channel == HackedMMC::emu)
@@ -201,7 +197,7 @@ namespace HackedMMC {
       {
 	histPtDict::m_mmc.MMCforBoom(tau_0_pt, tau_0_eta, tau_0_phi, 0,
 				     tau_1_pt, tau_1_eta, tau_1_phi, 0,
-				     tau0, tau1, met.Px(), met.Py(), met_sumet, njets, event_number);
+				     tau0, tau1, met_px, met_py, met_sumet, njets, event_number);
 	
 	if(histPtDict::m_mmc.OutputInfo.GetFitStatus() <= 0)
 	  return -1;
@@ -211,7 +207,7 @@ namespace HackedMMC {
       {
 	histPtDict::m_mmc_ll.MMCforBoom(tau_0_pt, tau_0_eta, tau_0_phi, 0,
 					tau_1_pt, tau_1_eta, tau_1_phi, 0,
-					tau0, tau1, met.Px(), met.Py(), met_sumet, njets, event_number);
+					tau0, tau1, met_px, met_py, met_sumet, njets, event_number);
 	
 	if(histPtDict::m_mmc_ll.OutputInfo.GetFitStatus() <= 0)
 	  return -1;
