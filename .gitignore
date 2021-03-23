@@ -1,3 +1,6 @@
+*.d
+*.so
+*.pcm
 *.h5
 *.pyc
 *.clf
