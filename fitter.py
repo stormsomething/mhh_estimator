@@ -93,6 +93,7 @@ if __name__ == '__main__':
                     X_train, y_train,
                     epochs=_epochs,
                     batch_size=50,
+                    shuffle=True,
                     # validation_split=0.1,
                     validation_data=(X_test, y_test),
                     callbacks=[
