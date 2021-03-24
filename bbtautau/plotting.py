@@ -17,7 +17,8 @@ def signal_pred_target_comparison(
         test_target_HH_10,
         test_target_HH_01,
         dihiggs_10,
-        dihiggs_01):
+        dihiggs_01,
+        lbrary='keras'):
 
     log.info('plotting distributions')
     fig = plt.figure()
@@ -32,22 +33,22 @@ def signal_pred_target_comparison(
         # cumulative=True,
         histtype='step')
     plt.hist(
-        predictions_HH_01,
-        bins=80,
-        range=(0, 1500),
-        label=dihiggs_01.title + ' - pred.',
-        color=dihiggs_01.color,
-        linestyle='solid',
-        linewidth=2,
-        # cumulative=True,
-        histtype='step')
-    plt.hist(
         test_target_HH_10,
         bins=80,
         range=(0, 1500),
         label=dihiggs_10.title + ' - truth.',
         color=dihiggs_10.color,
         linestyle='dashed',
+        linewidth=2,
+        # cumulative=True,
+        histtype='step')
+    plt.hist(
+        predictions_HH_01,
+        bins=80,
+        range=(0, 1500),
+        label=dihiggs_01.title + ' - pred.',
+        color=dihiggs_01.color,
+        linestyle='solid',
         linewidth=2,
         # cumulative=True,
         histtype='step')
@@ -65,7 +66,7 @@ def signal_pred_target_comparison(
     plt.xlabel(r'$m_{hh}$ [GeV]')
     plt.ylabel('Raw Simulation Entries')
     plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/distributions.pdf')
+    fig.savefig('plots/distributions_{}.pdf'.format(library))
     plt.close(fig)
 
     fig = plt.figure()
@@ -112,11 +113,12 @@ def signal_pred_target_comparison(
         ],
         bins=160,
         range=(-400, 400),
+        linewidth=2
         histtype='step')
     plt.xlabel(r'$m_{hh}$: prediction - truth [GeV]')
     plt.ylabel('Raw Simulation Entries')
     plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/deltas.pdf')
+    fig.savefig('plots/deltas_{}.pdf'.format(library))
     plt.close(fig)
     
     fig = plt.figure()
@@ -139,7 +141,7 @@ def signal_pred_target_comparison(
     plt.xlabel(r'$m_{hh}$: prediction / truth [GeV]')
     plt.ylabel('Raw Simulation Entries')
     plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/ratios.pdf')
+    fig.savefig('plots/ratios_{}.pdf'.format(library))
     plt.close(fig)
 
 
@@ -188,110 +190,92 @@ def signal_features(dihiggs_01, dihiggs_10):
     plt.close(fig)
 
 def compare_ml(
-        scikit_HH_10,
-        scikit_HH_01,
-        keras_HH_10,
-        keras_HH_01,
-        test_target_HH_10,
-        test_target_HH_01,
-        dihiggs_10,
-        dihiggs_01):
+        scikit,
+        keras,
+        truth,
+        sample,
+        mmc=None):
 
     log.info('plotting distributions')
     fig = plt.figure()
     plt.hist(
-        scikit_HH_10,
+        scikit,
         bins=80,
         range=(0, 1500),
-        label=dihiggs_10.title + ' - scikit',
+        label='scikit',
         color='red',
         linestyle='solid',
         linewidth=2,
-        # cumulative=True,
         histtype='step')
     plt.hist(
-        scikit_HH_01,
+        keras,
         bins=80,
         range=(0, 1500),
-        label=dihiggs_01.title + ' - scikit',
-        color='red',
-        linestyle='solid',
-        linewidth=2,
-        # cumulative=True,
-        histtype='step')
-    plt.hist(
-        keras_HH_10,
-        bins=80,
-        range=(0, 1500),
-        label=dihiggs_10.title + ' - keras',
+        label='keras',
         color='blue',
         linestyle='solid',
         linewidth=2,
         # cumulative=True,
         histtype='step')
+    if type(mmc) != type(None):
+        plt.hist(
+            mmc,
+            bins=80,
+            range=(0, 1500),
+            label='MMC',
+            color='green',
+            linestyle='solid',
+            linewidth=2,
+        histtype='step')
+
     plt.hist(
-        keras_HH_01,
+        truth,
         bins=80,
         range=(0, 1500),
-        label=dihiggs_01.title + ' - keras',
-        color='blue',
-        linestyle='solid',
+        label='truth.',
+        color='black',
+        linestyle='dashed',
         linewidth=2,
         # cumulative=True,
         histtype='step')
 
-    plt.hist(
-        test_target_HH_10,
-        bins=80,
-        range=(0, 1500),
-        label=dihiggs_10.title + ' - truth.',
-        color='green',
-        linestyle='dashed',
-        linewidth=2,
-        # cumulative=True,
-        histtype='step')
-    plt.hist(
-        test_target_HH_01,
-        bins=80,
-        range=(0, 1500),
-        label=dihiggs_01.title + ' - truth.',
-        color='green',
-        linestyle='dashed',
-        linewidth=2,
-        # cumulative=True,
-        histtype='step')
-    
+
     plt.xlabel(r'$m_{hh}$ [GeV]')
     plt.ylabel('Raw Simulation Entries')
-    plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/distributions_allml.pdf')
+    plt.legend(fontsize='small', numpoints=3, title=sample.title)
+    fig.savefig('plots/distributions_allmethods_{}.pdf'.format(sample.name))
     plt.close(fig)
 
+    _hists = [
+            scikit / truth,
+            keras / truth,
+        ]
+    _labels = [
+        'scikit BRT',
+        'keras NN',
+        ]
+    _colors = [
+        'red',
+        'blue',
+        ]
+    if type(mmc) != type(None):
+        _hists += [mmc / truth]
+        _labels += ['MMC']
+        _colors += ['green']
 
     fig = plt.figure()
     plt.hist(
-        [
-            scikit_HH_01 - test_target_HH_01,
-            scikit_HH_10 - test_target_HH_10,
-            keras_HH_01 - test_target_HH_01,
-            keras_HH_10 - test_target_HH_10,
-        ],
-        label=[
-            dihiggs_01.title + '(scikit)',
-            dihiggs_10.title + '(scikit)',
-            dihiggs_01.title + '(keras)',
-            dihiggs_10.title + '(keras)',
-        ],
-        color=[
-            'red', 'maroon', 'blue', 'navy'
-            ],
+        _hists,
+        label=_labels,
+        color=_colors,
         bins=160,
-        range=(-400, 400),
+        range=(0., 3.),
+        linewidth=2,
         histtype='step')
-    plt.xlabel(r'$m_{hh}$: prediction - truth [GeV]')
+    plt.xlabel(r'$m_{hh}$: prediction / truth [GeV]')
     plt.ylabel('Raw Simulation Entries')
-    plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/deltas_ml.pdf')
+    plt.legend(fontsize='small', numpoints=3, title=sample.title)
+    fig.savefig('plots/ratios_allmethods_{}.pdf'.format(sample.name))
     plt.close(fig)
     
 

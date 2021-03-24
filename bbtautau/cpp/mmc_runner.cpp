@@ -141,11 +141,11 @@ namespace HackedMMC {
   // }
 
 
-  float MMC(float met_px, float met_py, float met_sumet, int njets,
-	    float tau_0_pt, float tau_0_eta, float tau_0_phi,
-	    float tau_1_pt, float tau_1_eta, float tau_1_phi,
-	    int event_number,
-	    int channel=HackedMMC::hh)
+  TLorentzVector MMC(float met_px, float met_py, float met_sumet, int njets,
+		     float tau_0_pt, float tau_0_eta, float tau_0_phi,
+		     float tau_1_pt, float tau_1_eta, float tau_1_phi,
+		     int event_number,
+		     int channel=HackedMMC::hh)
   {
     int tau0=8;
     int tau1=8;
@@ -200,9 +200,10 @@ namespace HackedMMC {
 				     tau0, tau1, met_px, met_py, met_sumet, njets, event_number);
 	
 	if(histPtDict::m_mmc.OutputInfo.GetFitStatus() <= 0)
-	  return -1;
+	  return TLorentzVector(0, 0, 0, 0);
 	else
-	  return histPtDict::m_mmc.OutputInfo.GetFittedMass(DiTauMassTools::MMCFitMethodV2::MLM);
+	  return histPtDict::m_mmc.OutputInfo.GetResonanceVec(DiTauMassTools::MMCFitMethodV2::MLNU3P);
+	  // return histPtDict::m_mmc.OutputInfo.GetFittedMass(DiTauMassTools::MMCFitMethodV2::MLM);
       } else 
       {
 	histPtDict::m_mmc_ll.MMCforBoom(tau_0_pt, tau_0_eta, tau_0_phi, 0,
@@ -210,9 +211,11 @@ namespace HackedMMC {
 					tau0, tau1, met_px, met_py, met_sumet, njets, event_number);
 	
 	if(histPtDict::m_mmc_ll.OutputInfo.GetFitStatus() <= 0)
-	  return -1;
+	  return TLorentzVector(0, 0, 0, 0);
+	  // return -1;
 	else
-	  return histPtDict::m_mmc_ll.OutputInfo.GetFittedMass(DiTauMassTools::MMCFitMethodV2::MLM);
+	  return histPtDict::m_mmc.OutputInfo.GetResonanceVec(DiTauMassTools::MMCFitMethodV2::MLNU3P);
+	  // return histPtDict::m_mmc_ll.OutputInfo.GetFittedMass(DiTauMassTools::MMCFitMethodV2::MLM);
       }
   }
 }

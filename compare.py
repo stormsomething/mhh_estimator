@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, action='store_true')
     parser.add_argument('--scikit', default='latest_scikit.clf')
     parser.add_argument('--keras', default='latest_keras.h5')
+    parser.add_argument('--include-mmc', default=False, action='store_true')
     args = parser.parse_args()
 
     # use all root files by default
@@ -48,11 +49,23 @@ if __name__ == '__main__':
 
     
     from bbtautau.plotting import compare_ml
+    if args.include_mmc:
+        from bbtautau.mmc import mmc
+        mmc_01, mhh_mmc_01 = mmc(dihiggs_01.fold_1_array)
+        mmc_10, mhh_mmc_10 = mmc(dihiggs_10.fold_1_array)
     # 
     compare_ml(
-        scikit_HH_10, scikit_HH_01,
-        keras_HH_10, keras_HH_01,
-        test_target_HH_10, test_target_HH_01,
-        dihiggs_10, dihiggs_01)
+        scikit_HH_10,
+        keras_HH_10,
+        test_target_HH_10,
+        dihiggs_10,
+        mmc=mhh_mmc_10 if args.include_mmc else None)
+
+    compare_ml(
+        scikit_HH_01,
+        keras_HH_01,
+        test_target_HH_01,
+        dihiggs_01,
+        mmc=mhh_mmc_01 if args.include_mmc else None)
 
 
