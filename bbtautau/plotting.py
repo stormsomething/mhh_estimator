@@ -18,7 +18,7 @@ def signal_pred_target_comparison(
         test_target_HH_01,
         dihiggs_10,
         dihiggs_01,
-        lbrary='keras'):
+        regressor='keras'):
 
     log.info('plotting distributions')
     fig = plt.figure()
@@ -65,8 +65,8 @@ def signal_pred_target_comparison(
     
     plt.xlabel(r'$m_{hh}$ [GeV]')
     plt.ylabel('Raw Simulation Entries')
-    plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/distributions_{}.pdf'.format(library))
+    plt.legend(fontsize='small', numpoints=3, title=regressor)
+    fig.savefig('plots/distributions_{}.pdf'.format(regressor))
     plt.close(fig)
 
     fig = plt.figure()
@@ -113,12 +113,12 @@ def signal_pred_target_comparison(
         ],
         bins=160,
         range=(-400, 400),
-        linewidth=2
+        linewidth=2,
         histtype='step')
     plt.xlabel(r'$m_{hh}$: prediction - truth [GeV]')
     plt.ylabel('Raw Simulation Entries')
     plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/deltas_{}.pdf'.format(library))
+    fig.savefig('plots/deltas_{}.pdf'.format(regressor))
     plt.close(fig)
     
     fig = plt.figure()
@@ -137,11 +137,12 @@ def signal_pred_target_comparison(
         ],
         bins=160,
         range=(0., 3.),
+        linewidth=2,
          histtype='step')
     plt.xlabel(r'$m_{hh}$: prediction / truth [GeV]')
     plt.ylabel('Raw Simulation Entries')
-    plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/ratios_{}.pdf'.format(library))
+    plt.legend(fontsize='small', numpoints=3, title=regressor)
+    fig.savefig('plots/ratios_{}.pdf'.format(regressor))
     plt.close(fig)
 
 
@@ -154,6 +155,7 @@ def signal_features(dihiggs_01, dihiggs_10):
         color=dihiggs_01.color,
         bins=30,
         range=(0, 300),
+        linewidth=2,
         histtype='step')
     plt.hist(
         ak.flatten(dihiggs_10.fold_1_array['taus']['pt'] / 1000.),
@@ -161,6 +163,7 @@ def signal_features(dihiggs_01, dihiggs_10):
         color=dihiggs_10.color,
         bins=30,
         range=(0, 300),
+        linewidth=2,
         histtype='step')
     plt.xlabel(r'Hadronic taus $p_{T}$ [GeV]')
     plt.ylabel('Raw Simulation Entries')
@@ -175,6 +178,7 @@ def signal_features(dihiggs_01, dihiggs_10):
         color=dihiggs_01.color,
         bins=30,
         range=(0, 300),
+        linewidth=2,
         histtype='step')
     plt.hist(
         ak.flatten(dihiggs_10.fold_1_array['bjets']['pt'] / 1000.),
@@ -182,6 +186,7 @@ def signal_features(dihiggs_01, dihiggs_10):
         color=dihiggs_10.color,
         bins=30,
         range=(0, 300),
+        linewidth=2,
         histtype='step')
     plt.xlabel(r'b-jets $p_{T}$ [GeV]')
     plt.ylabel('Raw Simulation Entries')

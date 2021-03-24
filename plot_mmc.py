@@ -37,4 +37,4 @@ if __name__ == '__main__':
         mhh_10, mhh_01,
         test_target_HH_10, test_target_HH_01,
         dihiggs_10, dihiggs_01,
-        library='MMC')
+        regressor='MMC')

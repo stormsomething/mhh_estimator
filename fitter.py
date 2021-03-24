@@ -135,7 +135,7 @@ if __name__ == '__main__':
         predictions_HH_10, predictions_HH_01,
         test_target_HH_10, test_target_HH_01,
         dihiggs_10, dihiggs_01,
-        library=args.library)
+        regressor=args.library)
     # 
     signal_features(dihiggs_01, dihiggs_10)
 
