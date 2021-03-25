@@ -25,6 +25,7 @@ def signal_pred_target_comparison(
     plt.hist(
         predictions_HH_10,
         bins=80,
+        # bins=15,
         range=(0, 1500),
         label=dihiggs_10.title + ' - pred.',
         color=dihiggs_10.color,
@@ -35,6 +36,7 @@ def signal_pred_target_comparison(
     plt.hist(
         test_target_HH_10,
         bins=80,
+        # bins=15,
         range=(0, 1500),
         label=dihiggs_10.title + ' - truth.',
         color=dihiggs_10.color,
@@ -45,6 +47,7 @@ def signal_pred_target_comparison(
     plt.hist(
         predictions_HH_01,
         bins=80,
+        # bins=15,
         range=(0, 1500),
         label=dihiggs_01.title + ' - pred.',
         color=dihiggs_01.color,
@@ -55,6 +58,7 @@ def signal_pred_target_comparison(
     plt.hist(
         test_target_HH_01,
         bins=80,
+        # bins=15,
         range=(0, 1500),
         label=dihiggs_01.title + ' - truth.',
         color=dihiggs_01.color,
