@@ -9,7 +9,20 @@ from . import log; log = log.getChild(__name__)
 _XSEC_FILTER_KFAC = {
     600023: {'xsec': 0.027887, 'filter': 0.14537, 'kfactor': 1.},
     600024: {'xsec': 0.58383, 'filter': 0.13638, 'kfactor': 1.},
-    # 600024: {'xsec': , 'filter': , 'kfactor': },
+    364128: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364129: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364130: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364131: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364132: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364133: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364134: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364135: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364136: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364137: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364138: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364139: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364140: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
+    364141: {'xsec': 1., 'filter': 1., 'kfactor': 1.},
 }
     
 
@@ -124,8 +137,9 @@ class sample(object):
                  log.info('\t' + _f)
         # use uproot.concatenate (for now)
         for _dsid in self._dsids:
+            log.info('adding ' + str(_dsid))
             _ak_array = uproot.concatenate(
-                    _paths[_dsid]['tree'], FIELDS, how='zip')
+                    _paths[_dsid]['tree'], FIELDS, how='zip', num_workers=4)
             _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
             _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
             _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
