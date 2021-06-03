@@ -2,7 +2,7 @@ import awkward as ak
 from . import log
 log = log.getChild(__name__)
 
-def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
+def _select(ak_array, is_signal=True, truth_based=True, cutflow_dict={}, verbose=False):
     """
     """
     if 'initial' in cutflow_dict.keys():
@@ -14,17 +14,17 @@ def _select(ak_array, truth_based=True, cutflow_dict={}, verbose=False):
         log.info('--- cutflow ---')
         log.info('initial: {}'.format(cutflow_dict['initial']))
 
-    # # build the higgs object (subset of truth particles)
-    # if truth_based:
-    #     ak_array['higgs'] = ak_array.TruthParticles___NominalAuxDyn[ak_array.TruthParticles___NominalAuxDyn.pdgId == 25]
-    #     ak_array = ak_array[ak.num(ak_array.higgs) == 2]
-    #     if 'two higges' in cutflow_dict.keys():
-    #         cutflow_dict['two higges'] += len(ak_array)
-    #     else:
-    #         cutflow_dict['two higges'] = len(ak_array)
+    # build the higgs object (subset of truth particles)
+    if truth_based and is_signal:
+        ak_array['higgs'] = ak_array.TruthParticles___NominalAuxDyn[ak_array.TruthParticles___NominalAuxDyn.pdgId == 25]
+        ak_array = ak_array[ak.num(ak_array.higgs) == 2]
+        if 'two higges' in cutflow_dict.keys():
+            cutflow_dict['two higges'] += len(ak_array)
+        else:
+            cutflow_dict['two higges'] = len(ak_array)
 
-    #     if verbose:
-    #         log.info('two higges: {}'.format(cutflow_dict['two higges']))
+        if verbose:
+            log.info('two higges: {}'.format(cutflow_dict['two higges']))
 
     # build the selected taus container (simple truth matching selection)
     if truth_based:

@@ -4,7 +4,7 @@ import awkward as ak
 import numpy as np
 from keras.models import load_model
 from argparse import ArgumentParser
-from bbtautau import log; log = log.getChild('fitter')
+from bbtautau import log; log = log.getChild('compare')
 
 if __name__ == '__main__':
 
