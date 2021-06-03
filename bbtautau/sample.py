@@ -130,7 +130,8 @@ class sample(object):
                 _idx = _hist.axis().labels().index('sumOfWeights initial')
                 _sow_dsid.append(_hist.values()[_idx])
             _sow[_dsid] = sum(_sow_dsid)
-
+            log.info('\t {}: s-o-w = {}'.format(
+                _dsid, _sow[_dsid]))
         log.info('sample {}, using files:'.format(self.name))
         for _dsid in self._dsids:
             for _f in _paths[_dsid]['tree']:
