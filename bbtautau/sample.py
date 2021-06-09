@@ -11,7 +11,7 @@ _XSEC_FILTER_KFAC = {
     600024: {'xsec': 0.58383, 'filter': 0.13638, 'kfactor': 1.},
     # 600024: {'xsec': , 'filter': , 'kfactor': },
 }
-    
+
 
 
 class sample(object):
@@ -21,7 +21,7 @@ class sample(object):
             name,
             title,
             color,
-            dsid, 
+            dsid,
             path,
             tree='CollectionTree',
             metadata='MetaData_EventCount'):
@@ -52,13 +52,13 @@ class sample(object):
     @property
     def color(self):
         return self._color
-    
+
     @property
     def ak_array(self):
         if not isinstance(self._ak_array, ak.Array):
             self._open()
         return self._ak_array
-        
+
     @property
     def fold_0_array(self):
         return self._fold_0_array
@@ -136,7 +136,7 @@ class sample(object):
                 self._ak_array = _ak_array
             else:
                 self._ak_array = ak.concatenate([self._ak_array, _ak_array])
-                
+
     def process(self, max_files=None, **kwargs):
         from .selector import _select
         if self._ak_array == None:

@@ -22,7 +22,7 @@ if __name__ == '__main__':
     dihiggs_01.process(verbose=True, max_files=max_files)
     dihiggs_10.process(verbose=True, max_files=max_files)
     log.info('..done')
-    
+
     log.info('plotting')
     test_target_HH_01 = ak.flatten(true_mhh(dihiggs_01.fold_1_array))
 
@@ -33,6 +33,7 @@ if __name__ == '__main__':
 
     mmc_01, mhh_01 = mmc(dihiggs_01.fold_1_array)
     mmc_10, mhh_10 = mmc(dihiggs_10.fold_1_array)
+
     signal_pred_target_comparison(
         mhh_10, mhh_01,
         test_target_HH_10, test_target_HH_01,

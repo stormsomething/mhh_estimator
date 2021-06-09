@@ -25,7 +25,7 @@ if __name__ == '__main__':
     dihiggs_01.process(verbose=True, max_files=max_files)
     dihiggs_10.process(verbose=True, max_files=max_files)
     log.info('..done')
-    
+
     log.info('loading regressor weights')
     scikit = joblib.load(os.path.join('cache', args.scikit))
     keras = load_model(os.path.join('cache', args.keras))
@@ -47,25 +47,34 @@ if __name__ == '__main__':
             keras_HH_10, (keras_HH_10.shape[0], ))
     test_target_HH_10 = ak.flatten(true_mhh(dihiggs_10.fold_1_array))
 
-    
+
     from bbtautau.plotting import compare_ml
     if args.include_mmc:
         from bbtautau.mmc import mmc
         mmc_01, mhh_mmc_01 = mmc(dihiggs_01.fold_1_array)
         mmc_10, mhh_mmc_10 = mmc(dihiggs_10.fold_1_array)
-    # 
-    compare_ml(
+
+    eff_10 = compare_ml(
         scikit_HH_10,
         keras_HH_10,
         test_target_HH_10,
         dihiggs_10,
         mmc=mhh_mmc_10 if args.include_mmc else None)
 
-    compare_ml(
+    eff_01 = compare_ml(
         scikit_HH_01,
         keras_HH_01,
         test_target_HH_01,
         dihiggs_01,
         mmc=mhh_mmc_01 if args.include_mmc else None)
 
+    from bbtautau.plotting import roc_plot
+    roc_plot(eff_01, eff_10)
 
+    from bbtautau.plotting import avg_mhh_calculation
+    avg_mhh_01 = avg_mhh_calculation(dihiggs_01, test_target_HH_01, scikit_HH_01, keras_HH_01, mhh_mmc_01 if args.include_mmc else None)
+    avg_mhh_10 = avg_mhh_calculation(dihiggs_10, test_target_HH_10, scikit_HH_10, keras_HH_10, mhh_mmc_10 if args.include_mmc else None)
+
+    from bbtautau.plotting import avg_mhh_plot
+    avg_mhh_plot(avg_mhh_01, 'pileup_stability_HH_01', dihiggs_01, 1)
+    avg_mhh_plot(avg_mhh_10, 'pileup_stability_HH_10', dihiggs_10, 10)
