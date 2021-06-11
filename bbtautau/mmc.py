@@ -19,7 +19,7 @@ def mmc(ak_array):
             evt['taus']['pt'][1] / 1000.,
             evt['taus']['eta'][1],
             evt['taus']['phi'][1],
-            evt['EventInfo___NominalAuxDyn.eventNumber'])
+            evt['EventInfo___NominalAuxDyn']['eventNumber'])
         b_1 = ROOT.TLorentzVector()
         b_1.SetPtEtaPhiM(
             evt['bjets']['pt'][0] / 1000.,

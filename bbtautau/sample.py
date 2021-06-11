@@ -136,33 +136,73 @@ class sample(object):
         for _dsid in self._dsids:
             for _f in _paths[_dsid]['tree']:
                  log.info('\t' + _f)
+
         # use uproot.concatenate (for now)
+        _ak_arrays = []
         for _dsid in self._dsids:
             log.info('adding ' + str(_dsid))
-            _ak_array = uproot.concatenate(
-                    _paths[_dsid]['tree'], EVT_FIELDS, how='zip', num_workers=4)
-            _ak_array_truth = uproot.concatenate(
-                    _paths[_dsid]['tree'], TRUTH_FIELDS, how='zip', num_workers=4)
-            _ak_array_tau = uproot.concatenate(
-                    _paths[_dsid]['tree'], TAU_FIELDS, how='zip', num_workers=4)
-            _ak_array_bjets = uproot.concatenate(
-                    _paths[_dsid]['tree'], BJETS_FIELDS, how='zip', num_workers=4)
-            _ak_array_met = uproot.concatenate(
-                    _paths[_dsid]['tree'], MET_FIELDS, how='zip', num_workers=4)
-            _ak_array['TauJets___NominalAuxDyn'] = _ak_array_tau['TauJets___NominalAuxDyn']
-            _ak_array['TruthParticles___NominalAuxDyn'] = _ak_array_truth['TruthParticles___NominalAuxDyn']
-            _ak_array['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn'] = _ak_array_bjets['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn']
-            _ak_array['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn'] = _ak_array_met['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']
-            _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
-            _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
-            _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
-            _pred *= LUMI
-            _pred /= _sow[_dsid]
-            _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
-            if not isinstance(self._ak_array, ak.Array):
-                self._ak_array = _ak_array
-            else:
-                self._ak_array = ak.concatenate([self._ak_array, _ak_array])
+            # _ak_array = uproot.concatenate(_paths[_dsid]['tree'], FIELDS, num_workers=4)
+            for _ak_array in uproot.iterate(_paths[_dsid]['tree'], FIELDS, step_size=10000):
+                print(_ak_array)
+                _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
+                _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
+                _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
+                _pred *= LUMI
+                _pred /= _sow[_dsid]
+                
+                _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
+                _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
+                _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
+                _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
+                
+                _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
+                _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
+                _ak_array = ak.zip({
+                    'EventInfo___NominalAuxDyn': _ak_evt,
+                    'TruthParticles___NominalAuxDyn': _ak_truth,
+                    'TauJets___NominalAuxDyn': _ak_tau,
+                    'AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn': _ak_bjets,
+                'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn': _ak_met,
+                }, depth_limit=1)
+                
+                _ak_arrays += [_ak_array]
+            # for _ak_array in uproot.iterate(_paths[_dsid]['tree'], FIELDS, how='zip'):
+            #     print(_ak_array.fields)
+            #     _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
+            #     _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
+            #     _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
+            #     _pred *= LUMI
+            #     _pred /= _sow[_dsid]
+            #     _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
+            #     _ak_arrays += [_ak_array]
+        log.info('concatenating into a single array')
+        if not isinstance(self._ak_array, ak.Array):
+            self._ak_array = ak.concatenate(_ak_arrays)
+            
+            # _ak_array = uproot.concatenate(
+            #         _paths[_dsid]['tree'], EVT_FIELDS, how='zip', num_workers=4)
+            # _ak_array_truth = uproot.concatenate(
+            #         _paths[_dsid]['tree'], TRUTH_FIELDS, how='zip', num_workers=4)
+            # _ak_array_tau = uproot.concatenate(
+            #         _paths[_dsid]['tree'], TAU_FIELDS, how='zip', num_workers=4)
+            # _ak_array_bjets = uproot.concatenate(
+            #         _paths[_dsid]['tree'], BJETS_FIELDS, how='zip', num_workers=4)
+            # _ak_array_met = uproot.concatenate(
+            #         _paths[_dsid]['tree'], MET_FIELDS, how='zip', num_workers=4)
+            # _ak_array['TauJets___NominalAuxDyn'] = _ak_array_tau['TauJets___NominalAuxDyn']
+            # _ak_array['TruthParticles___NominalAuxDyn'] = _ak_array_truth['TruthParticles___NominalAuxDyn']
+            # _ak_array['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn'] = _ak_array_bjets['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn']
+            # _ak_array['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn'] = _ak_array_met['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']
+            # _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
+            # _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
+            # _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
+            # _pred *= LUMI
+            # _pred /= _sow[_dsid]
+            # _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
+            # if not isinstance(self._ak_array, ak.Array):
+            #     self._ak_array = _ak_array
+            # else:
+            #     self._ak_array = ak.concatenate([self._ak_array, _ak_array])
                 
     def process(self, max_files=None, **kwargs):
         from .selector import _select
