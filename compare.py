@@ -13,17 +13,20 @@ if __name__ == '__main__':
     parser.add_argument('--scikit', default='latest_scikit.clf')
     parser.add_argument('--keras', default='latest_keras.h5')
     parser.add_argument('--include-mmc', default=False, action='store_true')
+    parser.add_argument('--use-cache', default=False, action='store_true')
     args = parser.parse_args()
 
     # use all root files by default
     max_files = None
     if args.debug:
         max_files = 1
+        if args.use_cache:
+            log.info('N(files) limit is irrelevant with the cache')
 
     log.info('loading samples ..')
     from bbtautau.database import dihiggs_01, dihiggs_10
-    dihiggs_01.process(verbose=True, max_files=max_files)
-    dihiggs_10.process(verbose=True, max_files=max_files)
+    dihiggs_01.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
+    dihiggs_10.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
     log.info('..done')
     
     log.info('loading regressor weights')

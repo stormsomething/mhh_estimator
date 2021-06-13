@@ -1,6 +1,10 @@
 import uproot
 import awkward as ak
+import h5py
+import json
+import numpy as np
 import os
+import ROOT
 
 from .fields import *
 from .luminosity import LUMI
@@ -139,75 +143,70 @@ class sample(object):
 
         # use uproot.concatenate (for now)
         _ak_arrays = []
+        _watch = ROOT.TStopwatch()
         for _dsid in self._dsids:
             log.info('adding ' + str(_dsid))
-            # _ak_array = uproot.concatenate(_paths[_dsid]['tree'], FIELDS, num_workers=4)
-            for _ak_array in uproot.iterate(_paths[_dsid]['tree'], FIELDS, step_size=10000):
-                print(_ak_array)
-                _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
-                _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
-                _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
-                _pred *= LUMI
-                _pred /= _sow[_dsid]
-                
-                _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
-                _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
-                _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
-                _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
-                
-                _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
-                _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
-                _ak_array = ak.zip({
-                    'EventInfo___NominalAuxDyn': _ak_evt,
-                    'TruthParticles___NominalAuxDyn': _ak_truth,
-                    'TauJets___NominalAuxDyn': _ak_tau,
-                    'AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn': _ak_bjets,
+            _watch.Print()
+            _watch.Start()
+            _ak_array = uproot.concatenate(_paths[_dsid]['tree'], filter_name=lambda l: l in FIELDS)
+            print (_ak_array)
+            _watch.Print()
+            _watch.Start()
+            _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
+            _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
+            _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
+            _pred *= LUMI
+            _pred /= _sow[_dsid]
+            
+            _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
+            _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
+            _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
+            _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
+            
+            _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
+            _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
+            _ak_array = ak.zip({
+                'EventInfo___NominalAuxDyn': _ak_evt,
+                'TruthParticles___NominalAuxDyn': _ak_truth,
+                'TauJets___NominalAuxDyn': _ak_tau,
+                'AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn': _ak_bjets,
                 'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn': _ak_met,
-                }, depth_limit=1)
-                
-                _ak_arrays += [_ak_array]
-            # for _ak_array in uproot.iterate(_paths[_dsid]['tree'], FIELDS, how='zip'):
-            #     print(_ak_array.fields)
-            #     _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
-            #     _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
-            #     _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
-            #     _pred *= LUMI
-            #     _pred /= _sow[_dsid]
-            #     _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
-            #     _ak_arrays += [_ak_array]
+            }, depth_limit=1)
+            _ak_arrays += [_ak_array]
+            
         log.info('concatenating into a single array')
         if not isinstance(self._ak_array, ak.Array):
             self._ak_array = ak.concatenate(_ak_arrays)
             
-            # _ak_array = uproot.concatenate(
-            #         _paths[_dsid]['tree'], EVT_FIELDS, how='zip', num_workers=4)
-            # _ak_array_truth = uproot.concatenate(
-            #         _paths[_dsid]['tree'], TRUTH_FIELDS, how='zip', num_workers=4)
-            # _ak_array_tau = uproot.concatenate(
-            #         _paths[_dsid]['tree'], TAU_FIELDS, how='zip', num_workers=4)
-            # _ak_array_bjets = uproot.concatenate(
-            #         _paths[_dsid]['tree'], BJETS_FIELDS, how='zip', num_workers=4)
-            # _ak_array_met = uproot.concatenate(
-            #         _paths[_dsid]['tree'], MET_FIELDS, how='zip', num_workers=4)
-            # _ak_array['TauJets___NominalAuxDyn'] = _ak_array_tau['TauJets___NominalAuxDyn']
-            # _ak_array['TruthParticles___NominalAuxDyn'] = _ak_array_truth['TruthParticles___NominalAuxDyn']
-            # _ak_array['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn'] = _ak_array_bjets['AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn']
-            # _ak_array['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn'] = _ak_array_met['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']
-            # _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
-            # _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
-            # _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
-            # _pred *= LUMI
-            # _pred /= _sow[_dsid]
-            # _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
-            # if not isinstance(self._ak_array, ak.Array):
-            #     self._ak_array = _ak_array
-            # else:
-            #     self._ak_array = ak.concatenate([self._ak_array, _ak_array])
                 
-    def process(self, max_files=None, **kwargs):
-        from .selector import _select
-        if self._ak_array == None:
+    def process(self, max_files=None, use_cache=False, **kwargs):
+        if use_cache:
+            self._ak_array = self.load_from_cache()
+
+        if not isinstance(self._ak_array, ak.Array):
             self._open(max_files=max_files)
+
+        from .selector import _select
         self._ak_array = _select(self._ak_array, **kwargs)
         from .utils import train_test_split
         self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
+
+    def load_from_cache(self):
+        log.warning('loading awkward array from cache!')
+        log.warning('use at your own risk!')
+
+        _file_name = os.path.join(
+            'cache',
+            '{}.h5'.format(self._name))
+        if not os.path.exists(_file_name):
+            log.error('{} does not exist!'.format(_file_name))
+            return None
+
+        h5file = h5py.File(_file_name)
+        group = h5file['awkward']
+        reconstituted = ak.from_buffers(
+            ak.forms.Form.fromjson(group.attrs["form"]),
+            json.loads(group.attrs["length"]),
+            {k: np.asarray(v) for k, v in group.items()},
+        )
+        return reconstituted
