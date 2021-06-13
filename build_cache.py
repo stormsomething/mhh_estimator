@@ -18,13 +18,24 @@ if __name__ == '__main__':
 
     from bbtautau.database import dihiggs_01, dihiggs_10, ztautau
 
+    # signal
     for sample in [
             dihiggs_01,
             dihiggs_10,
-            ztautau,
     ]:
         log.info('building cache for {}'.format(sample.name))
         sample.process()
+        _file_name = os.path.join(
+            'cache',
+            '{}.h5'.format(sample.name))
+        _array_to_hdf5(sample.ak_array, _file_name)
+
+    # background
+    for sample in [
+            ztautau,
+    ]:
+        log.info('building cache for {}'.format(sample.name))
+        sample.process(is_signal=False)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
