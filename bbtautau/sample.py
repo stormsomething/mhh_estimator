@@ -149,7 +149,6 @@ class sample(object):
             _watch.Print()
             _watch.Start()
             _ak_array = uproot.concatenate(_paths[_dsid]['tree'], filter_name=lambda l: l in FIELDS)
-            print (_ak_array)
             _watch.Print()
             _watch.Start()
             _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
@@ -158,13 +157,14 @@ class sample(object):
             _pred *= LUMI
             _pred /= _sow[_dsid]
             
-            _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
-            _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
-            _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
-            _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
-            
             _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
             _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
+
+            _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
+            _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
+            _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
+            _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
+            
             _ak_array = ak.zip({
                 'EventInfo___NominalAuxDyn': _ak_evt,
                 'TruthParticles___NominalAuxDyn': _ak_truth,
