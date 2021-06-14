@@ -352,7 +352,7 @@ def roc_plot(eff_01, eff_10):
 
 def avg_mhh_calculation(dihiggs, truth, scikit, keras, mmc):
 
-    avg_mu = dihiggs.fold_1_array['EventInfo___NominalAuxDyn.CorrectedAndScaledAvgMu']
+    avg_mu = dihiggs.fold_1_array['EventInfo___NominalAuxDyn']['CorrectedAndScaledAvgMu']
 
     avg_mhh_truth = []
     mhh_truth_sem = []
