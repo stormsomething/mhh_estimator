@@ -31,4 +31,6 @@ FIELDS = [
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.mpx',
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.mpy',
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.sumet',
+    'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.metSig',
+    'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.metSig_PU',
 ]

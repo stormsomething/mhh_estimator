@@ -3,7 +3,7 @@ import joblib
 import awkward as ak
 import numpy as np
 from argparse import ArgumentParser
-from bbtautau.utils import true_mhh, features_table
+from bbtautau.utils import true_mhh, m_ratio, features_table, transv_m
 from bbtautau import log; log = log.getChild('fitter')
 
 if __name__ == '__main__':
@@ -25,14 +25,14 @@ if __name__ == '__main__':
     dihiggs_01.process(verbose=True, max_files=max_files)
     dihiggs_10.process(verbose=True, max_files=max_files)
     log.info('..done')
-    
+
     if not args.fit:
         log.info('loading regressor weights')
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
             from keras.models import load_model
-            regressor = load_model('cache/latest_keras.h5')
+            regressor = load_model('cache/my_keras_training.h5')
             regressor.summary()
         else:
             pass
@@ -71,72 +71,114 @@ if __name__ == '__main__':
                     random_state=0,
                     loss='ls',
                     verbose=True)
-                
+
                 log.info('fitting')
                 regressor.fit(train_features, train_target)
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
-            from bbtautau.models import keras_model
-            regressor = keras_model((train_features.shape[1],))
-            _epochs = 200
-            _filename = 'cache/latest_keras.h5'
-            from keras.callbacks import EarlyStopping, ModelCheckpoint
-            from sklearn.model_selection import train_test_split
-            X_train, X_test, y_train, y_test = train_test_split(
-                train_features, train_target, test_size=0.1, random_state=42)
-            y_train = ak.to_numpy(y_train)
-            y_test = ak.to_numpy(y_test)
-            try:
-                regressor.compile(loss='mean_squared_error', optimizer='adam', metrics=['mse', 'mae'])
-                history = regressor.fit(
-                    X_train, y_train,
-                    epochs=_epochs,
-                    batch_size=50,
-                    shuffle=True,
-                    # validation_split=0.1,
-                    validation_data=(X_test, y_test),
-                    callbacks=[
-                        EarlyStopping(verbose=True, patience=20, monitor='val_loss'),
-                        ModelCheckpoint(
-                            _filename, monitor='val_loss', 
-                            verbose=True, save_best_only=True)
-                    ])
-                regressor.save(_filename)
-                from bbtautau.plotting import nn_history
-                for k in history.history.keys():
-                    if 'val' in k:
-                        continue
-                    nn_history(history, metric=k)
-                    
-            except KeyboardInterrupt:
-                log.info('Ended early..')
+            from bbtautau.models import keras_model_2
+            LSTM_layer_units = 48
+            val_loss = []
+            while (LSTM_layer_units <= 128):
+                regressor = keras_model_2((train_features.shape[1],))
+                _epochs = 200
+                _filename = 'cache/my_keras_training.h5'
+                from keras.callbacks import EarlyStopping, ModelCheckpoint
+                from sklearn.model_selection import train_test_split
+                from keras.optimizers import Adam
+                X_train, X_test, y_train, y_test = train_test_split(
+                    train_features, train_target, test_size=0.1, random_state=42)
+                y_train = ak.to_numpy(y_train)
+                y_test = ak.to_numpy(y_test)
+                try:
+                    rate = 0.001
+                    batch_size = 64 # this combination of rate and batch_size seems to be best!
+                    # val_loss = []
+                    while (batch_size <= 182):
+                        #print(batch_size)
+                        #print(val_loss)
+                        adam = Adam(learning_rate = rate)
+                        regressor.compile(loss='mean_squared_error', optimizer=adam, metrics=['mse', 'mae'])
+                        history = regressor.fit(
+                            X_train, y_train,
+                            epochs=_epochs,
+                            batch_size=batch_size,
+                            shuffle=True,
+                            # validation_split=0.1,
+                            validation_data=(X_test, y_test),
+                            callbacks=[
+                                EarlyStopping(verbose=True, patience=20, monitor='val_loss'),
+                                ModelCheckpoint(
+                                    _filename, monitor='val_loss',
+                                    verbose=True, save_best_only=True)
+                            ])
+                        regressor.save(_filename)
+                        from bbtautau.plotting import nn_history
+                        for k in history.history.keys():
+                            if 'val' in k:
+                                continue
+                            nn_history(history, metric=k)
+                        val_loss.append(min(history.history['val_loss']))
+                        batch_size = batch_size + 1000 # to only make the loop go only one time
+
+                        log.info('plotting')
+                        features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
+                        predictions_HH_01 = regressor.predict(features_test_HH_01)
+                        test_target_HH_01 = ak.flatten(true_mhh(dihiggs_01.fold_1_array))
+
+                        features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
+                        predictions_HH_10 = regressor.predict(features_test_HH_10)
+                        test_target_HH_10 = ak.flatten(true_mhh(dihiggs_10.fold_1_array))
+
+                        if args.library == 'keras':
+                            predictions_HH_01 = np.reshape(
+                                predictions_HH_01, (predictions_HH_01.shape[0], ))
+                            predictions_HH_10 = np.reshape(
+                                predictions_HH_10, (predictions_HH_10.shape[0], ))
+
+                        from bbtautau.plotting import signal_pred_target_comparison, signal_features
+
+                        signal_pred_target_comparison(
+                            predictions_HH_10, predictions_HH_01,
+                            test_target_HH_10, test_target_HH_01,
+                            dihiggs_10, dihiggs_01, str(LSTM_layer_units) + '_LSTM',
+                            regressor=args.library)
+
+                except KeyboardInterrupt:
+                    log.info('Ended early..')
+
+                LSTM_layer_units = LSTM_layer_units + 1000 # to make the loop go only one time
+
         else:
             pass
-            
 
-    log.info('plotting')
-    features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
-    predictions_HH_01 = regressor.predict(features_test_HH_01)
-    test_target_HH_01 = ak.flatten(true_mhh(dihiggs_01.fold_1_array))
+        #log.info('plotting')
+        #features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
+        #predictions_HH_01 = regressor.predict(features_test_HH_01)
+        #_transv_m_01 = transv_m(dihiggs_01.fold_1_array)
+        #predictions_HH_01 = predictions_HH_01 * _transv_m_01
+        #test_target_HH_01 = ak.flatten(true_mhh(dihiggs_01.fold_1_array))
 
-    features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
-    predictions_HH_10 = regressor.predict(features_test_HH_10)
-    test_target_HH_10 = ak.flatten(true_mhh(dihiggs_10.fold_1_array))
-
-    if args.library == 'keras':
-        predictions_HH_01 = np.reshape(
-            predictions_HH_01, (predictions_HH_01.shape[0], ))
-        predictions_HH_10 = np.reshape(
-            predictions_HH_10, (predictions_HH_10.shape[0], ))
-    
-    from bbtautau.plotting import signal_pred_target_comparison, signal_features
-    # 
-    signal_pred_target_comparison(
-        predictions_HH_10, predictions_HH_01,
-        test_target_HH_10, test_target_HH_01,
-        dihiggs_10, dihiggs_01,
-        regressor=args.library)
-    # 
-    signal_features(dihiggs_01, dihiggs_10)
+        #features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
+        #predictions_HH_10 = regressor.predict(features_test_HH_10)
+        #_transv_m_10 = transv_m(dihiggs_10.fold_1_array)
+        #predictions_HH_10 = predictions_HH_10 * _transv_m_10
+        #test_target_HH_10 = ak.flatten(true_mhh(dihiggs_10.fold_1_array))
 
 
+
+        #if args.library == 'keras':
+        #    predictions_HH_01 = np.reshape(
+        #        predictions_HH_01, (predictions_HH_01.shape[0], ))
+        #    predictions_HH_10 = np.reshape(
+        #        predictions_HH_10, (predictions_HH_10.shape[0], ))
+
+        #from bbtautau.plotting import signal_pred_target_comparison, signal_features
+
+        #signal_pred_target_comparison(
+        #    predictions_HH_10, predictions_HH_01,
+        #    test_target_HH_10, test_target_HH_01,
+        #    dihiggs_10, dihiggs_01, 'final_plot',
+        #    regressor=args.library)
+
+        #signal_features(dihiggs_01, dihiggs_10)
