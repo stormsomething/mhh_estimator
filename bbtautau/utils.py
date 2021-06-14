@@ -32,8 +32,10 @@ def features_table(ak_array):
 
 
 def train_test_split(ak_array, modulus=3):
-    _train = ak_array[ak_array['EventInfo___NominalAuxDyn.eventNumber'] % modulus != 0]
-    _test  = ak_array[ak_array['EventInfo___NominalAuxDyn.eventNumber'] % modulus == 0]
+    _train = ak_array[ak_array['EventInfo___NominalAuxDyn']['eventNumber'] % modulus != 0]
+    _test  = ak_array[ak_array['EventInfo___NominalAuxDyn']['eventNumber'] % modulus == 0]
+    _train['fold_weight'] = float(modulus) / float(modulus - 1) 
+    _test['fold_weight'] = float(modulus) 
     return _train, _test
 
 
