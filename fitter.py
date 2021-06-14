@@ -13,17 +13,20 @@ if __name__ == '__main__':
     parser.add_argument('--library', default='scikit', choices=['scikit', 'keras'])
     parser.add_argument('--fit', default=False, action='store_true')
     parser.add_argument('--gridsearch', default=False, action='store_true')
+    parser.add_argument('--use-cache', default=False, action='store_true')
     args = parser.parse_args()
 
     # use all root files by default
     max_files = None
     if args.debug:
         max_files = 1
-
+        if args.use_cache:
+            log.info('N(files) limit is irrelevant with the cache')
+        
     log.info('loading samples ..')
     from bbtautau.database import dihiggs_01, dihiggs_10
-    dihiggs_01.process(verbose=True, max_files=max_files)
-    dihiggs_10.process(verbose=True, max_files=max_files)
+    dihiggs_01.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
+    dihiggs_10.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
     log.info('..done')
 
     if not args.fit:

@@ -1,15 +1,32 @@
 import uproot
 import awkward as ak
+import h5py
+import json
+import numpy as np
 import os
+import ROOT
 
-from .fields import FIELDS
+from .fields import *
 from .luminosity import LUMI
 from . import log; log = log.getChild(__name__)
 
 _XSEC_FILTER_KFAC = {
     600023: {'xsec': 0.027887, 'filter': 0.14537, 'kfactor': 1.},
     600024: {'xsec': 0.58383, 'filter': 0.13638, 'kfactor': 1.},
-    # 600024: {'xsec': , 'filter': , 'kfactor': },
+    364128: {'xsec': 1981.7, 'filter': 8.3449E-01, 'kfactor': 0.9751},
+    364129: {'xsec': 1981.7, 'filter': 1.0956E-01, 'kfactor': 0.9751},
+    364130: {'xsec': 1982.1, 'filter': 6.5757E-02, 'kfactor': 0.9751},
+    364131: {'xsec': 110.61, 'filter': 6.9266E-01, 'kfactor': 0.9751},
+    364132: {'xsec': 110.46, 'filter': 1.9060E-01, 'kfactor': 0.9751},
+    364133: {'xsec': 110.66, 'filter': 0.110886, 'kfactor': 0.9751},
+    364134: {'xsec': 40.756, 'filter': 6.1880E-01, 'kfactor': 0.9751},
+    364135: {'xsec': 40.716, 'filter': 2.3429E-01, 'kfactor': 0.9751},
+    364136: {'xsec': 40.746, 'filter': 1.5530E-01, 'kfactor': 0.9751},
+    364137: {'xsec': 8.6639, 'filter': 5.6340E-01, 'kfactor': 0.9751},
+    364138: {'xsec': 8.676, 'filter': 2.6433E-01, 'kfactor': 0.9751},
+    364139: {'xsec': 8.6795, 'filter': 1.7627E-01, 'kfactor': 0.9751},
+    364140: {'xsec': 1.8078, 'filter': 1., 'kfactor': 0.9751},
+    364141: {'xsec': 0.14826, 'filter': 1., 'kfactor': 0.9751},
 }
 
 
@@ -117,30 +134,79 @@ class sample(object):
                 _idx = _hist.axis().labels().index('sumOfWeights initial')
                 _sow_dsid.append(_hist.values()[_idx])
             _sow[_dsid] = sum(_sow_dsid)
-
+            log.info('\t {}: s-o-w = {}'.format(
+                _dsid, _sow[_dsid]))
         log.info('sample {}, using files:'.format(self.name))
         for _dsid in self._dsids:
             for _f in _paths[_dsid]['tree']:
                  log.info('\t' + _f)
+
         # use uproot.concatenate (for now)
+        _ak_arrays = []
+        _watch = ROOT.TStopwatch()
         for _dsid in self._dsids:
-            _ak_array = uproot.concatenate(
-                    _paths[_dsid]['tree'], FIELDS, how='zip')
+            log.info('adding ' + str(_dsid))
+            _watch.Print()
+            _watch.Start()
+            _ak_array = uproot.concatenate(_paths[_dsid]['tree'], filter_name=lambda l: l in FIELDS)
+            _watch.Print()
+            _watch.Start()
             _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
             _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
             _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
             _pred *= LUMI
             _pred /= _sow[_dsid]
-            _ak_array['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
-            if not isinstance(self._ak_array, ak.Array):
-                self._ak_array = _ak_array
-            else:
-                self._ak_array = ak.concatenate([self._ak_array, _ak_array])
+            
+            _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
+            _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
 
-    def process(self, max_files=None, **kwargs):
-        from .selector import _select
-        if self._ak_array == None:
+            _ak_truth = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TRUTH_FIELDS})
+            _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
+            _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
+            _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
+            
+            _ak_array = ak.zip({
+                'EventInfo___NominalAuxDyn': _ak_evt,
+                'TruthParticles___NominalAuxDyn': _ak_truth,
+                'TauJets___NominalAuxDyn': _ak_tau,
+                'AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn': _ak_bjets,
+                'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn': _ak_met,
+            }, depth_limit=1)
+            _ak_arrays += [_ak_array]
+            
+        log.info('concatenating into a single array')
+        if not isinstance(self._ak_array, ak.Array):
+            self._ak_array = ak.concatenate(_ak_arrays)
+            
+                
+    def process(self, max_files=None, use_cache=False, **kwargs):
+        if use_cache:
+            self._ak_array = self.load_from_cache()
+
+        if not isinstance(self._ak_array, ak.Array):
             self._open(max_files=max_files)
+
+        from .selector import _select
         self._ak_array = _select(self._ak_array, **kwargs)
         from .utils import train_test_split
         self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
+
+    def load_from_cache(self):
+        log.warning('loading awkward array from cache!')
+        log.warning('use at your own risk!')
+
+        _file_name = os.path.join(
+            'cache',
+            '{}.h5'.format(self._name))
+        if not os.path.exists(_file_name):
+            log.error('{} does not exist!'.format(_file_name))
+            return None
+
+        h5file = h5py.File(_file_name)
+        group = h5file['awkward']
+        reconstituted = ak.from_buffers(
+            ak.forms.Form.fromjson(group.attrs["form"]),
+            json.loads(group.attrs["length"]),
+            {k: np.asarray(v) for k, v in group.items()},
+        )
+        return reconstituted
