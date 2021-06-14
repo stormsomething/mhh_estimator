@@ -4,6 +4,7 @@ FIELDS = [
     'EventInfo___NominalAuxDyn.MCEventWeight',
     'EventInfo___NominalAuxDyn.eventNumber',
     'EventInfo___NominalAuxDyn.mcChannelNumber',
+    'EventInfo___NominalAuxDyn.CorrectedAndScaledAvgMu',
     # truth
     'TruthParticles___NominalAuxDyn.pdgId',
     'TruthParticles___NominalAuxDyn.px',

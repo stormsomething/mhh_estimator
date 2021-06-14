@@ -1,7 +1,7 @@
 import os
 from .sample import sample
 
-DEFAULT_PATH = '/Users/quentin/bbtautau_mhh/data/'
+DEFAULT_PATH = '/Users/jvbackus/data'
 PATH = os.getenv("CXAOD_PATH", DEFAULT_PATH)
 
 dihiggs_01 = sample(
