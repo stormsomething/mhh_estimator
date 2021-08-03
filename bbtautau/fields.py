@@ -15,6 +15,7 @@ TRUTH_FIELDS = [
     'TruthParticles___NominalAuxDyn.py',
     'TruthParticles___NominalAuxDyn.pz',
     'TruthParticles___NominalAuxDyn.e',
+    'TruthParticles___NominalAuxDyn.status'
     ]
 TAU_FIELDS = [
     # taus
@@ -42,7 +43,6 @@ MET_FIELDS = [
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.mpy',
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.sumet',
     'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.metSig',
-    'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn.metSig_PU',
 ]
 
 FIELDS = EVT_FIELDS + TRUTH_FIELDS + TAU_FIELDS + BJETS_FIELDS + MET_FIELDS
