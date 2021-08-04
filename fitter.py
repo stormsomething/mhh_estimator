@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
         dihiggs_01_fold_0_array = clean_samples(dihiggs_01.fold_0_array, deletions_HH_01)
         dihiggs_10_fold_0_array = clean_samples(dihiggs_10.fold_0_array, deletions_HH_10)
-        ztautau_fold_0_array = clean_samples(ztautau.fold_0_aarray, deletions_ztautau)
+        ztautau_fold_0_array = clean_samples(ztautau.fold_0_array, deletions_ztautau)
         ttbar_fold_0_array = clean_samples(ttbar.fold_0_array, deletions_ttbar)
 
         dihiggs_01_vis_mass = visable_mass(dihiggs_01_fold_0_array, 'dihiggs_01')
@@ -245,15 +245,15 @@ if __name__ == '__main__':
     predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
     predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
 
-    mmc_HH_01, mhh_mmc_01 = mmc(dihiggs_01_fold_1_array)
-    mmc_HH_10, mhh_mmc_10 = mmc(dihiggs_10_fold_1_array)
+    mmc_HH_01, mhh_mmc_HH_01 = mmc(dihiggs_01_fold_1_array)
+    mmc_HH_10, mhh_mmc_HH_10 = mmc(dihiggs_10_fold_1_array)
     mmc_ztautau, mhh_mmc_ztautau = mmc(ztautau_fold_1_array)
     mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar_fold_1_array)
 
-    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01_fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mmc_HH_01)
-    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10_fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mmc_HH_10)
-    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau_fold_1_array, 'ztautau', args.library, predictions_mmc = mmc_ztautau)
-    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar_fold_1_array, 'ttbar', args.library, predictions_mmc = mmc_ttbar)
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01_fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10_fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau_fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar_fold_1_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
 
     # Chi-Square calculations
     #HH_01_bkg_hist_rnn, HH_10_bkg_hist_rnn = chi_square_test(predictions_HH_01, predictions_HH_10, predictions_ztautau, predictions_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, 'RNN', 10, 10)
@@ -272,7 +272,7 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
 
     # Pile-up stability of the signal
-    avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01_fold_1_array, test_target_HH_01, predictions_HH_01, mmc_HH_01)
-    avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10_fold_1_array, test_target_HH_10, predictions_HH_10, mmc_HH_10)
+    avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01_fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
+    avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10_fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
