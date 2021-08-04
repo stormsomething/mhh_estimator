@@ -74,10 +74,10 @@ if __name__ == '__main__':
     from bbtautau.plotting import roc_plot
     roc_plot(eff_01, eff_10)
 
-    from bbtautau.plotting import avg_mhh_calculation
-    avg_mhh_01 = avg_mhh_calculation(dihiggs_01, test_target_HH_01, scikit_HH_01, keras_HH_01, mhh_mmc_01 if args.include_mmc else None)
-    avg_mhh_10 = avg_mhh_calculation(dihiggs_10, test_target_HH_10, scikit_HH_10, keras_HH_10, mhh_mmc_10 if args.include_mmc else None)
+    # these lines are used to demonstrate pile-up stability and currently do not include scikit
+    from bbtautau.plotting import avg_mhh_calculation, avg_mhh_plot
+    avg_HH_01 = avg_mhh_calculation(dihiggs_01, test_target_HH_01, keras_HH_01, mhh_mmc_01 if args.include_mmc else None)
+    avg_HH_10 = avg_mhh_calculation(dihiggs_10, test_target_HH_10, keras_HH_10, mhh_mmc_10 if args.include_mmc else None)
 
-    from bbtautau.plotting import avg_mhh_plot
-    avg_mhh_plot(avg_mhh_01, 'pileup_stability_HH_01', dihiggs_01, 1)
-    avg_mhh_plot(avg_mhh_10, 'pileup_stability_HH_10', dihiggs_10, 10)
+    avg_mhh_plot(avg_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
+    avg_mhh_plot(avg_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)

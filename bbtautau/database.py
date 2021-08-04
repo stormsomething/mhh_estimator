@@ -17,7 +17,7 @@ dihiggs_10 = sample(
 ztautau = sample(
     'ztautau',
     r'$Z\to\tau\tau$ + jets',
-    'cyan',
+    'green',
     [
         364128,
         364129,
@@ -34,3 +34,25 @@ ztautau = sample(
         364140,
         364141,
         ], PATH)
+
+ttbar = sample(
+    'ttbar',
+    'Top Quark',
+    'orange',
+    [
+        410470,
+        410471,
+        410644,
+        410645,
+        410646,
+        410647,
+        410658,
+        410659,
+        ], PATH)
+
+MMC_HH_01 = sample(
+    'mmc_HH_01',
+    r'$HH \to bb\tau_{h}\tau_{h} (\kappa_{\lambda} = 1)$',
+    'purple',
+    None,
+    PATH)

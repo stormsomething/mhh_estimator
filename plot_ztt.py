@@ -23,71 +23,43 @@ if __name__ == '__main__':
         max_files = 1
 
     log.info('loading samples ..')
-    from bbtautau.database import ztautau
+    from bbtautau.database import ztautau, dihiggs_01, dihiggs_10
     ztautau.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
+    dihiggs_01.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
+    dihiggs_10.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
     log.info('..done')
-    
+
     log.info('loading regressor weights')
     scikit = joblib.load(os.path.join('cache', args.scikit))
     keras = load_model(os.path.join('cache', args.keras))
 
     from bbtautau.utils import features_table, true_mhh
     features_ztautau = features_table(ztautau.ak_array)
+    features_HH_01 = features_table(dihiggs_01.ak_array)
+    features_HH_10 = features_table(dihiggs_10.ak_array)
 
     scikit_ztautau = scikit.predict(features_ztautau)
+    scikit_dihiggs_01 = scikit.predict(features_HH_01)
+    scikit_dihiggs_10 = scikit.predict(features_HH_10)
     keras_ztautau = keras.predict(features_ztautau)
+    keras_dihiggs_01 = keras.predict(features_HH_01)
+    keras_dihiggs_10 = keras.predict(features_HH_10)
     keras_ztautau = np.reshape(
             keras_ztautau, (keras_ztautau.shape[0], ))
+    keras_dihiggs_01 = np.reshape(
+            keras_dihiggs_01, (keras_dihiggs_01.shape[0], ))
+    keras_dihiggs_10 = np.reshape(
+            keras_dihiggs_10, (keras_dihiggs_10.shape[0], ))
 
     if args.include_mmc:
         from bbtautau.mmc import mmc
         mmc_ztautau, mmc_mhh_ztautau = mmc(ztautau.ak_array)
+        mmc_dihiggs_01, mmc_mhh_dihiggs_01 = mmc(dihiggs_01.ak_array)
+        mmc_mhh_dihiggs_01 = mmc_mhh_dihiggs_01
+        mmc_dihiggs_10, mmc_mhh_dihiggs_10 = mmc(dihiggs_10.ak_array)
+        mmc_mhh_dihiggs_10 = mmc_mhh_dihiggs_10
     log.info('plotting')
 
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-    import mplhep as hep
-    hep.set_style("ATLAS") 
-
-    mpl.rc('font', **{'family':'serif','serif':['Palatino']})
-    mpl.rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
-    mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
-    fig = plt.figure()
-    plt.hist(
-        scikit_ztautau,
-        weights=ztautau.ak_array['EventInfo___NominalAuxDyn']['evtweight'],
-        label=ztautau.title + '(scikit)',
-        color='red',
-        bins=80,
-        range=(0, 1500),
-        linewidth=2,
-        histtype='step')
-    plt.hist(
-        keras_ztautau,
-        weights=ztautau.ak_array['EventInfo___NominalAuxDyn']['evtweight'],
-        label=ztautau.title + '(keras)',
-        color='blue',
-        bins=80,
-        range=(0, 1500),
-        linewidth=2,
-        histtype='step')
-    if args.include_mmc:
-        plt.hist(
-            mmc_mhh_ztautau,
-            weights=ztautau.ak_array['EventInfo___NominalAuxDyn']['evtweight'],
-            bins=80,
-            range=(0, 1500),
-            label=ztautau.title + '(mmc)',
-            color='green',
-            linestyle='solid',
-            linewidth=2,
-        histtype='step')
-        
-
-
-    plt.xlabel(r'$m_{hh}$ [GeV]')
-    plt.ylabel('Events')
-    plt.legend(fontsize='small', numpoints=3)
-    fig.savefig('plots/mhh_{}.pdf'.format(ztautau.name))
-    plt.close(fig)
-
+    from bbtautau.plotting import signal_ztt_distributions_overlay, signal_ztt_pt_overlay
+    signal_ztt_distributions_overlay(ztautau, dihiggs_01, dihiggs_10, scikit_ztautau, scikit_dihiggs_01, scikit_dihiggs_10, keras_ztautau, keras_dihiggs_01, keras_dihiggs_10, [mmc_ztautau, mmc_mhh_ztautau] if args.include_mmc else None, [mmc_dihiggs_01, mmc_mhh_dihiggs_01] if args.include_mmc else None, [mmc_dihiggs_10, mmc_mhh_dihiggs_10] if args.include_mmc else None)
+    signal_ztt_pt_overlay(ztautau, dihiggs_01, dihiggs_10)

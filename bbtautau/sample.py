@@ -27,6 +27,14 @@ _XSEC_FILTER_KFAC = {
     364139: {'xsec': 8.6795, 'filter': 1.7627E-01, 'kfactor': 0.9751},
     364140: {'xsec': 1.8078, 'filter': 1., 'kfactor': 0.9751},
     364141: {'xsec': 0.14826, 'filter': 1., 'kfactor': 0.9751},
+    410470: {'xsec': 729.77, 'filter': 5.4384E-01, 'kfactor': 1.13975636159},
+    410471: {'xsec': 729.78, 'filter': 4.5627E-01, 'kfactor': 1.13974074379},
+    410644: {'xsec': 2.027, 'filter': 1., 'kfactor': 1.0170},
+    410645: {'xsec': 1.2674, 'filter': 1., 'kfactor': 1.0167},
+    410646: {'xsec': 37.936, 'filter': 1., 'kfactor': 0.9450},
+    410647: {'xsec': 37.905, 'filter': 1., 'kfactor': 0.9457},
+    410658: {'xsec': 36.996, 'filter': 1., 'kfactor': 1.1935},
+    410659: {'xsec': 22.175, 'filter': 1., 'kfactor': 1.1849},
 }
 
 
@@ -156,7 +164,7 @@ class sample(object):
             _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']
             _pred *= LUMI
             _pred /= _sow[_dsid]
-            
+
             _ak_evt = ak.zip({f.split('.')[-1]: _ak_array[f] for f in EVT_FIELDS})
             _ak_evt['evtweight'] = _ak_array['EventInfo___NominalAuxDyn.MCEventWeight'] * _pred
 
@@ -164,7 +172,7 @@ class sample(object):
             _ak_tau = ak.zip({f.split('.')[-1]: _ak_array[f] for f in TAU_FIELDS})
             _ak_bjets = ak.zip({f.split('.')[-1]: _ak_array[f] for f in BJETS_FIELDS})
             _ak_met = ak.zip({f.split('.')[-1]: _ak_array[f] for f in MET_FIELDS})
-            
+
             _ak_array = ak.zip({
                 'EventInfo___NominalAuxDyn': _ak_evt,
                 'TruthParticles___NominalAuxDyn': _ak_truth,
@@ -173,23 +181,33 @@ class sample(object):
                 'MET_Reference_AntiKt4EMPFlow___NominalAuxDyn': _ak_met,
             }, depth_limit=1)
             _ak_arrays += [_ak_array]
-            
+
         log.info('concatenating into a single array')
         if not isinstance(self._ak_array, ak.Array):
             self._ak_array = ak.concatenate(_ak_arrays)
-            
-                
+
+
     def process(self, max_files=None, use_cache=False, **kwargs):
         if use_cache:
             self._ak_array = self.load_from_cache()
 
-        if not isinstance(self._ak_array, ak.Array):
+        if not isinstance(self._ak_array, ak.Array) and self._name != 'mmc_HH_01':
             self._open(max_files=max_files)
 
-        from .selector import _select
-        self._ak_array = _select(self._ak_array, **kwargs)
-        from .utils import train_test_split
-        self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
+        if self._name != 'mmc_HH_01':
+            from .selector import _select
+            self._ak_array = _select(self._ak_array, **kwargs)
+            from .utils import train_test_split
+            self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
+
+        if self._name == 'mmc_HH_01' and not use_cache:
+            from bbtautau.database import dihiggs_01
+            from bbtautau.utils import universal_true_mhh, clean_samples
+            from bbtautau.mmc import mmc
+            dihiggs_01.process(verbose=True, max_files=max_files, use_cache=True)
+            (test_target_HH_01, deletions_test_HH_01) = universal_true_mhh(dihiggs_01.fold_1_array, 'dihiggs_01', 'fold_1_array')
+            dihiggs_01_fold_1_array = clean_samples(dihiggs_01.fold_1_array, deletions_test_HH_01)
+            x, self._ak_array = mmc(dihiggs_01_fold_1_array)
 
     def load_from_cache(self):
         log.warning('loading awkward array from cache!')
