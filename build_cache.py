@@ -19,24 +19,14 @@ if __name__ == '__main__':
     from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar, MMC_HH_01
 
     log.info('building cache for {}'.format(MMC_HH_01.name))
-    MMC_HH_01.process(use_cache=False)
-    _file_name = os.path.join(
-        'cache',
-        '{}.h5'.format(MMC_HH_01.name))
-    _array_to_hdf5(MMC_HH_01.ak_array, _file_name)
-
-    # to create an error
-    a = [1,2,3]
-    b = a[6]
 
     # signal
     for sample in [
             dihiggs_01,
-            dihiggs_10,
-            MMC_HH_01,
+            # dihiggs_10,
     ]:
         log.info('building cache for {}'.format(sample.name))
-        sample.process(use_cache=False)
+        sample.process(use_cache=False, max_files=1)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
@@ -44,7 +34,7 @@ if __name__ == '__main__':
 
     # background
     for sample in [
-            ztautau,
+            # ztautau,
             # ttbar,
     ]:
 

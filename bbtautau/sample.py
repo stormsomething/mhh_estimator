@@ -191,23 +191,19 @@ class sample(object):
         if use_cache:
             self._ak_array = self.load_from_cache()
 
-        if not isinstance(self._ak_array, ak.Array) and self._name != 'mmc_HH_01':
+        if not isinstance(self._ak_array, ak.Array):
             self._open(max_files=max_files)
 
-        if self._name != 'mmc_HH_01':
             from .selector import _select
             self._ak_array = _select(self._ak_array, **kwargs)
-            from .utils import train_test_split
-            self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
 
-        if self._name == 'mmc_HH_01' and not use_cache:
-            from bbtautau.database import dihiggs_01
-            from bbtautau.utils import universal_true_mhh, clean_samples
-            from bbtautau.mmc import mmc
-            dihiggs_01.process(verbose=True, max_files=max_files, use_cache=use_cache)
-            (test_target_HH_01, deletions_test_HH_01) = universal_true_mhh(dihiggs_01.fold_1_array, 'dihiggs_01', 'fold_1_array')
-            dihiggs_01_fold_1_array = clean_samples(dihiggs_01.fold_1_array, deletions_test_HH_01)
-            x, self._ak_array = mmc(dihiggs_01_fold_1_array)
+            from .utils import universal_true_mhh
+            _mhh = universal_true_mhh(self._ak_array, self._name)
+            print (_mhh)
+            self._ak_array['universal_true_mhh'] = ak.from_numpy(universal_true_mhh(self._ak_array, self._name))
+
+        from .utils import train_test_split
+        self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
 
     def load_from_cache(self):
         log.warning('loading awkward array from cache!')

@@ -7,7 +7,7 @@ import scipy.stats as sc
 import matplotlib.pyplot as plt
 
 
-def universal_true_mhh(ak_array, name, fold_array):
+def universal_true_mhh(ak_array, name):
 
     # truth information
     truth_pdgId = ak_array.TruthParticles___NominalAuxDyn['pdgId']
@@ -31,10 +31,10 @@ def universal_true_mhh(ak_array, name, fold_array):
     reco_e = np.sqrt(reco_m**2 + reco_px**2 + reco_py**2 + reco_pz**2)
 
     incorrect_count = 0
-    deletions = []
+    # deletions = []
 
     universal_truth_mhh = []
-    if (name == 'dihiggs_01' or name == 'dihiggs_10' or name == 'ttbar'):
+    if (name == 'HH_01' or name == 'HH_10' or name == 'ttbar'):
         for i in range(len(truth_pdgId)):
             px_tot = 0
             py_tot = 0
@@ -95,12 +95,12 @@ def universal_true_mhh(ak_array, name, fold_array):
                         pz_tot = pz_tot + truth_pz[i][j]
                         e_tot = e_tot + truth_e[i][j]
             if (count_taus != 2 or count_bjets != 2):
-                print('Not the right number of particles! -- ' + str(name) + '.' + str(fold_array) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
                 incorrect_count = incorrect_count + 1
-                deletions.append(i)
+                mhh = -1000
             else:
                 mhh = math.sqrt(e_tot**2 - px_tot**2 - py_tot**2 - pz_tot**2) / 1000.
-                universal_truth_mhh.append(mhh)
+            universal_truth_mhh.append(mhh)
 
     elif (name == 'ztautau'):
         for i in range(len(truth_pdgId)):
@@ -127,15 +127,17 @@ def universal_true_mhh(ak_array, name, fold_array):
                     e_tot = e_tot + reco_e[i][k]
                     count_bjets = count_bjets + 1
             if (count_taus != 2 or count_bjets != 2):
-                print('Not the right number of particles! -- ' + str(name) + '.' + str(fold_array) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
                 incorrect_count = incorrect_count + 1
-                deletions.append(i)
+                mhh = -1000
             else:
                 mhh = math.sqrt(e_tot**2 - px_tot**2 - py_tot**2 - pz_tot**2) / 1000.
-                universal_truth_mhh.append(mhh)
+            universal_truth_mhh.append(mhh)
+    else:
+        raise ValueError('wrong sample name!')
 
-    print('Number of events in sample ' + str(name) + '.' + str(fold_array) + ' without exactly 2 taus and 2 bjets: ' + str(incorrect_count) + '.')
-    return np.array(universal_truth_mhh), deletions
+    print('Number of events in sample ' + str(name) + ' without exactly 2 taus and 2 bjets: ' + str(incorrect_count) + '.')
+    return np.array(universal_truth_mhh)
 
 
 def visable_mass(ak_array, name):
