@@ -204,7 +204,7 @@ class sample(object):
             from bbtautau.database import dihiggs_01
             from bbtautau.utils import universal_true_mhh, clean_samples
             from bbtautau.mmc import mmc
-            dihiggs_01.process(verbose=True, max_files=max_files, use_cache=True)
+            dihiggs_01.process(verbose=True, max_files=max_files, use_cache=use_cache)
             (test_target_HH_01, deletions_test_HH_01) = universal_true_mhh(dihiggs_01.fold_1_array, 'dihiggs_01', 'fold_1_array')
             dihiggs_01_fold_1_array = clean_samples(dihiggs_01.fold_1_array, deletions_test_HH_01)
             x, self._ak_array = mmc(dihiggs_01_fold_1_array)

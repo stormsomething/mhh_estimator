@@ -15,7 +15,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from keras.models import load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adam
+from keras import optimizers
 
 if __name__ == '__main__':
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
             try:
                 rate = 0.001
                 batch_size = 64
-                adam = Adam(learning_rate = rate)
+                adam = optimisers.get('Adam')(learning_rate = rate)
                 regressor.compile(loss='mean_squared_error', optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
