@@ -38,7 +38,7 @@ if __name__ == '__main__':
     dihiggs_01.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
     dihiggs_10.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
     ztautau.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
-    ttbar.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
+    # ttbar.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
     log.info('..done')
 
     if not args.fit:
@@ -54,50 +54,62 @@ if __name__ == '__main__':
     else:
         log.info('prepare training data')
 
-        dihiggs_01_target, deletions_HH_01 = universal_true_mhh(dihiggs_01.fold_0_array, 'dihiggs_01', 'fold_0_array')
-        dihiggs_10_target, deletions_HH_10 = universal_true_mhh(dihiggs_10.fold_0_array, 'dihiggs_10', 'fold_0_array')
-        ztautau_target, deletions_ztautau = universal_true_mhh(ztautau.fold_0_array, 'ztautau', 'fold_0_array')
-        ttbar_target, deletions_ttbar = universal_true_mhh(ttbar.fold_0_array, 'ttbar', 'fold_0_array')
-
-        dihiggs_01_fold_0_array = clean_samples(dihiggs_01.fold_0_array, deletions_HH_01)
-        dihiggs_10_fold_0_array = clean_samples(dihiggs_10.fold_0_array, deletions_HH_10)
-        ztautau_fold_0_array = clean_samples(ztautau.fold_0_array, deletions_ztautau)
-        ttbar_fold_0_array = clean_samples(ttbar.fold_0_array, deletions_ttbar)
-
-        dihiggs_01_vis_mass = visable_mass(dihiggs_01_fold_0_array, 'dihiggs_01')
-        dihiggs_10_vis_mass = visable_mass(dihiggs_10_fold_0_array, 'dihiggs_10')
-        ztautau_vis_mass = visable_mass(ztautau_fold_0_array, 'ztautau')
-        ttbar_vis_mass = visable_mass(ttbar_fold_0_array, 'ttbar')
+        dihiggs_01_target = dihiggs_01.fold_0_array['universal_true_mhh']
+        dihiggs_10_target = dihiggs_10.fold_0_array['universal_true_mhh']
+        ztautau_target = ztautau.fold_0_array['universal_true_mhh']
+        # ttbar_target = ttbar.fold_0_array['universal_true_mhh']
+        
+        dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
+        dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
+        ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
+        # ttbar_vis_mass = visable_mass(ttbar_fold_0_array, 'ttbar')
 
         dihiggs_01_target = dihiggs_01_target / dihiggs_01_vis_mass
         dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
         ztautau_target = ztautau_target / ztautau_vis_mass
-        ttbar_target = ttbar_target / ttbar_vis_mass
+        # ttbar_target = ttbar_target / ttbar_vis_mass
 
-        features_dihiggs_01 = features_table(dihiggs_01_fold_0_array)
-        features_dihiggs_10 = features_table(dihiggs_10_fold_0_array)
-        features_ztautau = features_table(ztautau_fold_0_array)
-        features_ttbar = features_table(ttbar_fold_0_array)
+        features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
+        features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
+        features_ztautau = features_table(ztautau.fold_0_array)
+        # features_ttbar = features_table(ttbar_fold_0_array)
 
         len_HH_01 = len(features_dihiggs_01)
         len_HH_10 = len(features_dihiggs_10)
         len_ztautau = len(features_ztautau)
-        len_ttbar = len(features_ttbar)
-        train_features_new = np.concatenate([features_dihiggs_01, features_dihiggs_10, features_ztautau, features_ttbar])
+        # len_ttbar = len(features_ttbar)
+        
+        train_features_new = np.concatenate([
+            features_dihiggs_01,
+            features_dihiggs_10,
+            features_ztautau,
+            # features_ttbar
+        ])
+
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
         features_dihiggs_01 = train_features_new[:len_HH_01]
         features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
         features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
-        features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        # features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
         features_dihiggs_01 = np.append(features_dihiggs_01, [['dihiggs_01']]*len_HH_01, 1)
         features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
         features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
-        features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
+        # features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
 
-        train_target = ak.concatenate([dihiggs_01_target, dihiggs_10_target, ztautau_target, ttbar_target])
-        train_features = np.concatenate([features_dihiggs_01, features_dihiggs_10, features_ztautau, features_ttbar])
+        train_target = ak.concatenate([
+            dihiggs_01_target,
+            dihiggs_10_target,
+            ztautau_target,
+            # ttbar_target
+        ])
+        train_features = np.concatenate([
+            features_dihiggs_01,
+            features_dihiggs_10,
+            features_ztautau,
+            # features_ttbar
+        ])
 
         if args.library == 'scikit':
             if args.gridsearch:
@@ -132,9 +144,11 @@ if __name__ == '__main__':
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
-            y_train = ak.to_numpy(y_train)
-            y_test = ak.to_numpy(y_test)
-
+            y_train = np.array(y_train)
+            y_test = np.array(y_test)
+            # y_train = ak.to_numpy(y_train)
+            # y_test = ak.to_numpy(y_test)
+            print(type(y_train))
             sample_weights = []
             for i in range(len(X_train)):
                 if (X_train[i][-1] == 'ztautau'):
@@ -161,11 +175,12 @@ if __name__ == '__main__':
 
             X_train = np.array(X_train_new)
             X_test = np.array(X_test_new)
-
+            
             try:
                 rate = 0.001
                 batch_size = 64
-                adam = optimisers.get('Adam')(learning_rate = rate)
+                adam = optimizers.get('Adam')
+                adam.learning_rate = rate
                 regressor.compile(loss='mean_squared_error', optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
@@ -194,36 +209,37 @@ if __name__ == '__main__':
 
     log.info('plotting')
 
-    test_target_HH_01, deletions_test_HH_01 = universal_true_mhh(dihiggs_01.fold_1_array, 'dihiggs_01', 'fold_1_array')
-    test_target_HH_10, deletions_test_HH_10 = universal_true_mhh(dihiggs_10.fold_1_array, 'dihiggs_10', 'fold_1_array')
-    test_target_ztautau, deletions_test_ztautau = universal_true_mhh(ztautau.fold_1_array, 'ztautau', 'fold_1_array')
-    test_target_ttbar, deletions_test_ttbar = universal_true_mhh(ttbar.fold_1_array, 'ttbar', 'fold_1_array')
+    test_target_HH_01  = dihiggs_01.fold_1_array['universal_true_mhh']
+    test_target_HH_10  = dihiggs_10.fold_1_array['universal_true_mhh']
+    test_target_ztautau =  ztautau.fold_1_array['universal_true_mhh']
+    # test_target_ttbar  = ttbar.fold_1_array['universal_true_mhh']
+        
 
-    dihiggs_01_fold_1_array = clean_samples(dihiggs_01.fold_1_array, deletions_test_HH_01)
-    dihiggs_10_fold_1_array = clean_samples(dihiggs_10.fold_1_array, deletions_test_HH_10)
-    ztautau_fold_1_array = clean_samples(ztautau.fold_1_array, deletions_test_ztautau)
-    ttbar_fold_1_array = clean_samples(ttbar.fold_1_array, deletions_test_ttbar)
-
-    features_test_HH_01 = features_table(dihiggs_01_fold_1_array)
-    features_test_HH_10 = features_table(dihiggs_10_fold_1_array)
-    features_test_ztautau = features_table(ztautau_fold_1_array)
-    features_test_ttbar = features_table(ttbar_fold_1_array)
+    features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
+    features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
+    features_test_ztautau = features_table(ztautau.fold_1_array)
+    # features_test_ttbar = features_table(ttbar_fold_1_array)
 
     scaler = StandardScaler()
     len_HH_01 = len(features_test_HH_01)
     len_HH_10 = len(features_test_HH_10)
     len_ztautau = len(features_test_ztautau)
-    train_features_new = np.concatenate([features_test_HH_01, features_test_HH_10, features_test_ztautau, features_test_ttbar])
+    train_features_new = np.concatenate([
+        features_test_HH_01,
+        features_test_HH_10,
+        features_test_ztautau,
+        # features_test_ttbar
+    ])
     train_features_new = scaler.fit_transform(X=train_features_new)
     features_test_HH_01 = train_features_new[:len_HH_01]
     features_test_HH_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
-    features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+    # features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
     predictions_HH_01 = regressor.predict(features_test_HH_01)
     predictions_HH_10 = regressor.predict(features_test_HH_10)
     predictions_ztautau = regressor.predict(features_test_ztautau)
-    predictions_ttbar = regressor.predict(features_test_ttbar)
+    # predictions_ttbar = regressor.predict(features_test_ttbar)
 
     if args.library == 'keras':
         predictions_HH_01 = np.reshape(
@@ -232,47 +248,44 @@ if __name__ == '__main__':
             predictions_HH_10, (predictions_HH_10.shape[0], ))
         predictions_ztautau = np.reshape(
             predictions_ztautau, (predictions_ztautau.shape[0], ))
-        predictions_ttbar = np.reshape(
-            predictions_ttbar, (predictions_ttbar.shape[0], ))
+        # predictions_ttbar = np.reshape(
+        #     predictions_ttbar, (predictions_ttbar.shape[0], ))
 
-    mvis_HH_01 = visable_mass(dihiggs_01_fold_1_array, 'dihiggs_01')
-    mvis_HH_10 = visable_mass(dihiggs_10_fold_1_array, 'dihiggs_10')
-    mvis_ztautau = visable_mass(ztautau_fold_1_array, 'ztautau')
-    mvis_ttbar = visable_mass(ttbar_fold_1_array, 'ttbar')
+    mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
+    mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
+    mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
+    # mvis_ttbar = visable_mass(ttbar_fold_1_array, 'ttbar')
 
     predictions_HH_01 = predictions_HH_01 * np.array(mvis_HH_01)
     predictions_HH_10 = predictions_HH_10 * np.array(mvis_HH_10)
     predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
-    predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
+    # predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
 
-    mmc_HH_01, mhh_mmc_HH_01 = mmc(dihiggs_01_fold_1_array)
-    mmc_HH_10, mhh_mmc_HH_10 = mmc(dihiggs_10_fold_1_array)
-    mmc_ztautau, mhh_mmc_ztautau = mmc(ztautau_fold_1_array)
-    mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar_fold_1_array)
+    mmc_HH_01, mhh_mmc_HH_01 = mmc(dihiggs_01.fold_1_array)
+    mmc_HH_10, mhh_mmc_HH_10 = mmc(dihiggs_10.fold_1_array)
+    mmc_ztautau, mhh_mmc_ztautau = mmc(ztautau.fold_1_array)
+    # mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar_fold_1_array)
 
-    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01_fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
-    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10_fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
-    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau_fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
-    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar_fold_1_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
+    # eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar_fold_1_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
 
     # Chi-Square calculations
-    #HH_01_bkg_hist_rnn, HH_10_bkg_hist_rnn = chi_square_test(predictions_HH_01, predictions_HH_10, predictions_ztautau, predictions_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, 'RNN', 10, 10)
-    #HH_01_bkg_hist_mmc, HH_10_bkg_hist_mmc = chi_square_test(mmc_HH_01, mmc_HH_10, mmc_ztautau, mmc_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, 'MMC', 10, 10)
-    #HH_01_bkg_hist_truth, HH_10_bkg_hist_truth = chi_square_test(test_target_HH_01, test_target_HH_10, test_target_ztautau, test_target_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, 'Truth', 10, 10)
 
     # Relevant ROC curves
     eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
     eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
-    eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
+    # eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
     eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
     eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
-    eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    # eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
-    roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
+    # roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
 
     # Pile-up stability of the signal
-    avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01_fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
-    avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10_fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
+    avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01.fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
+    avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)

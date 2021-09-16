@@ -16,14 +16,12 @@ def _array_to_hdf5(ak_array, file_name):
 
 if __name__ == '__main__':
 
-    from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar, MMC_HH_01
-
-    log.info('building cache for {}'.format(MMC_HH_01.name))
+    from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 
     # signal
     for sample in [
             dihiggs_01,
-            # dihiggs_10,
+            dihiggs_10,
     ]:
         log.info('building cache for {}'.format(sample.name))
         sample.process(use_cache=False, max_files=1)
@@ -34,12 +32,12 @@ if __name__ == '__main__':
 
     # background
     for sample in [
-            # ztautau,
+            ztautau,
             # ttbar,
     ]:
 
         log.info('building cache for {}'.format(sample.name))
-        sample.process(is_signal=False, use_cache=False)
+        sample.process(is_signal=False, use_cache=False, max_files=1)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
