@@ -24,7 +24,7 @@ if __name__ == '__main__':
             dihiggs_10,
     ]:
         log.info('building cache for {}'.format(sample.name))
-        sample.process(use_cache=False, max_files=1)
+        sample.process(use_cache=False)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     ]:
 
         log.info('building cache for {}'.format(sample.name))
-        sample.process(is_signal=False, use_cache=False, max_files=1)
+        sample.process(is_signal=False, use_cache=False)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
