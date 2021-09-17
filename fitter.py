@@ -35,10 +35,24 @@ if __name__ == '__main__':
             log.info('N(files) limit is irrelevant with the cache')
 
     log.info('loading samples ..')
-    dihiggs_01.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
-    dihiggs_10.process(verbose=True, max_files=max_files, use_cache=args.use_cache)
-    ztautau.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
-    # ttbar.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache)
+
+    dihiggs_01.process(
+        verbose=True,
+        max_files=max_files,
+        use_cache=args.use_cache,
+        remove_bad_training_events=True)
+    dihiggs_10.process(
+        verbose=True,
+        max_files=max_files,
+        use_cache=args.use_cache,
+        remove_bad_training_events=True)
+    ztautau.process(
+        verbose=True,
+        is_signal=False,
+        max_files=max_files,
+        use_cache=args.use_cache,
+        remove_bad_training_events=True)
+    # ttbar.process(verbose=True, is_signal=False, max_files=max_files, use_cache=args.use_cache, remove_bad_training_events=True)
     log.info('..done')
 
     if not args.fit:

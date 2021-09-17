@@ -187,7 +187,7 @@ class sample(object):
             self._ak_array = ak.concatenate(_ak_arrays)
 
 
-    def process(self, max_files=None, use_cache=False, **kwargs):
+    def process(self, max_files=None, use_cache=False, remove_bad_training_events=False, run_mmc=False, **kwargs):
         if use_cache:
             self._ak_array = self.load_from_cache()
 
@@ -199,9 +199,21 @@ class sample(object):
 
             from .utils import universal_true_mhh
             _mhh = universal_true_mhh(self._ak_array, self._name)
-            print (_mhh)
             self._ak_array['universal_true_mhh'] = ak.from_numpy(universal_true_mhh(self._ak_array, self._name))
 
+        if run_mmc:
+            if not 'mmc' in self._ak_array.fields:
+                from .mmc import mmc
+                _mmc, _mhh_mmc = mmc(self._ak_array)
+                self._ak_array['mmc_tautau'] = _mmc
+                self._ak_array['mmc_bbtautau'] = _mhh_mmc
+
+        if remove_bad_training_events:
+            n_before_cleaning = len(self._ak_array)
+            self._ak_array = self._ak_array[self._ak_array['universal_true_mhh'] > -1000]
+            log.info('Events with well defined true mhh: {}/{}'.format(
+                len(self._ak_array), n_before_cleaning))
+            
         from .utils import train_test_split
         self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
 

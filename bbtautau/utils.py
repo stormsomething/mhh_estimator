@@ -95,7 +95,7 @@ def universal_true_mhh(ak_array, name):
                         pz_tot = pz_tot + truth_pz[i][j]
                         e_tot = e_tot + truth_e[i][j]
             if (count_taus != 2 or count_bjets != 2):
-                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets))
                 incorrect_count = incorrect_count + 1
                 mhh = -1000
             else:
@@ -127,7 +127,7 @@ def universal_true_mhh(ak_array, name):
                     e_tot = e_tot + reco_e[i][k]
                     count_bjets = count_bjets + 1
             if (count_taus != 2 or count_bjets != 2):
-                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets) + '. Discarding!')
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets))
                 incorrect_count = incorrect_count + 1
                 mhh = -1000
             else:
