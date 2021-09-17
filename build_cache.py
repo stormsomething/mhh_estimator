@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # background
     for sample in [
             ztautau,
-            # ttbar,
+            ttbar,
     ]:
 
         log.info('building cache for {}'.format(sample.name))
