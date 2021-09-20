@@ -211,15 +211,15 @@ class sample(object):
         if remove_bad_training_events:
             n_before_cleaning = len(self._ak_array)
             self._ak_array = self._ak_array[self._ak_array['universal_true_mhh'] > -1000]
-            log.info('Events with well defined true mhh: {}/{}'.format(
-                len(self._ak_array), n_before_cleaning))
+            log.info('{} -- Events with well defined true mhh: {}/{}'.format(
+                self._name, len(self._ak_array), n_before_cleaning))
             
         from .utils import train_test_split
         self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
 
     def load_from_cache(self):
-        log.warning('loading awkward array from cache!')
-        log.warning('use at your own risk!')
+        log.warning('{} -- loading awkward array from cache!'.format(self._name))
+        log.warning('{} -- use at your own risk!'.format(self._name))
 
         _file_name = os.path.join(
             'cache',

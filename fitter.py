@@ -239,6 +239,7 @@ if __name__ == '__main__':
     features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
     features_test_ztautau = features_table(ztautau.fold_1_array)
     features_test_ttbar = features_table(ttbar.fold_1_array)
+    log.info ('features loaded')
 
     scaler = StandardScaler()
     len_HH_01 = len(features_test_HH_01)
@@ -250,7 +251,10 @@ if __name__ == '__main__':
         features_test_ztautau,
         features_test_ttbar
     ])
+
     train_features_new = scaler.fit_transform(X=train_features_new)
+    log.info ('scaler ran')
+
     features_test_HH_01 = train_features_new[:len_HH_01]
     features_test_HH_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
@@ -260,6 +264,7 @@ if __name__ == '__main__':
     predictions_HH_10 = regressor.predict(features_test_HH_10)
     predictions_ztautau = regressor.predict(features_test_ztautau)
     predictions_ttbar = regressor.predict(features_test_ttbar)
+    log.info ('regressor ran')
 
     if args.library == 'keras':
         predictions_HH_01 = np.reshape(
@@ -275,19 +280,21 @@ if __name__ == '__main__':
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
     mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
     mvis_ttbar = visable_mass(ttbar.fold_1_array, 'ttbar')
+    log.info ('mvis computed')
 
     predictions_HH_01 = predictions_HH_01 * np.array(mvis_HH_01)
     predictions_HH_10 = predictions_HH_10 * np.array(mvis_HH_10)
     predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
     predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
 
+    print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
         mmc_HH_01 = dihiggs_01.fold_1_array['mmc_tautau']
         mhh_mmc_HH_01 = dihiggs_01.fold_1_array['mmc_bbtautau']
     else:
         mmc_HH_01, mhh_mmc_HH_01 = mmc(dihiggs_01.fold_1_array)
 
-    if 'mmc_bbtautau' in dihiggs_10.fold_1_array.fields:
+    if 'mmc_bbtautau' in dihiggs_10.fold_1_array.fields: 
         mmc_HH_10 = dihiggs_10.fold_1_array['mmc_tautau']
         mhh_mmc_HH_10 = dihiggs_10.fold_1_array['mmc_bbtautau']
     else:
@@ -299,7 +306,7 @@ if __name__ == '__main__':
     else:
         mmc_ztautau, mhh_mmc_ztautau = mmc(ztautau.fold_1_array)
 
-    if 'mmc_bbtautau' in ztautau.fold_1_array.fields:
+    if 'mmc_bbtautau' in ttbar.fold_1_array.fields:
         mmc_ttbar = ttbar.fold_1_array['mmc_tautau']
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
