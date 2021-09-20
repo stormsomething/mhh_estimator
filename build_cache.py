@@ -16,27 +16,15 @@ def _array_to_hdf5(ak_array, file_name):
 
 if __name__ == '__main__':
 
-    from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar, MMC_HH_01
-
-    log.info('building cache for {}'.format(MMC_HH_01.name))
-    MMC_HH_01.process()
-    _file_name = os.path.join(
-        'cache',
-        '{}.h5'.format(MMC_HH_01.name))
-    _array_to_hdf5(MMC_HH_01.ak_array, _file_name)
-
-    # to create an error
-    a = [1,2,3]
-    b = a[6]
+    from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 
     # signal
     for sample in [
             dihiggs_01,
             dihiggs_10,
-            MMC_HH_01,
     ]:
         log.info('building cache for {}'.format(sample.name))
-        sample.process()
+        sample.process(use_cache=False, run_mmc=True)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
@@ -49,7 +37,7 @@ if __name__ == '__main__':
     ]:
 
         log.info('building cache for {}'.format(sample.name))
-        sample.process(is_signal=False)
+        sample.process(is_signal=False, use_cache=False, run_mmc=True)
         _file_name = os.path.join(
             'cache',
             '{}.h5'.format(sample.name))
