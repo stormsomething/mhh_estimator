@@ -1,6 +1,6 @@
 # import numba as nb
 import numpy as np
-import ROOT
+#import ROOT
 import bbtautau.cpp
 
 # @nb.jit
@@ -8,6 +8,7 @@ def mmc(ak_array):
 
     out_mmc = np.empty(len(ak_array), np.float64)
     out_mhh = np.empty(len(ak_array), np.float64)
+    """
     for ievt, evt in enumerate(ak_array):
         mmc_val = ROOT.HackedMMC.MMC(
             evt['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']['mpx'][0] / 1000.,
@@ -35,4 +36,5 @@ def mmc(ak_array):
             evt['bjets']['m'][1] / 1000.)
         out_mmc[ievt] = mmc_val.M()
         out_mhh[ievt] = (mmc_val + b_1 + b_2).M()
+    """
     return out_mmc, out_mhh

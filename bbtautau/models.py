@@ -5,6 +5,101 @@ from bbtautau.SumLayer import SumLayer
 
 def keras_model_main(n_variables):
     x_1 = Input(shape=n_variables)
+    hidden = Dense(4096, activation='relu')(x_1)
+    hidden_1 = Dense(2048, activation='relu')(hidden)
+    hidden_2 = Dense(1024, activation='relu')(hidden_1)
+    hidden_3 = Dense(512, activation='relu')(hidden_2)
+    hidden_4 = Dense(256, activation='relu')(hidden_3)
+    hidden_5 = Dense(128, activation='relu')(hidden_4)
+    hidden_6 = Dense(64, activation='relu')(hidden_5)
+    hidden_7 = Dense(32, activation='relu')(hidden_6)
+    hidden_8 = Dense(16, activation='relu')(hidden_7)
+    hidden_9 = Dense(8, activation='relu')(hidden_8)
+    output = Dense(1, activation='linear')(hidden_9)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_triangle_512_64(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(512, activation='relu')(x_1)
+    hidden_1 = Dense(448, activation='relu')(hidden)
+    hidden_2 = Dense(384, activation='relu')(hidden_1)
+    hidden_3 = Dense(320, activation='relu')(hidden_2)
+    hidden_4 = Dense(256, activation='relu')(hidden_3)
+    hidden_5 = Dense(192, activation='relu')(hidden_4)
+    hidden_6 = Dense(128, activation='relu')(hidden_5)
+    hidden_7 = Dense(64, activation='relu')(hidden_6)
+    output = Dense(1, activation='linear')(hidden_7)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_funnel_512(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(512, activation='relu')(x_1)
+    hidden_1 = Dense(256, activation='relu')(hidden)
+    hidden_2 = Dense(128, activation='relu')(hidden_1)
+    hidden_3 = Dense(64, activation='relu')(hidden_2)
+    hidden_4 = Dense(32, activation='relu')(hidden_3)
+    hidden_5 = Dense(16, activation='relu')(hidden_4)
+    hidden_6 = Dense(8, activation='relu')(hidden_5)
+    output = Dense(1, activation='linear')(hidden_6)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_64_5(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(64, activation='relu')(x_1)
+    hidden_1 = Dense(64, activation='relu')(hidden)
+    hidden_2 = Dense(64, activation='relu')(hidden_1)
+    hidden_3 = Dense(64, activation='relu')(hidden_2)
+    hidden_4 = Dense(64, activation='relu')(hidden_3)
+    output = Dense(1, activation='linear')(hidden_4)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_32_10_juggle(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(32, activation='relu')(x_1)
+    hidden_1 = Dense(32, activation='selu')(hidden)
+    hidden_2 = Dense(32, activation='relu')(hidden_1)
+    hidden_3 = Dense(32, activation='selu')(hidden_2)
+    hidden_4 = Dense(32, activation='relu')(hidden_3)
+    hidden_5 = Dense(32, activation='selu')(hidden_4)
+    hidden_6 = Dense(32, activation='relu')(hidden_5)
+    hidden_7 = Dense(32, activation='selu')(hidden_6)
+    hidden_8 = Dense(32, activation='relu')(hidden_7)
+    hidden_9 = Dense(32, activation='selu')(hidden_8)
+    output = Dense(1, activation='linear')(hidden_9)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_32_5(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(32, activation='relu')(x_1)
+    hidden_1 = Dense(32, activation='relu')(hidden)
+    hidden_2 = Dense(32, activation='relu')(hidden_1)
+    hidden_3 = Dense(32, activation='relu')(hidden_2)
+    hidden_4 = Dense(32, activation='relu')(hidden_3)
+    output = Dense(1, activation='linear')(hidden_4)
+    return Model(inputs=x_1, outputs=output)
+
+    
+def keras_model_funnel_128(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(128, activation='relu')(x_1)
+    hidden_1 = Dense(64, activation='relu')(hidden)
+    hidden_2 = Dense(32, activation='relu')(hidden_1)
+    hidden_3 = Dense(16, activation='relu')(hidden_2)
+    hidden_4 = Dense(8, activation='relu')(hidden_3)
+    output = Dense(1, activation='linear')(hidden_4)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_funnel_64(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(64, activation='relu')(x_1)
+    hidden_1 = Dense(32, activation='relu')(hidden)
+    hidden_2 = Dense(16, activation='relu')(hidden_1)
+    hidden_3 = Dense(8, activation='relu')(hidden_2)
+    output = Dense(1, activation='linear')(hidden_3)
+    return Model(inputs=x_1, outputs=output)
+
+def keras_model_main_old(n_variables):
+    x_1 = Input(shape=n_variables)
     mask = Masking(mask_value=0.0)(x_1)
     hidden = Reshape(target_shape=(17, 1,), input_shape=(n_variables,))(mask)
     hidden_1 = TimeDistributed(Dense(40, activation='relu'))(hidden)

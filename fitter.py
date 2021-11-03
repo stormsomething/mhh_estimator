@@ -16,6 +16,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from keras.models import load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras import optimizers
+from keras.utils.vis_utils import plot_model
 
 if __name__ == '__main__':
 

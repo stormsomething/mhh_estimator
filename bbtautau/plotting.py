@@ -31,7 +31,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         bins=80,
         weights=weights,
         range=(0,1500),
-        label=ak_array.title + '- RNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
+        #label=ak_array.title + '- RNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
+        label=ak_array.title + '- New NN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
         color=ak_array.color,
         linestyle='solid',
         linewidth=2,
@@ -56,7 +57,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             bins=80,
             weights= weights,
             range=(0,1500),
-            label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            #label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
             color='purple',
             linestyle='solid',
             linewidth=2,
@@ -107,7 +109,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     (n_rat_rnn, bins_rat_rnn, patches_rat_rnn) = plt.hist(
         ratio_rnn,
-        label= ak_array.title + '- RNN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
+        #label= ak_array.title + '- RNN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
+        label= ak_array.title + '- New NN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
         color=ak_array.color,
         weights= weights,
         bins=160,
@@ -120,7 +123,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
             ratio_mmc,
-            label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            #label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
             color='purple',
             weights= weights,
             bins=160,
@@ -128,7 +132,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
 
     plt.xlabel(r'$m_{HH}$: prediction / truth [GeV]')
     plt.ylabel('Events')
@@ -264,8 +269,10 @@ def roc_plot_rnn_mmc(eff, eff_true, name_1, name_2):
     auc_true = auc(eff_true[0], eff_true[1])
 
     fig = plt.figure()
-    plt.plot(eff[0], eff[2], color = 'red', label = 'RNN. AUC = ' + str(auc_rnn) + '.')
-    plt.plot(eff[1], eff[3], color = 'green', label = 'MMC. AUC = ' + str(auc_mmc) + '.')
+    #plt.plot(eff[0], eff[2], color = 'red', label = 'RNN. AUC = ' + str(auc_rnn) + '.')
+    plt.plot(eff[0], eff[2], color = 'red', label = 'New NN. AUC = ' + str(auc_rnn) + '.')
+    #plt.plot(eff[1], eff[3], color = 'green', label = 'MMC. AUC = ' + str(auc_mmc) + '.')
+    plt.plot(eff[1], eff[3], color = 'green', label = 'Original RNN. AUC = ' + str(auc_mmc) + '.')
     plt.plot(eff_true[0], eff_true[1], color = 'purple', label = 'Truth. AUC = ' + str(auc_true) + '.')
     plt.xlabel(name_1 + ' Efficiency')
     plt.ylabel(name_2 + ' Efficiency')

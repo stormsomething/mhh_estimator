@@ -4,7 +4,7 @@ import h5py
 import json
 import numpy as np
 import os
-import ROOT
+#import ROOT
 
 from .fields import *
 from .luminosity import LUMI
@@ -151,14 +151,14 @@ class sample(object):
 
         # use uproot.concatenate (for now)
         _ak_arrays = []
-        _watch = ROOT.TStopwatch()
+        #_watch = ROOT.TStopwatch()
         for _dsid in self._dsids:
             log.info('adding ' + str(_dsid))
-            _watch.Print()
-            _watch.Start()
+            #_watch.Print()
+            #_watch.Start()
             _ak_array = uproot.concatenate(_paths[_dsid]['tree'], filter_name=lambda l: l in FIELDS)
-            _watch.Print()
-            _watch.Start()
+            #_watch.Print()
+            #_watch.Start()
             _pred  = _XSEC_FILTER_KFAC[_dsid]['xsec'] * 1000. # xsec in fb
             _pred *= _XSEC_FILTER_KFAC[_dsid]['filter']
             _pred *= _XSEC_FILTER_KFAC[_dsid]['kfactor']

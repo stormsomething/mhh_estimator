@@ -1,7 +1,7 @@
 import awkward as ak
 import numpy as np
 import math
-import ROOT
+#import ROOT
 from itertools import product
 import scipy.stats as sc
 import matplotlib.pyplot as plt
@@ -305,8 +305,10 @@ def gauss_fit_calculator(n, bins, name, fitter):
         plt.plot(x, mult*y, color='gray', label= 'Gaussian Fit -- MMC. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
 
 
-def chi_square_test(predictions_HH_01, predictions_HH_10, predictions_ztautau, predictions_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, fitter, mult_HH_01, mult_HH_10, mult_ztautau=1, mult_ttbar=1):
 
+def chi_square_test(predictions_HH_01, predictions_HH_10, predictions_ztautau, predictions_ttbar, dihiggs_01_fold_1_array, dihiggs_10_fold_1_array, ztautau_fold_1_array, ttbar_fold_1_array, fitter, mult_HH_01, mult_HH_10, mult_ztautau=1, mult_ttbar=1):
+    return
+"""
     weights_HH_01 = dihiggs_01_fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*dihiggs_01_fold_1_array['fold_weight']*mult_HH_01
     weights_HH_10 = dihiggs_10_fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*dihiggs_10_fold_1_array['fold_weight']*mult_HH_10
     weights_ztautau = ztautau_fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*ztautau_fold_1_array['fold_weight']*mult_ztautau
@@ -331,6 +333,7 @@ def chi_square_test(predictions_HH_01, predictions_HH_10, predictions_ztautau, p
     print(fitter + ' p-value: ' + str(p_value) + '. ' + fitter + ' z-score: ' + str(z_score) + '.')
 
     return HH_01_bkg_hist, HH_10_bkg_hist
+"""
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
