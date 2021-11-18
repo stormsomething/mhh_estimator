@@ -139,6 +139,122 @@ def universal_true_mhh(ak_array, name):
     print('Number of events in sample ' + str(name) + ' without exactly 2 taus and 2 bjets: ' + str(incorrect_count) + '.')
     return np.array(universal_truth_mhh)
 
+def universal_true_mtautau(ak_array, name):
+
+    # truth information
+    truth_pdgId = ak_array.TruthParticles___NominalAuxDyn['pdgId']
+    truth_status = ak_array.TruthParticles___NominalAuxDyn['status']
+    truth_px = ak_array.TruthParticles___NominalAuxDyn['px']
+    truth_py = ak_array.TruthParticles___NominalAuxDyn['py']
+    truth_pz = ak_array.TruthParticles___NominalAuxDyn['pz']
+    truth_e = ak_array.TruthParticles___NominalAuxDyn['e']
+
+    # reconstructed b-jets
+    reco_isbjet = ak_array.AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn['isBJet']
+    reco_pt = ak_array.AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn['pt']
+    reco_phi = ak_array.AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn['phi']
+    reco_eta = ak_array.AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn['eta']
+    reco_m = ak_array.AntiKt4EMPFlowJets_BTagging201903___NominalAuxDyn['m']
+
+    # form the four-momenta for reco b-jets
+    reco_px = reco_pt*np.cos(reco_phi)
+    reco_py = reco_pt*np.sin(reco_phi)
+    reco_pz = reco_pt*np.sinh(reco_eta)
+    reco_e = np.sqrt(reco_m**2 + reco_px**2 + reco_py**2 + reco_pz**2)
+
+    incorrect_count = 0
+    # deletions = []
+
+    universal_truth_mtautau = []
+    if (name == 'HH_01' or name == 'HH_10' or name == 'ttbar'):
+        for i in range(len(truth_pdgId)):
+            px_tot = 0
+            py_tot = 0
+            pz_tot = 0
+            e_tot = 0
+
+            status = truth_status[i].tolist()
+            pdgId = truth_pdgId[i].tolist()
+
+            # for the taus
+            tau_indices = [y for y, x in enumerate(pdgId) if (x == 15 or x == -15)]
+            count_taus = len(tau_indices)
+            if (count_taus > 2):
+                taus_status = []
+                for k in range(len(status)):
+                    if k in tau_indices:
+                        taus_status.append(status[k])
+                final_taus_indices = []
+                for j in range(2):
+                    minimum = min(taus_status)
+                    min_index = taus_status.index(minimum)
+                    real_min_index = tau_indices[min_index]
+                    final_taus_indices.append(real_min_index)
+                    taus_status.remove(minimum)
+                    tau_indices.remove(real_min_index)
+                px_tot = px_tot + truth_px[i][final_taus_indices[0]] + truth_px[i][final_taus_indices[1]]
+                py_tot = py_tot + truth_py[i][final_taus_indices[0]] + truth_py[i][final_taus_indices[1]]
+                pz_tot = pz_tot + truth_pz[i][final_taus_indices[0]] + truth_pz[i][final_taus_indices[1]]
+                e_tot = e_tot + truth_e[i][final_taus_indices[0]] + truth_e[i][final_taus_indices[1]]
+                count_taus = 2
+
+            else: # if count_taus <= 2
+                for j in range(len(truth_pdgId[i])):
+                    if (truth_pdgId[i][j] == 15 or truth_pdgId[i][j] == -15):
+                        px_tot = px_tot + truth_px[i][j]
+                        py_tot = py_tot + truth_py[i][j]
+                        pz_tot = pz_tot + truth_pz[i][j]
+                        e_tot = e_tot + truth_e[i][j]
+
+            # for the b-jets
+            bjet_indices = [y for y, x in enumerate(pdgId) if (x == 5 or x == -5)]
+            count_bjets = len(bjet_indices)
+            if (count_bjets < 2):
+                temp_count_bjets = 0
+                for j in range(len(reco_isbjet[i])):
+                    if (reco_isbjet[i][j] == 1):
+                        temp_count_bjets = temp_count_bjets + 1
+                count_bjets = temp_count_bjets
+            if (count_taus != 2 or count_bjets != 2):
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets))
+                incorrect_count = incorrect_count + 1
+                mtautau = -1000
+            else:
+                mtautau = math.sqrt(e_tot**2 - px_tot**2 - py_tot**2 - pz_tot**2) / 1000.
+            universal_truth_mtautau.append(mtautau)
+
+    elif (name == 'ztautau'):
+        for i in range(len(truth_pdgId)):
+            px_tot = 0
+            py_tot = 0
+            pz_tot = 0
+            e_tot = 0
+            count_taus = 0
+            count_bjets = 0
+            # for the taus
+            for j in range(len(truth_pdgId[i])):
+                if (truth_pdgId[i][j] == 15 or truth_pdgId[i][j] == -15):
+                    px_tot = px_tot + truth_px[i][j]
+                    py_tot = py_tot + truth_py[i][j]
+                    pz_tot = pz_tot + truth_pz[i][j]
+                    e_tot = e_tot + truth_e[i][j]
+                    count_taus = count_taus + 1
+            # for the b-jets (need to use reco, unfortunately)
+            for k in range(len(reco_isbjet[i])):
+                if (reco_isbjet[i][k] == 1):
+                    count_bjets = count_bjets + 1
+            if (count_taus != 2 or count_bjets != 2):
+                print('Not the right number of particles! -- ' + str(name) + '. Taus: ' + str(count_taus) + '. Bjets: ' + str(count_bjets))
+                incorrect_count = incorrect_count + 1
+                mtautau = -1000
+            else:
+                mtautau = math.sqrt(e_tot**2 - px_tot**2 - py_tot**2 - pz_tot**2) / 1000.
+            universal_truth_mtautau.append(mtautau)
+    else:
+        raise ValueError('wrong sample name!')
+
+    print('Number of events in sample ' + str(name) + ' without exactly 2 taus and 2 bjets: ' + str(incorrect_count) + '.')
+    return np.array(universal_truth_mtautau)
 
 def visable_mass(ak_array, name):
 

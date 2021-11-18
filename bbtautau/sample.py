@@ -200,6 +200,10 @@ class sample(object):
             from .utils import universal_true_mhh
             _mhh = universal_true_mhh(self._ak_array, self._name)
             self._ak_array['universal_true_mhh'] = ak.from_numpy(universal_true_mhh(self._ak_array, self._name))
+            
+            from .utils import universal_true_mtautau
+            _mtautau = universal_true_mtautau(self._ak_array, self._name)
+            self._ak_array['universal_true_mtautau'] = ak.from_numpy(universal_true_mtautau(self._ak_array, self._name))
 
         if run_mmc:
             if not 'mmc' in self._ak_array.fields:
@@ -211,6 +215,7 @@ class sample(object):
         if remove_bad_training_events:
             n_before_cleaning = len(self._ak_array)
             self._ak_array = self._ak_array[self._ak_array['universal_true_mhh'] > -1000]
+            self._ak_array = self._ak_array[self._ak_array['universal_true_mtautau'] > -1000]
             log.info('{} -- Events with well defined true mhh: {}/{}'.format(
                 self._name, len(self._ak_array), n_before_cleaning))
             

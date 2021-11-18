@@ -89,6 +89,11 @@ if __name__ == '__main__':
         dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
         ztautau_target = ztautau_target / ztautau_vis_mass
         ttbar_target = ttbar_target / ttbar_vis_mass
+        
+        dihiggs_01_target_2 = dihiggs_01.fold_0_array['universal_true_mtautau'] / dihiggs_01_vis_mass
+        dihiggs_10_target_2 = dihiggs_10.fold_0_array['universal_true_mtautau'] / dihiggs_10_vis_mass
+        ztautau_target_2 = ztautau.fold_0_array['universal_true_mtautau'] / ztautau_vis_mass
+        ttbar_target_2 = ttbar.fold_0_array['universal_true_mtautau'] / ttbar_vis_mass
 
         features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
         features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
@@ -131,6 +136,12 @@ if __name__ == '__main__':
             features_ztautau,
             features_ttbar
         ])
+        train_target_2 = ak.concatenate([
+            dihiggs_01_target_2,
+            dihiggs_10_target_2,
+            ztautau_target_2,
+            ttbar_target_2
+        ])
 
         if args.library == 'scikit':
             if args.gridsearch:
@@ -163,10 +174,14 @@ if __name__ == '__main__':
             regressor = keras_model_main((train_features.shape[1] - 1,))
             _epochs = 10
             _filename = 'cache/my_keras_training.h5'
-            X_train, X_test, y_train, y_test = train_test_split(
-                train_features, train_target, test_size=0.1, random_state=42)
+            #X_train, X_test, y_train, y_test = train_test_split(
+                #train_features, train_target, test_size=0.1, random_state=42)
+            X_train, X_test, y_train, y_test, z_train, z_test = train_test_split(
+                train_features, train_target, train_target_2, test_size=0.1, random_state=42)
             y_train = np.array(y_train)
             y_test = np.array(y_test)
+            z_train = np.array(z_train)
+            z_test = np.array(z_test)
             # y_train = ak.to_numpy(y_train)
             # y_test = ak.to_numpy(y_test)
             print(type(y_train))
@@ -204,13 +219,15 @@ if __name__ == '__main__':
                 adam.learning_rate = rate
                 regressor.compile(loss='mean_squared_error', optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
-                    X_train, y_train,
+                    #X_train, y_train,
+                    X_train, [y_train, z_train],
                     epochs=_epochs,
                     batch_size=batch_size,
                     shuffle=True,
                     sample_weight=sample_weights,
                     ## validation_split=0.1,
-                    validation_data=(X_test, y_test),
+                    #validation_data=(X_test, y_test),
+                    validation_data=(X_test, [y_test, z_test]),
                     callbacks=[
                         EarlyStopping(verbose=True, patience=20, monitor='val_loss'),
                         ModelCheckpoint(
