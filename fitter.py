@@ -42,6 +42,7 @@ if __name__ == '__main__':
         max_files=max_files,
         use_cache=args.use_cache,
         remove_bad_training_events=True)
+    """
     dihiggs_10.process(
         verbose=True,
         max_files=max_files,
@@ -59,6 +60,7 @@ if __name__ == '__main__':
         max_files=max_files,
         use_cache=args.use_cache,
         remove_bad_training_events=True)
+    """
     log.info('..done')
 
     if not args.fit:
@@ -74,6 +76,18 @@ if __name__ == '__main__':
 
     else:
         log.info('prepare training data')
+        
+        print('---Begin Cache Understanding Data Here---')
+        print(type(dihiggs_01.fold_0_array))
+        for field in dihiggs_01.fold_0_array.fields:
+            print(field)
+            print(dihiggs_01.fold_0_array[field])
+            try:
+                for field_2 in dihiggs_01.fold_0_array[field].fields:
+                    print(field + '.' + field_2)
+                    print(dihiggs_01.fold_0_array[field][field_2])
+            except:
+                pass
 
         dihiggs_01_target = dihiggs_01.fold_0_array['universal_true_mhh']
         dihiggs_10_target = dihiggs_10.fold_0_array['universal_true_mhh']
