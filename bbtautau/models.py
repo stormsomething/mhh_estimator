@@ -1,3 +1,4 @@
+import tensorflow_probability as tfp
 from keras.models import Model
 from keras.layers import Input, Dense, TimeDistributed, Reshape, Masking
 from keras.layers.recurrent import LSTM
@@ -5,17 +6,41 @@ from bbtautau.SumLayer import SumLayer
 
 def keras_model_main(n_variables):
     x_1 = Input(shape=n_variables)
-    hidden = Dense(4096, activation='relu')(x_1)
-    hidden_1 = Dense(2048, activation='relu')(hidden)
-    hidden_2 = Dense(1024, activation='relu')(hidden_1)
-    hidden_3 = Dense(512, activation='relu')(hidden_2)
-    hidden_4 = Dense(256, activation='relu')(hidden_3)
-    hidden_5 = Dense(128, activation='relu')(hidden_4)
-    hidden_6 = Dense(64, activation='relu')(hidden_5)
-    hidden_7 = Dense(32, activation='relu')(hidden_6)
-    hidden_8 = Dense(16, activation='relu')(hidden_7)
-    hidden_9 = Dense(8, activation='relu')(hidden_8)
-    output = Dense(1, activation='linear')(hidden_9)
+    hidden = Dense(1024, activation='relu')(x_1)
+    hidden_1 = Dense(512, activation='relu')(hidden)
+    hidden_2 = Dense(256, activation='relu')(hidden_1)
+    hidden_3 = Dense(128, activation='relu')(hidden_2)
+    hidden_4 = Dense(64, activation='relu')(hidden_3)
+    hidden_5 = Dense(32, activation='relu')(hidden_4)
+    hidden_6 = Dense(16, activation='relu')(hidden_5)
+    hidden_7 = Dense(8, activation='relu')(hidden_6)
+    output = Dense(2, activation='linear')(hidden_7)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_mdn(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(1024, activation='relu')(x_1)
+    hidden_1 = Dense(512, activation='relu')(hidden)
+    hidden_2 = Dense(256, activation='relu')(hidden_1)
+    hidden_3 = Dense(128, activation='relu')(hidden_2)
+    hidden_4 = Dense(64, activation='relu')(hidden_3)
+    hidden_5 = Dense(32, activation='relu')(hidden_4)
+    hidden_6 = Dense(16, activation='relu')(hidden_5)
+    hidden_7 = Dense(8, activation='relu')(hidden_6)
+    output = tfp.layers.MixtureNormal(1)(hidden_7)
+    return Model(inputs=x_1, outputs=output)
+    
+def keras_model_fake_mdn(n_variables):
+    x_1 = Input(shape=n_variables)
+    hidden = Dense(1024, activation='relu')(x_1)
+    hidden_1 = Dense(512, activation='relu')(hidden)
+    hidden_2 = Dense(256, activation='relu')(hidden_1)
+    hidden_3 = Dense(128, activation='relu')(hidden_2)
+    hidden_4 = Dense(64, activation='relu')(hidden_3)
+    hidden_5 = Dense(32, activation='relu')(hidden_4)
+    hidden_6 = Dense(16, activation='relu')(hidden_5)
+    hidden_7 = Dense(8, activation='relu')(hidden_6)
+    output = Dense(2, activation='linear')(hidden_7)
     return Model(inputs=x_1, outputs=output)
     
 def keras_model_triangle_512_64(n_variables):

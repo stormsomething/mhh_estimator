@@ -2,6 +2,7 @@ import os
 import joblib
 import awkward as ak
 import numpy as np
+import scipy.stats
 from argparse import ArgumentParser
 from bbtautau import log; log = log.getChild('fitter')
 from bbtautau.utils import features_table, universal_true_mhh, visable_mass, clean_samples, chi_square_test, rotate_events
@@ -17,6 +18,25 @@ from keras.models import load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras import optimizers
 from keras.utils.vis_utils import plot_model
+from keras import backend
+
+def loglhloss(y, outputs):
+    # From https://moonbooks.org/Articles/How-to-calculate-a-log-likelihood-in-python-example-with-a-normal-distribution-/
+    return -np.log(scipy.stats.norm.pdf(y, outputs[:,0], outputs[:,1]))
+def nll1(y_true, y_pred):
+    # From http://louistiao.me/listings/keras/.ipynb_checkpoints/use-negative-log-likelihoods-of-tensorflow-distributions-as-keras-losses-checkpoint.ipynb.html
+    return backend.sum(backend.binary_crossentropy(y_true, y_pred), axis=-1)
+def gaussian_nll(ytrue, ypreds):
+    # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
+    mu = ypreds[:,0]
+    logsigma = ypreds[:,1]
+    
+    mse = -0.5*backend.square((ytrue-mu)/backend.exp(logsigma))
+    log2pi = -0.5*np.log(2*np.pi)
+    
+    log_likelihood = mse-logsigma+log2pi
+
+    return backend.mean(-log_likelihood)
 
 if __name__ == '__main__':
 
@@ -66,7 +86,7 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5')
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'loglhloss': loglhloss, 'nll1': nll1, 'gaussian_nll': gaussian_nll})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -202,7 +222,10 @@ if __name__ == '__main__':
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
-                regressor.compile(loss='mean_squared_error', optimizer=adam, metrics=['mse', 'mae'])
+                # For use with Tensorflow MixtureNormal
+                #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
+                # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, sigma)
+                regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
                     epochs=_epochs,
@@ -261,10 +284,10 @@ if __name__ == '__main__':
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
     features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
-    predictions_HH_01 = regressor.predict(features_test_HH_01)
-    predictions_HH_10 = regressor.predict(features_test_HH_10)
-    predictions_ztautau = regressor.predict(features_test_ztautau)
-    predictions_ttbar = regressor.predict(features_test_ttbar)
+    predictions_HH_01 = regressor.predict(features_test_HH_01)[:,0]
+    predictions_HH_10 = regressor.predict(features_test_HH_10)[:,0]
+    predictions_ztautau = regressor.predict(features_test_ztautau)[:,0]
+    predictions_ttbar = regressor.predict(features_test_ttbar)[:,0]
     log.info ('regressor ran')
 
     if args.library == 'keras':
