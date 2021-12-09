@@ -15,6 +15,31 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def sigma_plots(truths, mus, sigmas, fold_1_array, label):
+    weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+
+    fig = plt.figure()
+    plt.hist(
+        sigmas,
+        bins=40,
+        weights=weights,
+        range=(0,500))
+    plt.xlabel(r'$\sigma(m_{HH})$ [GeV]')
+    plt.ylabel('Events')
+    fig.savefig('plots/mdn_sigma_' + label + '.pdf')
+    plt.close(fig)
+
+    data = (truths - mus) / sigmas
+    fig = plt.figure()
+    plt.hist(
+        data,
+        bins=40,
+        weights=weights,
+        range=(-10,10))
+    plt.xlabel(r'$m_{HH}$ Residual / $\sigma(m_{HH})$')
+    plt.ylabel('Events')
+    fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
+    plt.close(fig)
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_mmc = None):
 
@@ -307,7 +332,7 @@ def nn_history(history, metric='loss'):
     plt.ylabel(metric)
     plt.xlabel('epoch')
     plt.legend(['train', 'val'], loc='upper left')
-    #fig.axes[0].set_yscale('log')
+    fig.axes[0].set_yscale('log')
     fig.savefig('plots/nn_model_{}.pdf'.format(metric))
     plt.close(fig)
 

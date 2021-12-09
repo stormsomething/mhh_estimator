@@ -9,7 +9,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history
+from bbtautau.plotting import nn_history, sigma_plots
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -20,12 +20,6 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
-def loglhloss(y, outputs):
-    # From https://moonbooks.org/Articles/How-to-calculate-a-log-likelihood-in-python-example-with-a-normal-distribution-/
-    return -np.log(scipy.stats.norm.pdf(y, outputs[:,0], outputs[:,1]))
-def nll1(y_true, y_pred):
-    # From http://louistiao.me/listings/keras/.ipynb_checkpoints/use-negative-log-likelihoods-of-tensorflow-distributions-as-keras-losses-checkpoint.ipynb.html
-    return backend.sum(backend.binary_crossentropy(y_true, y_pred), axis=-1)
 def gaussian_nll(ytrue, ypreds):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = ypreds[:,0]
@@ -86,7 +80,7 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'loglhloss': loglhloss, 'nll1': nll1, 'gaussian_nll': gaussian_nll})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -218,13 +212,13 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.001
+                rate = 0.00002
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
                 # For use with Tensorflow MixtureNormal
                 #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
-                # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, sigma)
+                # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
                 regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
@@ -284,21 +278,31 @@ if __name__ == '__main__':
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
     features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
-    predictions_HH_01 = regressor.predict(features_test_HH_01)[:,0]
-    predictions_HH_10 = regressor.predict(features_test_HH_10)[:,0]
-    predictions_ztautau = regressor.predict(features_test_ztautau)[:,0]
-    predictions_ttbar = regressor.predict(features_test_ttbar)[:,0]
+    predictions_HH_01 = regressor.predict(features_test_HH_01)
+    predictions_HH_10 = regressor.predict(features_test_HH_10)
+    predictions_ztautau = regressor.predict(features_test_ztautau)
+    predictions_ttbar = regressor.predict(features_test_ttbar)
     log.info ('regressor ran')
 
     if args.library == 'keras':
+        sigmas_HH_01 = np.exp(np.reshape(
+            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
+        sigmas_HH_10 = np.exp(np.reshape(
+            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], )))
+        sigmas_ztautau = np.exp(np.reshape(
+            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], )))
+        sigmas_ttbar = np.exp(np.reshape(
+            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
+            
         predictions_HH_01 = np.reshape(
-            predictions_HH_01, (predictions_HH_01.shape[0], ))
+            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
         predictions_HH_10 = np.reshape(
-            predictions_HH_10, (predictions_HH_10.shape[0], ))
+            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], ))
         predictions_ztautau = np.reshape(
-            predictions_ztautau, (predictions_ztautau.shape[0], ))
+            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
         predictions_ttbar = np.reshape(
-            predictions_ttbar, (predictions_ttbar.shape[0], ))
+            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
+
 
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
@@ -310,6 +314,11 @@ if __name__ == '__main__':
     predictions_HH_10 = predictions_HH_10 * np.array(mvis_HH_10)
     predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
     predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
+    
+    sigmas_HH_01 *= np.array(mvis_HH_01)
+    sigmas_HH_10 *= np.array(mvis_HH_10)
+    sigmas_ztautau *= np.array(mvis_ztautau)
+    sigmas_ttbar *= np.array(mvis_ttbar)
 
     print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
@@ -335,7 +344,13 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
-
+        
+    sigma_plots(test_target_HH_01, predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    sigma_plots(test_target_HH_10, predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    sigma_plots(test_target_ztautau, predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
+    sigma_plots(test_target_ttbar, predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    
+    """
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
@@ -359,3 +374,4 @@ if __name__ == '__main__':
     avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
+    """
