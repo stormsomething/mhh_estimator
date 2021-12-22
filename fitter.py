@@ -20,7 +20,7 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
-def gaussian_nll(ytrue, ypreds):
+def gaussian_nll(ytrue, ypreds, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = ypreds[:,0]
     logsigma = ypreds[:,1]
@@ -28,8 +28,11 @@ def gaussian_nll(ytrue, ypreds):
     mse = -0.5*backend.square((ytrue-mu)/backend.exp(logsigma))
     log2pi = -0.5*np.log(2*np.pi)
     
-    log_likelihood = mse-logsigma+log2pi
-
+    if sample_weight is not None:
+        log_likelihood = (mse - logsigma + log2pi) * sample_weight
+        return backend.mean(-log_likelihood) / backend.sum(sample_weight)
+        
+    log_likelihood = mse - logsigma + log2pi
     return backend.mean(-log_likelihood)
 
 if __name__ == '__main__':
@@ -175,7 +178,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 10
+            _epochs = 20
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -212,8 +215,8 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.00002
-                batch_size = 64
+                rate = 0.00003
+                batch_size = 1024
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
                 # For use with Tensorflow MixtureNormal
@@ -344,13 +347,21 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
+    
+    # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
+    """
+    original_regressor = load_model('cache/original_training.h5')
+    mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01) * np.array(mvis_HH_01)
+    mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10) * np.array(mvis_HH_10)
+    mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
+    mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
+    """
         
     sigma_plots(test_target_HH_01, predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
     sigma_plots(test_target_HH_10, predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
     sigma_plots(test_target_ztautau, predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
     sigma_plots(test_target_ttbar, predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
     
-    """
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
@@ -374,4 +385,3 @@ if __name__ == '__main__':
     avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
-    """

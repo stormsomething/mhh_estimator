@@ -17,28 +17,114 @@ from . import log; log = log.getChild(__name__)
 
 def sigma_plots(truths, mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
-
+    rms_sigma = np.sqrt(np.mean(sigmas * sigmas))
+    mean_sigma = np.mean(sigmas)
+    
     fig = plt.figure()
     plt.hist(
         sigmas,
         bins=40,
         weights=weights,
-        range=(0,500))
+        range=(0,500),
+        label='Mean: ' + str(round(mean_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
     plt.xlabel(r'$\sigma(m_{HH})$ [GeV]')
     plt.ylabel('Events')
+    plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
     plt.close(fig)
 
     data = (truths - mus) / sigmas
+    indices_1 = np.where(sigmas < 70)
+    indices_2 = np.where((sigmas > 70) & (sigmas < 95))
+    indices_3 = np.where((sigmas > 95) & (sigmas < 120))
+    indices_4 = np.where(sigmas > 120)
+    rms_1 = np.sqrt(np.mean(data[indices_1] * data[indices_1]))
+    rms_2 = np.sqrt(np.mean(data[indices_2] * data[indices_2]))
+    rms_3 = np.sqrt(np.mean(data[indices_3] * data[indices_3]))
+    rms_4 = np.sqrt(np.mean(data[indices_4] * data[indices_4]))
+    
     fig = plt.figure()
     plt.hist(
-        data,
-        bins=40,
-        weights=weights,
-        range=(-10,10))
+        data[indices_1],
+        bins=80,
+        weights=weights[indices_1],
+        range=(-8,8),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[indices_2],
+        bins=80,
+        weights=weights[indices_2],
+        range=(-8,8),
+        histtype='step',
+        label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[indices_3],
+        bins=80,
+        weights=weights[indices_3],
+        range=(-8,8),
+        histtype='step',
+        label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=80,
+        weights=weights[indices_4],
+        range=(-8,8),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
     plt.xlabel(r'$m_{HH}$ Residual / $\sigma(m_{HH})$')
     plt.ylabel('Events')
+    plt.legend(fontsize='small')
     fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
+    data = truths - mus
+    rms_1 = np.sqrt(np.mean(data[indices_1] * data[indices_1]))
+    rms_2 = np.sqrt(np.mean(data[indices_2] * data[indices_2]))
+    rms_3 = np.sqrt(np.mean(data[indices_3] * data[indices_3]))
+    rms_4 = np.sqrt(np.mean(data[indices_4] * data[indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        data[indices_1],
+        bins=80,
+        weights=weights[indices_1],
+        range=(-400,400),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[indices_2],
+        bins=80,
+        weights=weights[indices_2],
+        range=(-400,400),
+        histtype='step',
+        label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[indices_3],
+        bins=80,
+        weights=weights[indices_3],
+        range=(-400,400),
+        histtype='step',
+        label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=80,
+        weights=weights[indices_4],
+        range=(-400,400),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}$ Residual')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_resid_' + label + '.pdf')
     plt.close(fig)
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_mmc = None):
@@ -82,8 +168,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             bins=80,
             weights= weights,
             range=(0,1500),
-            #label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
-            label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            #label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
             color='purple',
             linestyle='solid',
             linewidth=2,
@@ -148,8 +234,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
             ratio_mmc,
-            #label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
-            label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            #label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
             color='purple',
             weights= weights,
             bins=160,
@@ -157,8 +243,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
 
     plt.xlabel(r'$m_{HH}$: prediction / truth [GeV]')
     plt.ylabel('Events')
@@ -296,8 +382,8 @@ def roc_plot_rnn_mmc(eff, eff_true, name_1, name_2):
     fig = plt.figure()
     #plt.plot(eff[0], eff[2], color = 'red', label = 'RNN. AUC = ' + str(auc_rnn) + '.')
     plt.plot(eff[0], eff[2], color = 'red', label = 'New NN. AUC = ' + str(auc_rnn) + '.')
-    #plt.plot(eff[1], eff[3], color = 'green', label = 'MMC. AUC = ' + str(auc_mmc) + '.')
-    plt.plot(eff[1], eff[3], color = 'green', label = 'Original RNN. AUC = ' + str(auc_mmc) + '.')
+    plt.plot(eff[1], eff[3], color = 'green', label = 'MMC. AUC = ' + str(auc_mmc) + '.')
+    #plt.plot(eff[1], eff[3], color = 'green', label = 'Original RNN. AUC = ' + str(auc_mmc) + '.')
     plt.plot(eff_true[0], eff_true[1], color = 'purple', label = 'Truth. AUC = ' + str(auc_true) + '.')
     plt.xlabel(name_1 + ' Efficiency')
     plt.ylabel(name_2 + ' Efficiency')
