@@ -15,7 +15,8 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
-def sigma_plots(truths, mus, sigmas, fold_1_array, label):
+def sigma_plots(mus, sigmas, fold_1_array, label):
+    truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
     rms_sigma = np.sqrt(np.mean(sigmas * sigmas))
     mean_sigma = np.mean(sigmas)
@@ -126,6 +127,93 @@ def sigma_plots(truths, mus, sigmas, fold_1_array, label):
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_resid_' + label + '.pdf')
     plt.close(fig)
+    
+    rms_1 = np.sqrt(np.mean(truths[indices_1] * truths[indices_1]))
+    rms_2 = np.sqrt(np.mean(truths[indices_2] * truths[indices_2]))
+    rms_3 = np.sqrt(np.mean(truths[indices_3] * truths[indices_3]))
+    rms_4 = np.sqrt(np.mean(truths[indices_4] * truths[indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        truths[indices_1],
+        bins=80,
+        weights=weights[indices_1],
+        range=(0,1500),
+        label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
+        histtype='step')
+    plt.hist(
+        truths[indices_2],
+        bins=80,
+        weights=weights[indices_2],
+        range=(0,1500),
+        label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
+        histtype='step')
+    plt.hist(
+        truths[indices_3],
+        bins=80,
+        weights=weights[indices_3],
+        range=(0,1500),
+        label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
+        histtype='step')
+    plt.hist(
+        truths[indices_4],
+        bins=80,
+        weights=weights[indices_4],
+        range=(0,1500),
+        label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
+        histtype='step')
+    plt.xlabel(r'$m_{HH}$ [GeV]')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/true_mhh_by_sigma_range_' + label + '.pdf')
+    plt.close(fig)
+    
+    """
+    data = fold_1_array['idk really'] - fold_1_array['still dont know']
+    rms_1 = np.sqrt(np.mean(data[indices_1] * data[indices_1]))
+    rms_2 = np.sqrt(np.mean(data[indices_2] * data[indices_2]))
+    rms_3 = np.sqrt(np.mean(data[indices_3] * data[indices_3]))
+    rms_4 = np.sqrt(np.mean(data[indices_4] * data[indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        data[indices_1],
+        bins=80,
+        weights=weights[indices_1],
+        range=(-400,400),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[indices_2],
+        bins=80,
+        weights=weights[indices_2],
+        range=(-400,400),
+        histtype='step',
+        label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[indices_3],
+        bins=80,
+        weights=weights[indices_3],
+        range=(-400,400),
+        histtype='step',
+        label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=80,
+        weights=weights[indices_4],
+        range=(-400,400),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}$ Residual')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/delta_phi_by_sigma_range_' + label + '.pdf')
+    plt.close(fig)
+    """
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_mmc = None):
 

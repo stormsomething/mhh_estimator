@@ -3,6 +3,7 @@ import joblib
 import awkward as ak
 import numpy as np
 import scipy.stats
+import tensorflow as tf
 from argparse import ArgumentParser
 from bbtautau import log; log = log.getChild('fitter')
 from bbtautau.utils import features_table, universal_true_mhh, visable_mass, clean_samples, chi_square_test, rotate_events
@@ -20,20 +21,35 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
-def gaussian_nll(ytrue, ypreds, sample_weight=None):
+def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
-    mu = ypreds[:,0]
-    logsigma = ypreds[:,1]
+    mu = y_pred[:,0]
+    logsigma = y_pred[:,1]
     
-    mse = -0.5*backend.square((ytrue-mu)/backend.exp(logsigma))
+    mse = -0.5*backend.square((y_true-mu)/backend.exp(logsigma))
     log2pi = -0.5*np.log(2*np.pi)
     
     if sample_weight is not None:
         log_likelihood = (mse - logsigma + log2pi) * sample_weight
-        return backend.mean(-log_likelihood) / backend.sum(sample_weight)
+        return -log_likelihood / backend.sum(sample_weight)
         
     log_likelihood = mse - logsigma + log2pi
-    return backend.mean(-log_likelihood)
+    return -log_likelihood
+
+def mse_of_mu(y_true, y_pred):
+    mu = y_pred[:,0]
+    return tf.keras.losses.mean_squared_error(y_true, mu)
+
+def gaussian_nll_np(y_true, mu, sigma, sample_weight=None):
+    mse = -0.5*np.square((y_true-mu)/sigma)
+    log2pi = -0.5*np.log(2*np.pi)
+    
+    if sample_weight is not None:
+        log_likelihood = (mse - np.log(sigma) + log2pi) * sample_weight
+        return np.mean(-log_likelihood) / np.sum(sample_weight)
+        
+    log_likelihood = mse - np.log(sigma) + log2pi
+    return np.mean(-log_likelihood)
 
 if __name__ == '__main__':
 
@@ -223,6 +239,7 @@ if __name__ == '__main__':
                 #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
                 regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
+                #regressor.compile(loss=mse_of_mu, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
                     epochs=_epochs,
@@ -254,7 +271,6 @@ if __name__ == '__main__':
     test_target_HH_10  = dihiggs_10.fold_1_array['universal_true_mhh']
     test_target_ztautau =  ztautau.fold_1_array['universal_true_mhh']
     test_target_ttbar  = ttbar.fold_1_array['universal_true_mhh']
-        
 
     features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
     features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
@@ -305,8 +321,7 @@ if __name__ == '__main__':
             predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
         predictions_ttbar = np.reshape(
             predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
-
-
+            
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
     mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
@@ -356,11 +371,17 @@ if __name__ == '__main__':
     mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
     mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
     """
+    
+    print('The losses (calculated outside of Keras) are:')
+    print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
+    print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
+    print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
+    print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
         
-    sigma_plots(test_target_HH_01, predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
-    sigma_plots(test_target_HH_10, predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
-    sigma_plots(test_target_ztautau, predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
-    sigma_plots(test_target_ttbar, predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
     
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
