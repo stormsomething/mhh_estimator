@@ -30,15 +30,27 @@ def gaussian_nll(y_true, y_pred, sample_weight=None):
     log2pi = -0.5*np.log(2*np.pi)
     
     if sample_weight is not None:
+        print('Using Sample Weight!')
         log_likelihood = (mse - logsigma + log2pi) * sample_weight
-        return -log_likelihood / backend.sum(sample_weight)
+        return -backend.sum(log_likelihood) / backend.sum(sample_weight)
         
+    print('NOT Using Sample Weight!')
     log_likelihood = mse - logsigma + log2pi
-    return -log_likelihood
+    return -backend.mean(log_likelihood)
 
 def mse_of_mu(y_true, y_pred):
     mu = y_pred[:,0]
     return tf.keras.losses.mean_squared_error(y_true, mu)
+    
+def sharp_peak_loss(y_true, y_pred):
+    # loss function that tries to force mu=1000 and sigma=100
+    mu = y_pred[:,0]
+    logsigma = y_pred[:,1]
+    
+    mu_sq_err = backend.square(mu - 1000)
+    sigma_sq_err = backend.square(backend.exp(logsigma) - 100)
+    
+    return backend.sum(mu_sq_err + sigma_sq_err)
 
 def gaussian_nll_np(y_true, mu, sigma, sample_weight=None):
     mse = -0.5*np.square((y_true-mu)/sigma)
@@ -46,10 +58,19 @@ def gaussian_nll_np(y_true, mu, sigma, sample_weight=None):
     
     if sample_weight is not None:
         log_likelihood = (mse - np.log(sigma) + log2pi) * sample_weight
-        return np.mean(-log_likelihood) / np.sum(sample_weight)
+        return np.sum(-log_likelihood) / np.sum(sample_weight)
         
     log_likelihood = mse - np.log(sigma) + log2pi
     return np.mean(-log_likelihood)
+
+def mse_of_mu_np(y_true, mu, sample_weight=None):
+    sq_err = np.square(y_true-mu)
+    
+    if sample_weight is not None:
+        weighted_sq_err = sq_err * sample_weight
+        return np.sum(weighted_sq_err) / np.sum(sample_weight)
+        
+    return np.mean(sq_err)
 
 if __name__ == '__main__':
 
@@ -238,8 +259,8 @@ if __name__ == '__main__':
                 # For use with Tensorflow MixtureNormal
                 #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
-                regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
-                #regressor.compile(loss=mse_of_mu, optimizer=adam, metrics=['mse', 'mae'])
+                #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
+                regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
                     epochs=_epochs,
