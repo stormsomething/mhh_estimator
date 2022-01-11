@@ -68,7 +68,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     plt.xlabel(r'$m_{HH}$ [GeV]')
     plt.ylabel('Events')
-    plt.ylim(bottom=0)
+    plt.ylim(bottom=0, top=max(n_rnn)*1.4)
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_distributions_{}.pdf'.format(regressor))
     plt.close(fig)
@@ -118,7 +118,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         linewidth=2,
         histtype='step')
 
-    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN')
+    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN', new_label = 1)
 
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
@@ -133,10 +133,11 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             histtype='step')
 
         #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN', new_label = 2)
 
     plt.xlabel(r'$m_{HH}$: prediction / truth [GeV]')
     plt.ylabel('Events')
+    plt.ylim(bottom=0, top=max(n_rat_rnn)*1.4)
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_ratios_{}.pdf'.format(regressor))
     plt.close(fig)

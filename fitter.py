@@ -289,6 +289,7 @@ if __name__ == '__main__':
     predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
 
     print (dihiggs_01.fold_1_array.fields)
+    """
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
         mmc_HH_01 = dihiggs_01.fold_1_array['mmc_tautau']
         mhh_mmc_HH_01 = dihiggs_01.fold_1_array['mmc_bbtautau']
@@ -312,6 +313,29 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
+    """
+    
+    # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
+    original_regressor = load_model('cache/original_training.h5')
+    mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01)
+    mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10)
+    mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau)
+    mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar)
+    
+    if args.library == 'keras':
+        mhh_mmc_HH_01 = np.reshape(
+            mhh_mmc_HH_01, (mhh_mmc_HH_01.shape[0], ))
+        mhh_mmc_HH_10 = np.reshape(
+            mhh_mmc_HH_10, (mhh_mmc_HH_10.shape[0], ))
+        mhh_mmc_ztautau = np.reshape(
+            mhh_mmc_ztautau, (mhh_mmc_ztautau.shape[0], ))
+        mhh_mmc_ttbar = np.reshape(
+            mhh_mmc_ttbar, (mhh_mmc_ttbar.shape[0], ))
+
+    mhh_mmc_HH_01 = mhh_mmc_HH_01 * np.array(mvis_HH_01)
+    mhh_mmc_HH_10 = mhh_mmc_HH_10 * np.array(mvis_HH_10)
+    mhh_mmc_ztautau = mhh_mmc_ztautau * np.array(mvis_ztautau)
+    mhh_mmc_ttbar = mhh_mmc_ttbar * np.array(mvis_ttbar)
 
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
