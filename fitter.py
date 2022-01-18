@@ -24,18 +24,18 @@ from keras import backend
 def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = y_pred[:,0]
-    logsigma = y_pred[:,1]
+    logrelsigma = y_pred[:,1]
     
-    mse = -0.5*backend.square((y_true-mu)/backend.exp(logsigma))
+    mse = -0.5*backend.square((y_true-mu)/(mu * backend.exp(logrelsigma)))
     log2pi = -0.5*np.log(2*np.pi)
     
     if sample_weight is not None:
         print('Using Sample Weight!')
-        log_likelihood = (mse - logsigma + log2pi) * sample_weight
+        log_likelihood = (mse - logrelsigma + backend.log(mu) + log2pi) * sample_weight
         return -backend.sum(log_likelihood) / backend.sum(sample_weight)
         
     print('NOT Using Sample Weight!')
-    log_likelihood = mse - logsigma + log2pi
+    log_likelihood = mse - logrelsigma + backend.log(mu) + log2pi
     return -backend.mean(log_likelihood)
 
 def mse_of_mu(y_true, y_pred):
@@ -45,10 +45,10 @@ def mse_of_mu(y_true, y_pred):
 def sharp_peak_loss(y_true, y_pred):
     # loss function that tries to force mu=1000 and sigma=100
     mu = y_pred[:,0]
-    logsigma = y_pred[:,1]
+    logrelsigma = y_pred[:,1]
     
     mu_sq_err = backend.square(mu - 1000)
-    sigma_sq_err = backend.square(backend.exp(logsigma) - 100)
+    sigma_sq_err = backend.square(backend.exp(logrelsigma) - 0.1)
     
     return backend.sum(mu_sq_err + sigma_sq_err)
 
@@ -349,15 +349,15 @@ if __name__ == '__main__':
     mvis_ttbar = visable_mass(ttbar.fold_1_array, 'ttbar')
     log.info ('mvis computed')
 
-    predictions_HH_01 = predictions_HH_01 * np.array(mvis_HH_01)
-    predictions_HH_10 = predictions_HH_10 * np.array(mvis_HH_10)
-    predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
-    predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
+    predictions_HH_01 = predictions_HH_01
+    predictions_HH_10 = predictions_HH_10
+    predictions_ztautau = predictions_ztautau
+    predictions_ttbar = predictions_ttbar
     
-    sigmas_HH_01 *= np.array(mvis_HH_01)
-    sigmas_HH_10 *= np.array(mvis_HH_10)
-    sigmas_ztautau *= np.array(mvis_ztautau)
-    sigmas_ttbar *= np.array(mvis_ttbar)
+    sigmas_HH_01 *= predictions_HH_01 * np.array(mvis_HH_01)
+    sigmas_HH_10 *= predictions_HH_10 * np.array(mvis_HH_10)
+    sigmas_ztautau *= predictions_ztautau * np.array(mvis_ztautau)
+    sigmas_ttbar *= predictions_ttbar * np.array(mvis_ttbar)
 
     print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
