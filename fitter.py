@@ -37,6 +37,25 @@ def gaussian_nll(y_true, y_pred, sample_weight=None):
     print('NOT Using Sample Weight!')
     log_likelihood = mse - logsigma + log2pi
     return -backend.mean(log_likelihood)
+    
+def rel_sigma_gaussian_nll(y_true, y_pred, sample_weight=None):
+    # Fits log mu to avoid negative mu
+    logmu = y_pred[:,0]
+    logrelsigma = y_pred[:,1]
+    mu = backend.exp(logmu)
+    logsigma = logrelsigma + logmu
+    
+    mse = -0.5*backend.square((y_true-mu)/backend.exp(logsigma))
+    log2pi = -0.5*np.log(2*np.pi)
+    
+    if sample_weight is not None:
+        print('Using Sample Weight!')
+        log_likelihood = (mse - logsigma + log2pi) * sample_weight
+        return -backend.sum(log_likelihood) / backend.sum(sample_weight)
+        
+    print('NOT Using Sample Weight!')
+    log_likelihood = mse - logsigma + log2pi
+    return -backend.mean(log_likelihood)
 
 def mse_of_mu(y_true, y_pred):
     mu = y_pred[:,0]
@@ -120,7 +139,7 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'rel_sigma_gaussian_nll': rel_sigma_gaussian_nll})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -259,7 +278,7 @@ if __name__ == '__main__':
                 # For use with Tensorflow MixtureNormal
                 #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
-                regressor.compile(loss=gaussian_nll, optimizer=adam)
+                regressor.compile(loss=rel_sigma_gaussian_nll, optimizer=adam)
                 #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 #regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
@@ -335,14 +354,20 @@ if __name__ == '__main__':
         sigmas_ttbar = np.exp(np.reshape(
             predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
             
-        predictions_HH_01 = np.reshape(
-            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
-        predictions_HH_10 = np.reshape(
-            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], ))
-        predictions_ztautau = np.reshape(
-            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
-        predictions_ttbar = np.reshape(
-            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
+        predictions_HH_01 = np.exp(np.reshape(
+            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], )))
+        predictions_HH_10 = np.exp(np.reshape(
+            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], )))
+        predictions_ztautau = np.exp(np.reshape(
+            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], )))
+        predictions_ttbar = np.exp(np.reshape(
+            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], )))
+    
+    # Only do this if fitting relative sigmas
+    sigmas_HH_01 *= predictions_HH_01
+    sigmas_HH_10 *= predictions_HH_10
+    sigmas_ztautau *= predictions_ztautau
+    sigmas_ttbar *= predictions_ttbar
     
     print('The number of events in each sample are:')
     print('dihiggs_01: ' + str(len(predictions_HH_01)))
