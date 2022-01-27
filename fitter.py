@@ -134,6 +134,7 @@ if __name__ == '__main__':
         ztautau_target = ztautau.fold_0_array['universal_true_mhh']
         ttbar_target = ttbar.fold_0_array['universal_true_mhh']
         
+        """
         dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
         dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
         ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
@@ -143,6 +144,7 @@ if __name__ == '__main__':
         dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
         ztautau_target = ztautau_target / ztautau_vis_mass
         ttbar_target = ttbar_target / ttbar_vis_mass
+        """
 
         features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
         features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
@@ -356,6 +358,7 @@ if __name__ == '__main__':
     print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
     print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
 
+    """
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
     mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
@@ -377,6 +380,7 @@ if __name__ == '__main__':
     print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
     print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
     print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
+    """
 
     print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
