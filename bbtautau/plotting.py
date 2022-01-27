@@ -33,12 +33,65 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
     plt.close(fig)
-
-    data = (truths - mus) / sigmas
+    
+    # Split indices on absolute sigma ranges
     indices_1 = np.where(sigmas < 70)
     indices_2 = np.where((sigmas > 70) & (sigmas < 95))
     indices_3 = np.where((sigmas > 95) & (sigmas < 120))
     indices_4 = np.where(sigmas > 120)
+        
+    rel_sigmas = sigmas / mus
+    rms_1 = np.sqrt(np.mean(rel_sigmas[indices_1] * rel_sigmas[indices_1]))
+    rms_2 = np.sqrt(np.mean(rel_sigmas[indices_2] * rel_sigmas[indices_2]))
+    rms_3 = np.sqrt(np.mean(rel_sigmas[indices_3] * rel_sigmas[indices_3]))
+    rms_4 = np.sqrt(np.mean(rel_sigmas[indices_4] * rel_sigmas[indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas[indices_1],
+        bins=80,
+        weights=weights[indices_1],
+        range=(0,0.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        rel_sigmas[indices_2],
+        bins=80,
+        weights=weights[indices_2],
+        range=(0,0.5),
+        histtype='step',
+        label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        rel_sigmas[indices_3],
+        bins=80,
+        weights=weights[indices_3],
+        range=(0,0.5),
+        histtype='step',
+        label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        rel_sigmas[indices_4],
+        bins=80,
+        weights=weights[indices_4],
+        range=(0,0.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'Relative $\sigma(m_{HH})$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_relative_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
+    # Split indices on relative sigma ranges
+    rel_indices_1 = np.where(rel_sigmas < 0.195)
+    rel_indices_2 = np.where((rel_sigmas > 0.195) & (rel_sigmas < 0.215))
+    rel_indices_3 = np.where((rel_sigmas > 0.215) & (rel_sigmas < 0.235))
+    rel_indices_4 = np.where(rel_sigmas > 0.235)
+
+    data = (truths - mus) / sigmas
     rms_1 = np.sqrt(np.mean(data[indices_1] * data[indices_1]))
     rms_2 = np.sqrt(np.mean(data[indices_2] * data[indices_2]))
     rms_3 = np.sqrt(np.mean(data[indices_3] * data[indices_3]))
@@ -81,6 +134,50 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
+    rms_1 = np.sqrt(np.mean(data[rel_indices_1] * data[rel_indices_1]))
+    rms_2 = np.sqrt(np.mean(data[rel_indices_2] * data[rel_indices_2]))
+    rms_3 = np.sqrt(np.mean(data[rel_indices_3] * data[rel_indices_3]))
+    rms_4 = np.sqrt(np.mean(data[rel_indices_4] * data[rel_indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        data[rel_indices_1],
+        bins=80,
+        weights=weights[rel_indices_1],
+        range=(-8,8),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})<0.195$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_2],
+        bins=80,
+        weights=weights[rel_indices_2],
+        range=(-8,8),
+        histtype='step',
+        label=r'$0.195<$Relative $\sigma(m_{HH})<0.215$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_3],
+        bins=80,
+        weights=weights[rel_indices_3],
+        range=(-8,8),
+        histtype='step',
+        label=r'$0.215<$Relative $\sigma(m_{HH})<0.235$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_4],
+        bins=80,
+        weights=weights[rel_indices_4],
+        range=(-8,8),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})>0.235$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}$ Residual / $\sigma(m_{HH})$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_resid_over_sigma_by_rel_sigma_' + label + '.pdf')
     plt.close(fig)
     
     data = truths - mus
@@ -128,6 +225,50 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     fig.savefig('plots/mdn_resid_' + label + '.pdf')
     plt.close(fig)
     
+    rms_1 = np.sqrt(np.mean(data[rel_indices_1] * data[rel_indices_1]))
+    rms_2 = np.sqrt(np.mean(data[rel_indices_2] * data[rel_indices_2]))
+    rms_3 = np.sqrt(np.mean(data[rel_indices_3] * data[rel_indices_3]))
+    rms_4 = np.sqrt(np.mean(data[rel_indices_4] * data[rel_indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        data[rel_indices_1],
+        bins=80,
+        weights=weights[rel_indices_1],
+        range=(-400,400),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})<0.195$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_2],
+        bins=80,
+        weights=weights[rel_indices_2],
+        range=(-400,400),
+        histtype='step',
+        label=r'$0.195<$Relative $\sigma(m_{HH})<0.215$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_3],
+        bins=80,
+        weights=weights[rel_indices_3],
+        range=(-400,400),
+        histtype='step',
+        label=r'$0.215<$Relative $\sigma(m_{HH})<0.235$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[rel_indices_4],
+        bins=80,
+        weights=weights[rel_indices_4],
+        range=(-400,400),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})>0.235$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}$ Residual')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_resid_by_rel_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
     rms_1 = np.sqrt(np.mean(truths[indices_1] * truths[indices_1]))
     rms_2 = np.sqrt(np.mean(truths[indices_2] * truths[indices_2]))
     rms_3 = np.sqrt(np.mean(truths[indices_3] * truths[indices_3]))
@@ -166,6 +307,50 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/true_mhh_by_sigma_range_' + label + '.pdf')
+    plt.close(fig)
+    
+    rms_1 = np.sqrt(np.mean(truths[rel_indices_1] * truths[rel_indices_1]))
+    rms_2 = np.sqrt(np.mean(truths[rel_indices_2] * truths[rel_indices_2]))
+    rms_3 = np.sqrt(np.mean(truths[rel_indices_3] * truths[rel_indices_3]))
+    rms_4 = np.sqrt(np.mean(truths[rel_indices_4] * truths[rel_indices_4]))
+    
+    fig = plt.figure()
+    plt.hist(
+        truths[rel_indices_1],
+        bins=80,
+        weights=weights[rel_indices_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})<0.195$. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        truths[rel_indices_2],
+        bins=80,
+        weights=weights[rel_indices_2],
+        range=(0,1500),
+        histtype='step',
+        label=r'$0.195<$Relative $\sigma(m_{HH})<0.215$. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        truths[rel_indices_3],
+        bins=80,
+        weights=weights[rel_indices_3],
+        range=(0,1500),
+        histtype='step',
+        label=r'$0.215<$Relative $\sigma(m_{HH})<0.235$. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        truths[rel_indices_4],
+        bins=80,
+        weights=weights[rel_indices_4],
+        range=(0,1500),
+        histtype='step',
+        label=r'Relative $\sigma(m_{HH})>0.235$. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}$ [GeV]')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/true_mhh_by_rel_sigma_range_' + label + '.pdf')
     plt.close(fig)
     
     """

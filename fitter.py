@@ -24,18 +24,18 @@ from keras import backend
 def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = y_pred[:,0]
-    logrelsigma = y_pred[:,1]
+    logsigma = y_pred[:,1]
     
-    mse = -0.5*backend.square((y_true-mu)/(mu * backend.exp(logrelsigma)))
+    mse = -0.5*backend.square((y_true-mu)/backend.exp(logsigma))
     log2pi = -0.5*np.log(2*np.pi)
     
     if sample_weight is not None:
         print('Using Sample Weight!')
-        log_likelihood = (mse - logrelsigma + backend.log(mu) + log2pi) * sample_weight
+        log_likelihood = (mse - logsigma + log2pi) * sample_weight
         return -backend.sum(log_likelihood) / backend.sum(sample_weight)
         
     print('NOT Using Sample Weight!')
-    log_likelihood = mse - logrelsigma + backend.log(mu) + log2pi
+    log_likelihood = mse - logsigma + log2pi
     return -backend.mean(log_likelihood)
 
 def mse_of_mu(y_true, y_pred):
@@ -45,10 +45,10 @@ def mse_of_mu(y_true, y_pred):
 def sharp_peak_loss(y_true, y_pred):
     # loss function that tries to force mu=1000 and sigma=100
     mu = y_pred[:,0]
-    logrelsigma = y_pred[:,1]
+    logsigma = y_pred[:,1]
     
     mu_sq_err = backend.square(mu - 1000)
-    sigma_sq_err = backend.square(backend.exp(logrelsigma) - 0.1)
+    sigma_sq_err = backend.square(backend.exp(logsigma) - 100)
     
     return backend.sum(mu_sq_err + sigma_sq_err)
 
@@ -252,15 +252,16 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.00003
-                batch_size = 1024
+                rate = 0.00001
+                batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
                 # For use with Tensorflow MixtureNormal
                 #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
+                regressor.compile(loss=gaussian_nll, optimizer=adam)
                 #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
-                regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
+                #regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
                     X_train, y_train,
                     epochs=_epochs,
@@ -342,22 +343,40 @@ if __name__ == '__main__':
             predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
         predictions_ttbar = np.reshape(
             predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
-            
+    
+    print('The number of events in each sample are:')
+    print('dihiggs_01: ' + str(len(predictions_HH_01)))
+    print('dihiggs_10: ' + str(len(predictions_HH_10)))
+    print('ztautau: ' + str(len(predictions_ztautau)))
+    print('ttbar: ' + str(len(predictions_ttbar)))
+    
+    print('The losses (calculated outside of Keras, before normalization by visible mass) are:')
+    print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
+    print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
+    print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
+    print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
+
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
     mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
     mvis_ttbar = visable_mass(ttbar.fold_1_array, 'ttbar')
     log.info ('mvis computed')
 
-    predictions_HH_01 = predictions_HH_01
-    predictions_HH_10 = predictions_HH_10
-    predictions_ztautau = predictions_ztautau
-    predictions_ttbar = predictions_ttbar
+    predictions_HH_01 *= np.array(mvis_HH_01)
+    predictions_HH_10 *= np.array(mvis_HH_10)
+    predictions_ztautau *= np.array(mvis_ztautau)
+    predictions_ttbar *= np.array(mvis_ttbar)
     
-    sigmas_HH_01 *= predictions_HH_01 * np.array(mvis_HH_01)
-    sigmas_HH_10 *= predictions_HH_10 * np.array(mvis_HH_10)
-    sigmas_ztautau *= predictions_ztautau * np.array(mvis_ztautau)
-    sigmas_ttbar *= predictions_ttbar * np.array(mvis_ttbar)
+    sigmas_HH_01 *= np.array(mvis_HH_01)
+    sigmas_HH_10 *= np.array(mvis_HH_10)
+    sigmas_ztautau *= np.array(mvis_ztautau)
+    sigmas_ttbar *= np.array(mvis_ttbar)
+    
+    print('The losses (calculated outside of Keras, after normalization by visible mass) are:')
+    print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
+    print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
+    print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
+    print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
 
     print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
@@ -392,12 +411,6 @@ if __name__ == '__main__':
     mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
     mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
     """
-    
-    print('The losses (calculated outside of Keras) are:')
-    print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
-    print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
-    print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
-    print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
         
     sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
     sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
