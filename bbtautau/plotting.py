@@ -16,7 +16,10 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 from . import log; log = log.getChild(__name__)
 
 
-def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_mmc = None):
+def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, mvis, predictions_mmc = None):
+
+    test_target = test_target / mvis
+    predictions_mmc = predictions_mmc / mvis
 
     eff_tot = []
     fig = plt.figure()
@@ -30,7 +33,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         predictions_rnn,
         bins=80,
         weights=weights,
-        range=(0,1500),
+        range=(0,3),
         #label=ak_array.title + '- RNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
         label=ak_array.title + '- New NN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
         color=ak_array.color,
@@ -44,7 +47,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         test_target,
         bins=80,
         weights= weights,
-        range=(0,1500),
+        range=(0,3),
         label=ak_array.title + '- truth.',
         color=ak_array.color,
         linestyle='dashed',
@@ -56,9 +59,9 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             predictions_mmc,
             bins=80,
             weights= weights,
-            range=(0,1500),
-            #label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
-            label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            range=(0,3),
+            label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            #label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
             color='purple',
             linestyle='solid',
             linewidth=2,
@@ -66,9 +69,9 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
         eff_tot.append(calculate_eff(n_mmc))
 
-    plt.xlabel(r'$m_{HH}$ [GeV]')
+    plt.xlabel(r'$m_{HH}/m_{vis}$')
     plt.ylabel('Events')
-    plt.ylim(bottom=0, top=max(n_rnn)*1.4)
+    plt.ylim(bottom=0)
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_distributions_{}.pdf'.format(regressor))
     plt.close(fig)
@@ -79,7 +82,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         test_target,
         bins=80,
         weights= weights,
-        range=(0,1500),
+        range=(0,3),
         label=ak_array.title,
         color=ak_array.color,
         linestyle='dashed',
@@ -88,7 +91,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     eff_true = calculate_eff(n_true)
 
-    plt.xlabel(r'True $m_{HH}$ [GeV]')
+    plt.xlabel(r'True $m_{HH}/m_{vis}$')
     plt.ylabel('Events')
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_distributions_truthonly.pdf')
@@ -118,13 +121,13 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         linewidth=2,
         histtype='step')
 
-    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN', new_label = 1)
+    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN')
 
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
             ratio_mmc,
-            #label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
-            label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            #label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
             color='purple',
             weights= weights,
             bins=160,
@@ -132,12 +135,11 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN', new_label = 2)
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
 
-    plt.xlabel(r'$m_{HH}$: prediction / truth [GeV]')
+    plt.xlabel(r'$m_{HH}/m_{vis}$: prediction / truth')
     plt.ylabel('Events')
-    plt.ylim(bottom=0, top=max(n_rat_rnn)*1.4)
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_ratios_{}.pdf'.format(regressor))
     plt.close(fig)

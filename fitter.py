@@ -283,13 +283,7 @@ if __name__ == '__main__':
     mvis_ttbar = visable_mass(ttbar.fold_1_array, 'ttbar')
     log.info ('mvis computed')
 
-    predictions_HH_01 = predictions_HH_01 * np.array(mvis_HH_01)
-    predictions_HH_10 = predictions_HH_10 * np.array(mvis_HH_10)
-    predictions_ztautau = predictions_ztautau * np.array(mvis_ztautau)
-    predictions_ttbar = predictions_ttbar * np.array(mvis_ttbar)
-
     print (dihiggs_01.fold_1_array.fields)
-    """
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
         mmc_HH_01 = dihiggs_01.fold_1_array['mmc_tautau']
         mhh_mmc_HH_01 = dihiggs_01.fold_1_array['mmc_bbtautau']
@@ -313,9 +307,9 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
-    """
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
+    """
     original_regressor = load_model('cache/original_training.h5')
     mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01)
     mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10)
@@ -331,16 +325,12 @@ if __name__ == '__main__':
             mhh_mmc_ztautau, (mhh_mmc_ztautau.shape[0], ))
         mhh_mmc_ttbar = np.reshape(
             mhh_mmc_ttbar, (mhh_mmc_ttbar.shape[0], ))
+    """
 
-    mhh_mmc_HH_01 = mhh_mmc_HH_01 * np.array(mvis_HH_01)
-    mhh_mmc_HH_10 = mhh_mmc_HH_10 * np.array(mvis_HH_10)
-    mhh_mmc_ztautau = mhh_mmc_ztautau * np.array(mvis_ztautau)
-    mhh_mmc_ttbar = mhh_mmc_ttbar * np.array(mvis_ttbar)
-
-    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
-    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
-    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
-    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_mmc = mhh_mmc_HH_01)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, np.array(mvis_HH_10), predictions_mmc = mhh_mmc_HH_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, np.array(mvis_ztautau), predictions_mmc = mhh_mmc_ztautau)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, np.array(mvis_ttbar), predictions_mmc = mhh_mmc_ttbar)
 
     # Chi-Square calculations
 
