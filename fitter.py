@@ -24,18 +24,18 @@ from keras import backend
 def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = y_pred[:,0]
-    logsigma = y_pred[:,1]
+    sigma = y_pred[:,1] + 0.0001 # offset to avoid taking the log of 0
     
-    mse = -0.5*backend.square((y_true-mu)/backend.exp(logsigma))
+    mse = -0.5*backend.square((y_true-mu)/sigma)
     log2pi = -0.5*np.log(2*np.pi)
     
     if sample_weight is not None:
         print('Using Sample Weight!')
-        log_likelihood = (mse - logsigma + log2pi) * sample_weight
+        log_likelihood = (mse - backend.log(sigma) + log2pi) * sample_weight
         return -backend.sum(log_likelihood) / backend.sum(sample_weight)
         
     print('NOT Using Sample Weight!')
-    log_likelihood = mse - logsigma + log2pi
+    log_likelihood = mse - backend.log(sigma) + log2pi
     return -backend.mean(log_likelihood)
 
 def mse_of_mu(y_true, y_pred):
@@ -326,14 +326,14 @@ if __name__ == '__main__':
     log.info ('regressor ran')
 
     if args.library == 'keras':
-        sigmas_HH_01 = np.exp(np.reshape(
-            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
-        sigmas_HH_10 = np.exp(np.reshape(
-            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], )))
-        sigmas_ztautau = np.exp(np.reshape(
-            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], )))
-        sigmas_ttbar = np.exp(np.reshape(
-            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
+        sigmas_HH_01 = np.reshape(
+            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], ))
+        sigmas_HH_10 = np.reshape(
+            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], ))
+        sigmas_ztautau = np.reshape(
+            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], ))
+        sigmas_ttbar = np.reshape(
+            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], ))
             
         predictions_HH_01 = np.reshape(
             predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))

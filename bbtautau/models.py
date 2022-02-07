@@ -1,8 +1,19 @@
 #import tensorflow_probability as tfp
 from keras.models import Model
-from keras.layers import Input, Dense, TimeDistributed, Reshape, Masking
+from keras.layers import Input, Dense, TimeDistributed, Reshape, Masking, Concatenate
 from keras.layers.recurrent import LSTM
 from bbtautau.SumLayer import SumLayer
+from keras import backend
+
+def mixture_density(nb_components):
+    # Adapted from https://gitlab.cern.ch/Atlas-Inner-Tracking/pixel-MDN/-/blob/master/train-MDN.py
+
+    def layer(X):
+        mu = Dense(nb_components, activation='linear')(X)
+        sigma = Dense(nb_components, activation=backend.abs)(X)
+        return Concatenate()([mu,sigma])
+        
+    return layer
 
 def keras_model_main(n_variables):
     x_1 = Input(shape=n_variables)
@@ -14,7 +25,7 @@ def keras_model_main(n_variables):
     hidden_5 = Dense(32, activation='relu')(hidden_4)
     hidden_6 = Dense(16, activation='relu')(hidden_5)
     hidden_7 = Dense(8, activation='relu')(hidden_6)
-    output = Dense(2, activation='linear')(hidden_7)
+    output = [mixture_density(1)(hidden_7)]
     return Model(inputs=x_1, outputs=output)
     
 def keras_model_mdn(n_variables):
