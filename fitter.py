@@ -21,6 +21,9 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
+def tf_mdn_loss(y, model):
+    return -model.log_prob(y)
+
 def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
     mu = y_pred[:,0]
@@ -120,7 +123,7 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -215,7 +218,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 20
+            _epochs = 2
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -252,14 +255,14 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.00001
+                rate = 0.000001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
                 # For use with Tensorflow MixtureNormal
-                #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
+                regressor.compile(loss=tf_mdn_loss, optimizer=adam)
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
-                regressor.compile(loss=gaussian_nll, optimizer=adam)
+                #regressor.compile(loss=gaussian_nll, optimizer=adam)
                 #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 #regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
@@ -324,16 +327,20 @@ if __name__ == '__main__':
     predictions_ztautau = regressor.predict(features_test_ztautau)
     predictions_ttbar = regressor.predict(features_test_ttbar)
     log.info ('regressor ran')
+    
+    print(predictions_HH_10.shape)
+    print(predictions_HH_10[:3])
+    print(predictions_HH_10[-3:])
 
     if args.library == 'keras':
-        sigmas_HH_01 = np.exp(np.reshape(
-            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
-        sigmas_HH_10 = np.exp(np.reshape(
-            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], )))
-        sigmas_ztautau = np.exp(np.reshape(
-            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], )))
-        sigmas_ttbar = np.exp(np.reshape(
-            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
+        sigmas_HH_01 = np.reshape(
+            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], ))
+        sigmas_HH_10 = np.reshape(
+            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], ))
+        sigmas_ztautau = np.reshape(
+            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], ))
+        sigmas_ttbar = np.reshape(
+            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], ))
             
         predictions_HH_01 = np.reshape(
             predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
