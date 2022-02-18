@@ -218,7 +218,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 2
+            _epochs = 30
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -255,10 +255,13 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.000001
+                rate = 3e-7 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
+                adam.beta_1 = 0.9 # default 0.9
+                adam.beta_2 = 0.999 # default 0.999
+                adam.epsilon = 1e-7 # default 1e-7
                 # For use with Tensorflow MixtureNormal
                 regressor.compile(loss=tf_mdn_loss, optimizer=adam)
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
@@ -322,35 +325,55 @@ if __name__ == '__main__':
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
     features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
-    predictions_HH_01 = regressor.predict(features_test_HH_01)
-    predictions_HH_10 = regressor.predict(features_test_HH_10)
-    predictions_ztautau = regressor.predict(features_test_ztautau)
-    predictions_ttbar = regressor.predict(features_test_ttbar)
-    log.info ('regressor ran')
+    # Based on https://stackoverflow.com/questions/65918888/mixture-parameters-from-a-tensorflow-probability-mixture-density-network
+
+    model_HH_01 = regressor(features_test_HH_01)
+    model_HH_10 = regressor(features_test_HH_10)
+    model_ztautau = regressor(features_test_ztautau)
+    model_ttbar = regressor(features_test_ttbar)
     
-    print(predictions_HH_10.shape)
-    print(predictions_HH_10[:3])
-    print(predictions_HH_10[-3:])
+    print(vars(model_HH_01))
+    print(vars(model_HH_01.mixture_distribution))
+    print(vars(model_HH_01.components_distribution))
+    print(np.array(model_HH_01.mean())[:5])
+    print(np.max(np.array(model_HH_01.mean())))
+    print(np.mean(np.array(model_HH_01.mean())))
+    print(np.array(model_HH_01.stddev())[:5])
+    print(np.max(np.array(model_HH_01.stddev())))
+    print(np.mean(np.array(model_HH_01.stddev())))
+    
+    predictions_HH_01 = np.array(model_HH_01.mean())
+    predictions_HH_10 = np.array(model_HH_10.mean())
+    predictions_ztautau = np.array(model_ztautau.mean())
+    predictions_ttbar = np.array(model_ttbar.mean())
+    
+    sigmas_HH_01 = np.array(model_HH_01.stddev())
+    sigmas_HH_10 = np.array(model_HH_10.stddev())
+    sigmas_ztautau = np.array(model_ztautau.stddev())
+    sigmas_ttbar = np.array(model_ttbar.stddev())
+    
+    log.info ('regressor ran')
 
     if args.library == 'keras':
         sigmas_HH_01 = np.reshape(
-            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], ))
+            sigmas_HH_01, (sigmas_HH_01.shape[0], ))
         sigmas_HH_10 = np.reshape(
-            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], ))
+            sigmas_HH_10, (sigmas_HH_10.shape[0], ))
         sigmas_ztautau = np.reshape(
-            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], ))
+            sigmas_ztautau, (sigmas_ztautau.shape[0], ))
         sigmas_ttbar = np.reshape(
-            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], ))
+            sigmas_ttbar, (sigmas_ttbar.shape[0], ))
             
         predictions_HH_01 = np.reshape(
-            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
+            predictions_HH_01, (predictions_HH_01.shape[0], ))
         predictions_HH_10 = np.reshape(
-            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], ))
+            predictions_HH_10, (predictions_HH_10.shape[0], ))
         predictions_ztautau = np.reshape(
-            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
+            predictions_ztautau, (predictions_ztautau.shape[0], ))
         predictions_ttbar = np.reshape(
-            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
+            predictions_ttbar, (predictions_ttbar.shape[0], ))
     
+    """
     print('The number of events in each sample are:')
     print('dihiggs_01: ' + str(len(predictions_HH_01)))
     print('dihiggs_10: ' + str(len(predictions_HH_10)))
@@ -362,6 +385,7 @@ if __name__ == '__main__':
     print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
     print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
     print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
+    """
 
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
@@ -420,7 +444,7 @@ if __name__ == '__main__':
     mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
     mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
     """
-        
+    
     sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
     sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
     sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))

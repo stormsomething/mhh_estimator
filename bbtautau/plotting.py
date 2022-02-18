@@ -26,7 +26,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         sigmas,
         bins=80,
         weights=weights,
-        range=(0.1,0.4),
+        range=(0.5,0.9),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
     plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
     plt.ylabel('Events')
@@ -51,7 +51,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         rel_sigmas[indices_1],
         bins=80,
         weights=weights[indices_1],
-        range=(0.1,0.3),
+        range=(0,2),
         histtype='step',
         label=r'$\sigma(m_{HH})<70$. RMS: ' + str(round(rms_1, 4)),
         density=True)
@@ -59,7 +59,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         rel_sigmas[indices_2],
         bins=80,
         weights=weights[indices_2],
-        range=(0,0.4),
+        range=(0,2),
         histtype='step',
         label=r'$70<\sigma(m_{HH})<95$. RMS: ' + str(round(rms_2, 4)),
         density=True)
@@ -67,7 +67,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         rel_sigmas[indices_3],
         bins=80,
         weights=weights[indices_3],
-        range=(0,0.4),
+        range=(0,2),
         histtype='step',
         label=r'$95<\sigma(m_{HH})<120$. RMS: ' + str(round(rms_3, 4)),
         density=True)
@@ -75,7 +75,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         rel_sigmas[indices_4],
         bins=80,
         weights=weights[indices_4],
-        range=(0,0.4),
+        range=(0,2),
         histtype='step',
         label=r'$\sigma(m_{HH})>120$. RMS: ' + str(round(rms_4, 4)),
         density=True)
