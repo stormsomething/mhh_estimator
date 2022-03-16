@@ -10,7 +10,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots
+from bbtautau.plotting import nn_history, sigma_plots, metsig_plots
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -21,7 +21,9 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
-def tf_mdn_loss(y, model):
+def tf_mdn_loss(y, model, sample_weight=None):
+    if sample_weight is not None:
+        return -model.log_prob(y) * sample_weight
     return -model.log_prob(y)
 
 def gaussian_nll(y_true, y_pred, sample_weight=None):
@@ -133,33 +135,33 @@ if __name__ == '__main__':
         log.info('prepare training data')
 
         dihiggs_01_target = dihiggs_01.fold_0_array['universal_true_mhh']
-        dihiggs_10_target = dihiggs_10.fold_0_array['universal_true_mhh']
+        #dihiggs_10_target = dihiggs_10.fold_0_array['universal_true_mhh']
         ztautau_target = ztautau.fold_0_array['universal_true_mhh']
         ttbar_target = ttbar.fold_0_array['universal_true_mhh']
         
         dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
-        dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
+        #dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
         ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
         ttbar_vis_mass = visable_mass(ttbar.fold_0_array, 'ttbar')
 
         dihiggs_01_target = dihiggs_01_target / dihiggs_01_vis_mass
-        dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
+        #dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
         ztautau_target = ztautau_target / ztautau_vis_mass
         ttbar_target = ttbar_target / ttbar_vis_mass
 
         features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
-        features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
+        #features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
         features_ztautau = features_table(ztautau.fold_0_array)
         features_ttbar = features_table(ttbar.fold_0_array)
 
         len_HH_01 = len(features_dihiggs_01)
-        len_HH_10 = len(features_dihiggs_10)
+        #len_HH_10 = len(features_dihiggs_10)
         len_ztautau = len(features_ztautau)
         len_ttbar = len(features_ttbar)
         
         train_features_new = np.concatenate([
             features_dihiggs_01,
-            features_dihiggs_10,
+            #features_dihiggs_10,
             features_ztautau,
             features_ttbar
         ])
@@ -167,24 +169,26 @@ if __name__ == '__main__':
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
         features_dihiggs_01 = train_features_new[:len_HH_01]
-        features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
-        features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
-        features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        #features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
+        #features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
+        #features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        features_ztautau = train_features_new[len_HH_01:len_HH_01+len_ztautau]
+        features_ttbar = train_features_new[len_HH_01+len_ztautau:]
 
         features_dihiggs_01 = np.append(features_dihiggs_01, [['dihiggs_01']]*len_HH_01, 1)
-        features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
+        #features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
         features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
         features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
 
         train_target = ak.concatenate([
             dihiggs_01_target,
-            dihiggs_10_target,
+            #dihiggs_10_target,
             ztautau_target,
             ttbar_target
         ])
         train_features = np.concatenate([
             features_dihiggs_01,
-            features_dihiggs_10,
+            #features_dihiggs_10,
             features_ztautau,
             features_ttbar
         ])
@@ -218,7 +222,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 30
+            _epochs = 40
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -332,9 +336,9 @@ if __name__ == '__main__':
     model_ztautau = regressor(features_test_ztautau)
     model_ttbar = regressor(features_test_ttbar)
     
-    print(vars(model_HH_01))
-    print(vars(model_HH_01.mixture_distribution))
-    print(vars(model_HH_01.components_distribution))
+    #print(vars(model_HH_01))
+    #print(vars(model_HH_01.mixture_distribution))
+    #print(vars(model_HH_01.components_distribution))
     print(np.array(model_HH_01.mean())[:5])
     print(np.max(np.array(model_HH_01.mean())))
     print(np.mean(np.array(model_HH_01.mean())))
@@ -379,12 +383,26 @@ if __name__ == '__main__':
     print('dihiggs_10: ' + str(len(predictions_HH_10)))
     print('ztautau: ' + str(len(predictions_ztautau)))
     print('ttbar: ' + str(len(predictions_ttbar)))
+    """
     
-    print('The losses (calculated outside of Keras) are:')
+    """
+    sigmas_HH_01 = 0.69 * np.ones(sigmas_HH_01.shape)
+    sigmas_HH_10 = 0.69 * np.ones(sigmas_HH_10.shape)
+    sigmas_ztautau = 0.69 * np.ones(sigmas_ztautau.shape)
+    sigmas_ttbar = 0.69 * np.ones(sigmas_ttbar.shape)
+    """
+    
+    """
+    print('The losses (calculated outside of Keras using the Gaussian likelihood formula) are:')
     print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
     print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
     print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
     print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
+    print('The losses (calculated outside of Keras using the model.log_prob function) are:')
+    print('dihiggs_01: ' + str(np.mean(-model_HH_01.log_prob(test_target_HH_01))))
+    print('dihiggs_10: ' + str(np.mean(-model_HH_10.log_prob(test_target_HH_10))))
+    print('ztautau: ' + str(np.mean(-model_ztautau.log_prob(test_target_ztautau))))
+    print('ttbar: ' + str(np.mean(-model_ttbar.log_prob(test_target_ttbar))))
     """
 
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
@@ -443,6 +461,13 @@ if __name__ == '__main__':
     mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10) * np.array(mvis_HH_10)
     mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
     mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
+    """
+    
+    """
+    metsig_plots(dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
+    metsig_plots(dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
+    metsig_plots(ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
+    metsig_plots(ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
     """
     
     sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
