@@ -5,7 +5,7 @@ import numpy as np
 from argparse import ArgumentParser
 from bbtautau import log; log = log.getChild('fitter')
 from bbtautau.utils import features_table, universal_true_mhh, visable_mass, clean_samples, chi_square_test, rotate_events
-from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
+from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot, resid_plots
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
 from bbtautau.plotting import nn_history
@@ -326,6 +326,11 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = np.reshape(
             mhh_mmc_ttbar, (mhh_mmc_ttbar.shape[0], ))
     """
+    
+    resid_plots(predictions_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
+    resid_plots(predictions_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
+    resid_plots(predictions_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
+    resid_plots(predictions_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
 
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, np.array(mvis_HH_10), predictions_mmc = mhh_mmc_HH_10)

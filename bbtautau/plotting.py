@@ -15,6 +15,28 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def resid_plots(mus, fold_1_array, label, mvis):
+    truths = fold_1_array['universal_true_mhh'] / mvis
+    weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+    
+    data = truths - mus
+    mean_all = np.mean(data)
+    rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
+    
+    fig = plt.figure()
+    plt.hist(
+        data,
+        bins=80,
+        weights=weights,
+        range=(-3,3),
+        histtype='step',
+        label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
+        density=True)
+    plt.xlabel(r'$m_{HH}/m_{vis}$ Residual')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/resid_' + label + '.pdf')
+    plt.close(fig)
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, mvis, predictions_mmc = None):
 
