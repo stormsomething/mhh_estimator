@@ -28,7 +28,7 @@ def resid_plots(mus, fold_1_array, label, mvis):
         data,
         bins=80,
         weights=weights,
-        range=(-3,3),
+        range=(-2,2),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)

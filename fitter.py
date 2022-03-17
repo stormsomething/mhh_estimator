@@ -331,6 +331,26 @@ if __name__ == '__main__':
     resid_plots(predictions_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
     resid_plots(predictions_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
     resid_plots(predictions_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    
+    all_predictions = np.concatenate([
+        predictions_HH_01,
+        predictions_HH_10,
+        predictions_ztautau,
+        predictions_ttbar
+    ])
+    all_fold_1_arrays = np.concatenate([
+        dihiggs_01.fold_1_array,
+        dihiggs_10.fold_1_array,
+        ztautau.fold_1_array,
+        ttbar.fold_1_array
+    ])
+    all_mvis = np.concatenate([
+        mvis_HH_01,
+        mvis_HH_10,
+        mvis_ztautau,
+        mvis_ttbar
+    ])
+    resid_plots(all_predictions, all_fold_1_arrays, 'all', all_mvis)
 
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, np.array(mvis_HH_10), predictions_mmc = mhh_mmc_HH_10)
