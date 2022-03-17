@@ -169,7 +169,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data,
         bins=80,
         weights=weights,
-        range=(-8,8),
+        range=(-6,6),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
@@ -177,7 +177,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_1],
         bins=80,
         weights=weights[indices_1],
-        range=(-8,8),
+        range=(-6,6),
         histtype='step',
         label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
@@ -185,7 +185,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_2],
         bins=80,
         weights=weights[indices_2],
-        range=(-8,8),
+        range=(-6,6),
         histtype='step',
         label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
@@ -254,7 +254,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data,
         bins=80,
         weights=weights,
-        range=(-3,3),
+        range=(-2,2),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
@@ -262,7 +262,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_1],
         bins=80,
         weights=weights[indices_1],
-        range=(-3,3),
+        range=(-2,2),
         histtype='step',
         label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
@@ -270,7 +270,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_2],
         bins=80,
         weights=weights[indices_2],
-        range=(-3,3),
+        range=(-2,2),
         histtype='step',
         label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
