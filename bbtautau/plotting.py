@@ -413,7 +413,8 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, mvis, predictions_mmc = None):
 
     test_target = test_target / mvis
-    predictions_mmc = predictions_mmc / mvis
+    if predictions_mmc is not None:
+        predictions_mmc = predictions_mmc / mvis
 
     eff_tot = []
     fig = plt.figure()
@@ -470,6 +471,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     fig.savefig('plots/' + str(label) + '_distributions_{}.pdf'.format(regressor))
     plt.close(fig)
 
+    """
     fig = plt.figure()
 
     (n_true, bins_true, patches_true) = plt.hist(
@@ -537,6 +539,12 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_ratios_{}.pdf'.format(regressor))
     plt.close(fig)
+    """
+    eff_true = 0
+    n_true = 0
+    
+    if predictions_mmc is None:
+        n_mmc = 0
 
     return eff_tot, eff_true, n_rnn, n_mmc, n_true
 
