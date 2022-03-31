@@ -170,7 +170,8 @@ if __name__ == '__main__':
 
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
-        train_features_new = np.zeros(train_features_new.shape)
+        #train_features_new = np.zeros(train_features_new.shape)
+        train_features_new = np.random.normal(size = train_features_new.shape)
         
         features_dihiggs_01 = train_features_new[:len_HH_01]
         features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
@@ -261,7 +262,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 1e-4 # default 0.001
+                rate = 3e-7 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
@@ -324,7 +325,8 @@ if __name__ == '__main__':
     ])
 
     train_features_new = scaler.fit_transform(X=train_features_new)
-    train_features_new = np.zeros(train_features_new.shape)
+    #train_features_new = np.zeros(train_features_new.shape)
+    train_features_new = np.random.normal(size = train_features_new.shape)
     log.info ('scaler ran')
 
     features_test_HH_01 = train_features_new[:len_HH_01]
