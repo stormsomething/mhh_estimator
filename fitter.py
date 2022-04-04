@@ -133,11 +133,13 @@ if __name__ == '__main__':
 
     else:
         log.info('prepare training data')
-
+        
+        """
         dihiggs_01_target = np.random.normal(loc = 1.39, scale = 0.39, size = len(dihiggs_01.fold_0_array['universal_true_mhh'])) #dihiggs_01.fold_0_array['universal_true_mhh']
         dihiggs_10_target = np.random.normal(loc = 1.39, scale = 0.39, size = len(dihiggs_10.fold_0_array['universal_true_mhh'])) # dihiggs_10.fold_0_array['universal_true_mhh']
         ztautau_target = np.random.normal(loc = 1.39, scale = 0.39, size = len(ztautau.fold_0_array['universal_true_mhh'])) # ztautau.fold_0_array['universal_true_mhh']
         ttbar_target = np.random.normal(loc = 1.39, scale = 0.39, size = len(ttbar.fold_0_array['universal_true_mhh'])) # ttbar.fold_0_array['universal_true_mhh']
+        """
         
         """
         dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
@@ -170,13 +172,19 @@ if __name__ == '__main__':
 
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
-        #train_features_new = np.zeros(train_features_new.shape)
-        train_features_new = np.random.normal(size = train_features_new.shape)
+        train_features_new = np.zeros(train_features_new.shape)
+        #train_features_new = np.random.normal(size = train_features_new.shape)
+        train_features_new[:,:1] = np.random.normal(size = train_features_new[:,:1].shape)
         
         features_dihiggs_01 = train_features_new[:len_HH_01]
         features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
         features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
         features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        
+        dihiggs_01_target = np.random.normal(loc = 1.39 + (0.39*features_dihiggs_01[:,0]), scale = 0.39*np.absolute(features_dihiggs_01[:,1]), size = len(dihiggs_01.fold_0_array['universal_true_mhh']))
+        dihiggs_10_target = np.random.normal(loc = 1.39 + (0.39*features_dihiggs_10[:,0]), scale = 0.39*np.absolute(features_dihiggs_10[:,1]), size = len(dihiggs_10.fold_0_array['universal_true_mhh']))
+        ztautau_target = np.random.normal(loc = 1.39 + (0.39*features_ztautau[:,0]), scale = 0.39*np.absolute(features_ztautau[:,1]), size = len(ztautau.fold_0_array['universal_true_mhh']))
+        ttbar_target = np.random.normal(loc = 1.39 + (0.39*features_ttbar[:,0]), scale = 0.39*np.absolute(features_ttbar[:,1]), size = len(ttbar.fold_0_array['universal_true_mhh']))
 
         features_dihiggs_01 = np.append(features_dihiggs_01, [['dihiggs_01']]*len_HH_01, 1)
         features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
@@ -225,7 +233,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 10
+            _epochs = 30
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -262,7 +270,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 3e-7 # default 0.001
+                rate = 5e-7 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
@@ -301,11 +309,16 @@ if __name__ == '__main__':
             pass
 
     log.info('plotting')
-
+    
+    """
     test_target_HH_01 = np.random.normal(loc = 1.39, scale = 0.39, size = len(dihiggs_01.fold_1_array['universal_true_mhh'])) #dihiggs_01.fold_1_array['universal_true_mhh']
     test_target_HH_10 = np.random.normal(loc = 1.39, scale = 0.39, size = len(dihiggs_10.fold_1_array['universal_true_mhh'])) #dihiggs_10.fold_1_array['universal_true_mhh']
     test_target_ztautau = np.random.normal(loc = 1.39, scale = 0.39, size = len(ztautau.fold_1_array['universal_true_mhh'])) #ztautau.fold_1_array['universal_true_mhh']
     test_target_ttbar = np.random.normal(loc = 1.39, scale = 0.39, size = len(ttbar.fold_1_array['universal_true_mhh'])) #ttbar.fold_1_array['universal_true_mhh']
+    print('Target Info:')
+    print(type(test_target_HH_01))
+    print(len(test_target_HH_01))
+    """
 
     features_test_HH_01 = features_table(dihiggs_01.fold_1_array)
     features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
@@ -325,14 +338,31 @@ if __name__ == '__main__':
     ])
 
     train_features_new = scaler.fit_transform(X=train_features_new)
-    #train_features_new = np.zeros(train_features_new.shape)
-    train_features_new = np.random.normal(size = train_features_new.shape)
+    train_features_new = np.zeros(train_features_new.shape)
+    #train_features_new = np.random.normal(size = train_features_new.shape)
+    train_features_new[:,:1] = np.random.normal(size = train_features_new[:,:1].shape)
+    """
+    print('Features Info:')
+    print(type(train_features_new))
+    print(train_features_new.shape)
+    print(type(train_features_new[:len_HH_01]))
+    print(train_features_new[:len_HH_01].shape)
+    print(type(train_features_new[0]))
+    print(train_features_new[0].shape)
+    print(type(train_features_new[:,0]))
+    print(train_features_new[:,0].shape)
+    """
     log.info ('scaler ran')
 
     features_test_HH_01 = train_features_new[:len_HH_01]
     features_test_HH_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
     features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+    
+    test_target_HH_01 = np.random.normal(loc = 1.39 + (0.39*features_test_HH_01[:,0]), scale = 0.39*np.absolute(features_test_HH_01[:,1]), size = len(dihiggs_01.fold_1_array['universal_true_mhh']))
+    test_target_HH_10 = np.random.normal(loc = 1.39 + (0.39*features_test_HH_10[:,0]), scale = 0.39*np.absolute(features_test_HH_10[:,1]), size = len(dihiggs_10.fold_1_array['universal_true_mhh']))
+    test_target_ztautau = np.random.normal(loc = 1.39 + (0.39*features_test_ztautau[:,0]), scale = 0.39*np.absolute(features_test_ztautau[:,1]), size = len(ztautau.fold_1_array['universal_true_mhh']))
+    test_target_ttbar = np.random.normal(loc = 1.39 + (0.39*features_test_ttbar[:,0]), scale = 0.39*np.absolute(features_test_ttbar[:,1]), size = len(ttbar.fold_1_array['universal_true_mhh']))
 
     # Based on https://stackoverflow.com/questions/65918888/mixture-parameters-from-a-tensorflow-probability-mixture-density-network
 
@@ -477,10 +507,10 @@ if __name__ == '__main__':
     metsig_plots(ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
     """
     
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', test_target_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', test_target_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', test_target_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', test_target_ttbar)
     
     """
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_mmc = mhh_mmc_HH_01)

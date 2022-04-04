@@ -86,8 +86,8 @@ def metsig_plots(fold_1_array, label, mvis):
     fig.savefig('plots/true_mhh_by_metsig_range_' + label + '.pdf')
     plt.close(fig)
 
-def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
-    truths = fold_1_array['universal_true_mhh'] / mvis
+def sigma_plots(mus, sigmas, fold_1_array, label, truths):
+    #truths = fold_1_array['universal_true_mhh'] / mvis
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
     mean_sigma = np.mean(sigmas)
     rms_sigma = np.sqrt(np.mean((sigmas - mean_sigma) * (sigmas - mean_sigma)))
