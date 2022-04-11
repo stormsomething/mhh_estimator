@@ -97,7 +97,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         sigmas,
         bins=80,
         weights=weights,
-        range=(0,1.4),
+        range=(0,1),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
     plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
     plt.ylabel('Events')
@@ -108,7 +108,8 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     # Split indices on absolute sigma ranges
     indices_1 = np.where(sigmas < mean_sigma)
     indices_2 = np.where(sigmas > mean_sigma)
-        
+    
+    """
     rel_sigmas = sigmas / mus
     mean_1 = np.mean(rel_sigmas[indices_1])
     mean_2 = np.mean(rel_sigmas[indices_2])
@@ -149,7 +150,6 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.close(fig)
     
     # Split indices on relative sigma ranges
-    """
     rel_indices_1 = np.where(rel_sigmas < 0.195)
     rel_indices_2 = np.where((rel_sigmas > 0.195) & (rel_sigmas < 0.215))
     rel_indices_3 = np.where((rel_sigmas > 0.215) & (rel_sigmas < 0.235))
@@ -169,7 +169,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data,
         bins=80,
         weights=weights,
-        range=(-6,6),
+        range=(-5,5),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
@@ -177,7 +177,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_1],
         bins=80,
         weights=weights[indices_1],
-        range=(-6,6),
+        range=(-5,5),
         histtype='step',
         label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
@@ -185,7 +185,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_2],
         bins=80,
         weights=weights[indices_2],
-        range=(-6,6),
+        range=(-5,5),
         histtype='step',
         label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
@@ -254,7 +254,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data,
         bins=80,
         weights=weights,
-        range=(-2,2),
+        range=(-1.25,1.25),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
@@ -262,7 +262,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_1],
         bins=80,
         weights=weights[indices_1],
-        range=(-2,2),
+        range=(-1.25,1.25),
         histtype='step',
         label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
@@ -270,7 +270,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         data[indices_2],
         bins=80,
         weights=weights[indices_2],
-        range=(-2,2),
+        range=(-1.25,1.25),
         histtype='step',
         label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
@@ -278,6 +278,16 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_resid_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.scatter(
+        sigmas,
+        data,
+        s=5)
+    plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
+    plt.ylabel(r'$m_{HH}/m_{vis}$ Residual')
+    fig.savefig('plots/mdn_resid_sigma_scatter_' + label + '.pdf')
     plt.close(fig)
     
     """
