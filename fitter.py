@@ -161,7 +161,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 20
+            _epochs = 100
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -198,7 +198,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.001
+                rate = 1e-5
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 adam.learning_rate = rate
@@ -212,7 +212,7 @@ if __name__ == '__main__':
                     ## validation_split=0.1,
                     validation_data=(X_test, y_test),
                     callbacks=[
-                        EarlyStopping(verbose=True, patience=20, monitor='val_loss'),
+                        EarlyStopping(verbose=True, patience=10, monitor='val_loss'),
                         ModelCheckpoint(
                             _filename, monitor='val_loss',
                             verbose=True, save_best_only=True)])
