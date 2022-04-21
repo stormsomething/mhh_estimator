@@ -10,7 +10,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, metsig_plots
+from bbtautau.plotting import nn_history, sigma_plots, metsig_plots, resid_comparison_plots
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -429,6 +429,7 @@ if __name__ == '__main__':
     print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
     """
 
+    """
     print (dihiggs_01.fold_1_array.fields)
     if 'mmc_bbtautau' in dihiggs_01.fold_1_array.fields:
         mmc_HH_01 = dihiggs_01.fold_1_array['mmc_tautau']
@@ -453,15 +454,25 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
+    """
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
-    """
+    log.info ('Loading Old Model for Comparison')
     original_regressor = load_model('cache/original_training.h5')
-    mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01) * np.array(mvis_HH_01)
-    mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10) * np.array(mvis_HH_10)
-    mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
-    mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
-    """
+    mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01)
+    mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10)
+    mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau)
+    mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar)
+    
+    if args.library == 'keras':
+        mhh_mmc_HH_01 = np.reshape(
+            mhh_mmc_HH_01, (mhh_mmc_HH_01.shape[0], ))
+        mhh_mmc_HH_10 = np.reshape(
+            mhh_mmc_HH_10, (mhh_mmc_HH_10.shape[0], ))
+        mhh_mmc_ztautau = np.reshape(
+            mhh_mmc_ztautau, (mhh_mmc_ztautau.shape[0], ))
+        mhh_mmc_ttbar = np.reshape(
+            mhh_mmc_ttbar, (mhh_mmc_ttbar.shape[0], ))
     
     """
     metsig_plots(dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
@@ -476,6 +487,11 @@ if __name__ == '__main__':
     sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
     sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
     sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    
+    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
+    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
+    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
+    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
     
     all_predictions = np.concatenate([
         predictions_HH_01,
@@ -501,7 +517,14 @@ if __name__ == '__main__':
         mvis_ztautau,
         mvis_ttbar
     ])
+    all_mmc = np.concatenate([
+        mhh_mmc_HH_01,
+        mhh_mmc_HH_10,
+        mhh_mmc_ztautau,
+        mhh_mmc_ttbar
+    ])
     sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    resid_comparison_plots(all_predictions, all_sigmas, all_mmc, all_fold_1_arrays, 'all', all_mvis)
     
     log.info ('Finished Sigma Plotting, Beginning RNN-MMC Comparison Plotting')
     

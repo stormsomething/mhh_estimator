@@ -85,6 +85,127 @@ def metsig_plots(fold_1_array, label, mvis):
     plt.legend(fontsize='small')
     fig.savefig('plots/true_mhh_by_metsig_range_' + label + '.pdf')
     plt.close(fig)
+    
+def resid_comparison_plots(mus, sigmas, old_preds, fold_1_array, label, mvis):
+    truths = fold_1_array['universal_true_mhh'] / mvis
+    weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+
+    indices_1 = np.where(sigmas < 0.15)
+    indices_2 = np.where((sigmas > 0.15) & (sigmas < 0.25))
+    indices_3 = np.where((sigmas > 0.25) & (sigmas < 0.35))
+    indices_4 = np.where(sigmas > 0.35)
+    
+    data = truths - mus
+    mean_1 = np.mean(data[indices_1])
+    mean_2 = np.mean(data[indices_2])
+    mean_3 = np.mean(data[indices_3])
+    mean_4 = np.mean(data[indices_4])
+    mean_all = np.mean(data)
+    rms_1 = np.sqrt(np.mean((data[indices_1] - mean_1) * (data[indices_1] - mean_1)))
+    rms_2 = np.sqrt(np.mean((data[indices_2] - mean_2) * (data[indices_2] - mean_2)))
+    rms_3 = np.sqrt(np.mean((data[indices_3] - mean_3) * (data[indices_3] - mean_3)))
+    rms_4 = np.sqrt(np.mean((data[indices_4] - mean_4) * (data[indices_4] - mean_4)))
+    rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
+    
+    old_data = truths - old_preds
+    old_mean_1 = np.mean(old_data[indices_1])
+    old_mean_2 = np.mean(old_data[indices_2])
+    old_mean_3 = np.mean(old_data[indices_3])
+    old_mean_4 = np.mean(old_data[indices_4])
+    old_mean_all = np.mean(old_data)
+    old_rms_1 = np.sqrt(np.mean((old_data[indices_1] - old_mean_1) * (old_data[indices_1] - old_mean_1)))
+    old_rms_2 = np.sqrt(np.mean((old_data[indices_2] - old_mean_2) * (old_data[indices_2] - old_mean_2)))
+    old_rms_3 = np.sqrt(np.mean((old_data[indices_3] - old_mean_3) * (old_data[indices_3] - old_mean_3)))
+    old_rms_4 = np.sqrt(np.mean((old_data[indices_4] - old_mean_4) * (old_data[indices_4] - old_mean_4)))
+    old_rms_all = np.sqrt(np.mean((old_data - old_mean_all) * (old_data - old_mean_all)))
+    
+    fig = plt.figure()
+    plt.hist(
+        data,
+        bins=100,
+        weights=weights,
+        range=(-1.5,1.5),
+        histtype='step',
+        label='All events, MDN. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
+        density=True)
+    plt.hist(
+        data[indices_1],
+        bins=100,
+        weights=weights[indices_1],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<0.15$, MDN. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        density=True)
+    plt.hist(
+        data[indices_2],
+        bins=100,
+        weights=weights[indices_2],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$0.15<\sigma(m_{HH})<0.25$, MDN. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        density=True)
+    plt.hist(
+        data[indices_3],
+        bins=100,
+        weights=weights[indices_3],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$0.25<\sigma(m_{HH})<0.35$, MDN. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=100,
+        weights=weights[indices_4],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>0.35$, MDN. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.hist(
+        old_data,
+        bins=100,
+        weights=weights,
+        range=(-1.5,1.5),
+        histtype='step',
+        label='All events, DNN. Mean: ' + str(round(old_mean_all, 4)) + '. RMS: ' + str(round(old_rms_all, 4)),
+        density=True)
+    plt.hist(
+        old_data[indices_1],
+        bins=100,
+        weights=weights[indices_1],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})<0.15$, DNN. Mean: ' + str(round(old_mean_1, 4)) + '. RMS: ' + str(round(old_rms_1, 4)),
+        density=True)
+    plt.hist(
+        old_data[indices_2],
+        bins=100,
+        weights=weights[indices_2],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$0.15<\sigma(m_{HH})<0.25$, DNN. Mean: ' + str(round(old_mean_2, 4)) + '. RMS: ' + str(round(old_rms_2, 4)),
+        density=True)
+    plt.hist(
+        old_data[indices_3],
+        bins=100,
+        weights=weights[indices_3],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$0.25<\sigma(m_{HH})<0.35$, DNN. Mean: ' + str(round(old_mean_3, 4)) + '. RMS: ' + str(round(old_rms_3, 4)),
+        density=True)
+    plt.hist(
+        old_data[indices_4],
+        bins=100,
+        weights=weights[indices_4],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>0.35$, DNN. Mean: ' + str(round(old_mean_4, 4)) + '. RMS: ' + str(round(old_rms_4, 4)),
+        density=True)
+    plt.xlim((-1.5,1.5))
+    plt.xlabel(r'$m_{HH}/m_{vis}$ Residual')
+    plt.ylabel('Events')
+    plt.legend(fontsize='xx-small')
+    fig.savefig('plots/mdn_resid_compare_' + label + '.pdf')
+    plt.close(fig)
 
 def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     truths = fold_1_array['universal_true_mhh'] / mvis
@@ -95,19 +216,22 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     fig = plt.figure()
     plt.hist(
         sigmas,
-        bins=80,
+        bins=100,
         weights=weights,
-        range=(0,1),
+        range=(0,0.8),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
+    plt.xlim((0,0.8))
     plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='xx-small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
     plt.close(fig)
     
     # Split indices on absolute sigma ranges
-    indices_1 = np.where(sigmas < mean_sigma)
-    indices_2 = np.where(sigmas > mean_sigma)
+    indices_1 = np.where(sigmas < 0.15)
+    indices_2 = np.where((sigmas > 0.15) & (sigmas < 0.25))
+    indices_3 = np.where((sigmas > 0.25) & (sigmas < 0.35))
+    indices_4 = np.where(sigmas > 0.35)
     
     """
     rel_sigmas = sigmas / mus
@@ -159,39 +283,60 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     data = (truths - mus) / sigmas
     mean_1 = np.mean(data[indices_1])
     mean_2 = np.mean(data[indices_2])
+    mean_3 = np.mean(data[indices_3])
+    mean_4 = np.mean(data[indices_4])
     mean_all = np.mean(data)
     rms_1 = np.sqrt(np.mean((data[indices_1] - mean_1) * (data[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((data[indices_2] - mean_2) * (data[indices_2] - mean_2)))
+    rms_3 = np.sqrt(np.mean((data[indices_3] - mean_3) * (data[indices_3] - mean_3)))
+    rms_4 = np.sqrt(np.mean((data[indices_4] - mean_4) * (data[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
     
     fig = plt.figure()
     plt.hist(
         data,
-        bins=80,
+        bins=100,
         weights=weights,
-        range=(-5,5),
+        range=(-6,6),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
     plt.hist(
         data[indices_1],
-        bins=80,
+        bins=100,
         weights=weights[indices_1],
-        range=(-5,5),
+        range=(-6,6),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})<0.15$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
-        bins=80,
+        bins=100,
         weights=weights[indices_2],
-        range=(-5,5),
+        range=(-6,6),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$0.15<\sigma(m_{HH})<0.25$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
+    plt.hist(
+        data[indices_3],
+        bins=100,
+        weights=weights[indices_3],
+        range=(-6,6),
+        histtype='step',
+        label=r'$0.25<\sigma(m_{HH})<0.35$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=100,
+        weights=weights[indices_4],
+        range=(-6,6),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>0.35$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlim((-6,6))
     plt.xlabel(r'$m_{HH}/m_{vis}$ Residual / $\sigma(m_{HH}/m_{vis})$')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='xx-small')
     fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
     plt.close(fig)
     
@@ -244,42 +389,65 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     data = truths - mus
     mean_1 = np.mean(data[indices_1])
     mean_2 = np.mean(data[indices_2])
+    mean_3 = np.mean(data[indices_3])
+    mean_4 = np.mean(data[indices_4])
     mean_all = np.mean(data)
     rms_1 = np.sqrt(np.mean((data[indices_1] - mean_1) * (data[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((data[indices_2] - mean_2) * (data[indices_2] - mean_2)))
+    rms_3 = np.sqrt(np.mean((data[indices_3] - mean_3) * (data[indices_3] - mean_3)))
+    rms_4 = np.sqrt(np.mean((data[indices_4] - mean_4) * (data[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
     
     fig = plt.figure()
     plt.hist(
         data,
-        bins=80,
+        bins=100,
         weights=weights,
-        range=(-1.25,1.25),
+        range=(-1.5,1.5),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
     plt.hist(
         data[indices_1],
-        bins=80,
+        bins=100,
         weights=weights[indices_1],
-        range=(-1.25,1.25),
+        range=(-1.5,1.5),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})<0.15$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
-        bins=80,
+        bins=100,
         weights=weights[indices_2],
-        range=(-1.25,1.25),
+        range=(-1.5,1.5),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$0.15<\sigma(m_{HH})<0.25$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
+    plt.hist(
+        data[indices_3],
+        bins=100,
+        weights=weights[indices_3],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$0.25<\sigma(m_{HH})<0.35$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        data[indices_4],
+        bins=100,
+        weights=weights[indices_4],
+        range=(-1.5,1.5),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>0.35$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlim((-1.5,1.5))
     plt.xlabel(r'$m_{HH}/m_{vis}$ Residual')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='xx-small')
     fig.savefig('plots/mdn_resid_' + label + '.pdf')
     plt.close(fig)
     
+    # This creates such a large file I would not advise doing this
+    """
     fig = plt.figure()
     plt.scatter(
         sigmas,
@@ -289,6 +457,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.ylabel(r'$m_{HH}/m_{vis}$ Residual')
     fig.savefig('plots/mdn_resid_sigma_scatter_' + label + '.pdf')
     plt.close(fig)
+    """
     
     """
     rms_1 = np.sqrt(np.mean(data[rel_indices_1] * data[rel_indices_1]))
@@ -338,15 +507,19 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     
     mean_1 = np.mean(truths[indices_1])
     mean_2 = np.mean(truths[indices_2])
+    mean_3 = np.mean(truths[indices_3])
+    mean_4 = np.mean(truths[indices_4])
     mean_all = np.mean(truths)
     rms_1 = np.sqrt(np.mean((truths[indices_1] - mean_1) * (truths[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((truths[indices_2] - mean_2) * (truths[indices_2] - mean_2)))
+    rms_3 = np.sqrt(np.mean((truths[indices_3] - mean_3) * (truths[indices_3] - mean_3)))
+    rms_4 = np.sqrt(np.mean((truths[indices_4] - mean_4) * (truths[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((truths - mean_all) * (truths - mean_all)))
     
     fig = plt.figure()
     plt.hist(
         truths,
-        bins=80,
+        bins=100,
         weights=weights,
         range=(0,3),
         histtype='step',
@@ -354,23 +527,40 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         density=True)
     plt.hist(
         truths[indices_1],
-        bins=80,
+        bins=100,
         weights=weights[indices_1],
         range=(0,3),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ below average. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})<0.15$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
-        bins=80,
+        bins=100,
         weights=weights[indices_2],
         range=(0,3),
         histtype='step',
-        label=r'$\sigma(m_{HH})$ above average. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$0.15<\sigma(m_{HH})<0.25$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
+    plt.hist(
+        truths[indices_3],
+        bins=100,
+        weights=weights[indices_3],
+        range=(0,3),
+        histtype='step',
+        label=r'$0.25<\sigma(m_{HH})<0.35$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
+        density=True)
+    plt.hist(
+        truths[indices_4],
+        bins=100,
+        weights=weights[indices_4],
+        range=(0,3),
+        histtype='step',
+        label=r'$\sigma(m_{HH})>0.35$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        density=True)
+    plt.xlim((0,3))
     plt.xlabel(r'$m_{HH}/m_{vis}$')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='xx-small')
     fig.savefig('plots/true_mhh_by_sigma_range_' + label + '.pdf')
     plt.close(fig)
     
@@ -423,7 +613,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, mvis, predictions_mmc = None):
 
     test_target = test_target / mvis
-    predictions_mmc = predictions_mmc / mvis
+    #predictions_mmc = predictions_mmc / mvis
 
     eff_tot = []
     fig = plt.figure()
@@ -435,11 +625,11 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     (n_rnn, bins_rnn, patches_rnn) = plt.hist(
         predictions_rnn,
-        bins=80,
+        bins=100,
         weights=weights,
         range=(0,3),
         #label=ak_array.title + '- RNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
-        label=ak_array.title + '- New NN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
+        label=ak_array.title + '- MDN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
         color=ak_array.color,
         linestyle='solid',
         linewidth=2,
@@ -449,7 +639,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     plt.hist(
         test_target,
-        bins=80,
+        bins=100,
         weights= weights,
         range=(0,3),
         label=ak_array.title + '- truth.',
@@ -461,11 +651,11 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     if predictions_mmc is not None:
         (n_mmc, bins_mmc, patches_mmc) = plt.hist(
             predictions_mmc,
-            bins=80,
+            bins=100,
             weights= weights,
             range=(0,3),
-            label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
-            #label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            #label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            label = ak_array.title + '- DNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
             color='purple',
             linestyle='solid',
             linewidth=2,
@@ -517,7 +707,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     (n_rat_rnn, bins_rat_rnn, patches_rat_rnn) = plt.hist(
         ratio_rnn,
         #label= ak_array.title + '- RNN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
-        label= ak_array.title + '- New NN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
+        label= ak_array.title + '- MDN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
         color=ak_array.color,
         weights= weights,
         bins=160,
@@ -530,8 +720,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
             ratio_mmc,
-            label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
-            #label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            #label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            label= ak_array.title + '- DNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
             color='purple',
             weights= weights,
             bins=160,
@@ -539,8 +729,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
-        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
+        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN')
 
     plt.xlabel(r'$m_{HH}/m_{vis}$: prediction / truth')
     plt.ylabel('Events')
