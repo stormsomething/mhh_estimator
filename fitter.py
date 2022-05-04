@@ -161,7 +161,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 100
+            _epochs = 200
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
