@@ -245,7 +245,7 @@ def train_test_split(ak_array, modulus=3):
     return _train, _test
 
 
-def gauss_fit_calculator(n, bins, name, fitter):
+def gauss_fit_calculator(n, bins, name, fitter, network_label = None):
 
     mids = 0.5*(bins[1:] + bins[:-1])
     mids_new = []
@@ -300,7 +300,12 @@ def gauss_fit_calculator(n, bins, name, fitter):
     y_max = max(y)
     mult = height / y_max
     if (fitter == 'RNN'):
-        plt.plot(x, mult*y, color='black', label= 'Gaussian Fit -- RNN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
+        if (network_label == 'DNN'):
+            plt.plot(x, mult*y, color='green', label= 'Gaussian Fit -- DNN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
+        elif (network_label == 'MDN'):
+            plt.plot(x, mult*y, color='black', label= 'Gaussian Fit -- MDN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
+        else:
+            plt.plot(x, mult*y, color='black', label= 'Gaussian Fit -- RNN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
     elif (fitter == 'MMC'):
         plt.plot(x, mult*y, color='gray', label= 'Gaussian Fit -- MMC. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
 

@@ -222,7 +222,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 100
+            _epochs = 200
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -262,10 +262,17 @@ if __name__ == '__main__':
                 rate = 5e-7 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
+                #adam = optimizers.get('Nadam')
+                #adam = optimizers.get('SGD')
                 adam.learning_rate = rate
                 adam.beta_1 = 0.9 # default 0.9
                 adam.beta_2 = 0.999 # default 0.999
                 adam.epsilon = 1e-7 # default 1e-7
+                """
+                adam.momentum = 0.9
+                adam.nesterov = True
+                """
+                #regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
                 # For use with Tensorflow MixtureNormal
                 regressor.compile(loss=tf_mdn_loss, optimizer=adam)
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)

@@ -1008,7 +1008,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         linewidth=2,
         histtype='step')
 
-    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN')
+    gauss_fit_calculator(n_rat_rnn, bins_rat_rnn, label, 'RNN', network_label = 'MDN')
 
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
@@ -1036,7 +1036,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        gauss_fit_calculator(n_rat_old, bins_rat_old, label, 'RNN')
+        gauss_fit_calculator(n_rat_old, bins_rat_old, label, 'RNN', network_label = 'DNN')
 
     plt.xlabel(r'$m_{HH}/m_{vis}$: prediction / truth')
     plt.ylabel('Events')
