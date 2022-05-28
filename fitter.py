@@ -10,7 +10,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -20,6 +20,11 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
+
+def tf_mdn_loss(y, model, sample_weight=None):
+    if sample_weight is not None:
+        return -model.log_prob(y) * sample_weight
+    return -model.log_prob(y)
 
 def gaussian_nll(y_true, y_pred, sample_weight=None):
     # From https://gist.github.com/sergeyprokudin/4a50bf9b75e0559c1fcd2cae860b879e
@@ -120,7 +125,7 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -321,44 +326,42 @@ if __name__ == '__main__':
     features_test_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
     features_test_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
-    predictions_HH_01 = regressor.predict(features_test_HH_01)
-    predictions_HH_10 = regressor.predict(features_test_HH_10)
-    predictions_ztautau = regressor.predict(features_test_ztautau)
-    predictions_ttbar = regressor.predict(features_test_ttbar)
+    model_HH_01 = regressor(features_test_HH_01)
+    model_HH_10 = regressor(features_test_HH_10)
+    model_ztautau = regressor(features_test_ztautau)
+    model_ttbar = regressor(features_test_ttbar)
+    
+    predictions_HH_01 = np.array(model_HH_01.mean())
+    predictions_HH_10 = np.array(model_HH_10.mean())
+    predictions_ztautau = np.array(model_ztautau.mean())
+    predictions_ttbar = np.array(model_ttbar.mean())
+    
+    sigmas_HH_01 = np.array(model_HH_01.stddev())
+    sigmas_HH_10 = np.array(model_HH_10.stddev())
+    sigmas_ztautau = np.array(model_ztautau.stddev())
+    sigmas_ttbar = np.array(model_ttbar.stddev())
+    
     log.info ('regressor ran')
 
     if args.library == 'keras':
-        sigmas_HH_01 = np.exp(np.reshape(
-            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
-        sigmas_HH_10 = np.exp(np.reshape(
-            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], )))
-        sigmas_ztautau = np.exp(np.reshape(
-            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], )))
-        sigmas_ttbar = np.exp(np.reshape(
-            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
+        sigmas_HH_01 = np.reshape(
+            sigmas_HH_01, (sigmas_HH_01.shape[0], ))
+        sigmas_HH_10 = np.reshape(
+            sigmas_HH_10, (sigmas_HH_10.shape[0], ))
+        sigmas_ztautau = np.reshape(
+            sigmas_ztautau, (sigmas_ztautau.shape[0], ))
+        sigmas_ttbar = np.reshape(
+            sigmas_ttbar, (sigmas_ttbar.shape[0], ))
             
         predictions_HH_01 = np.reshape(
-            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
+            predictions_HH_01, (predictions_HH_01.shape[0], ))
         predictions_HH_10 = np.reshape(
-            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], ))
+            predictions_HH_10, (predictions_HH_10.shape[0], ))
         predictions_ztautau = np.reshape(
-            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
+            predictions_ztautau, (predictions_ztautau.shape[0], ))
         predictions_ttbar = np.reshape(
-            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
-    
-    print('The number of events in each sample are:')
-    print('dihiggs_01: ' + str(len(predictions_HH_01)))
-    print('dihiggs_10: ' + str(len(predictions_HH_10)))
-    print('ztautau: ' + str(len(predictions_ztautau)))
-    print('ttbar: ' + str(len(predictions_ttbar)))
-    
-    print('The losses (calculated outside of Keras, before normalization by visible mass) are:')
-    print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
-    print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
-    print('ztautau: ' + str(gaussian_nll_np(test_target_ztautau, predictions_ztautau, sigmas_ztautau)))
-    print('ttbar: ' + str(gaussian_nll_np(test_target_ttbar, predictions_ttbar, sigmas_ttbar)))
+            predictions_ttbar, (predictions_ttbar.shape[0], ))
 
-    """
     mvis_HH_01 = visable_mass(dihiggs_01.fold_1_array, 'dihiggs_01')
     mvis_HH_10 = visable_mass(dihiggs_10.fold_1_array, 'dihiggs_10')
     mvis_ztautau = visable_mass(ztautau.fold_1_array, 'ztautau')
@@ -375,6 +378,7 @@ if __name__ == '__main__':
     sigmas_ztautau *= np.array(mvis_ztautau)
     sigmas_ttbar *= np.array(mvis_ttbar)
     
+    """
     print('The losses (calculated outside of Keras, after normalization by visible mass) are:')
     print('dihiggs_01: ' + str(gaussian_nll_np(test_target_HH_01, predictions_HH_01, sigmas_HH_01)))
     print('dihiggs_10: ' + str(gaussian_nll_np(test_target_HH_10, predictions_HH_10, sigmas_HH_10)))
@@ -408,23 +412,98 @@ if __name__ == '__main__':
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
-    """
+    log.info ('Loading Old Model for Comparison')
     original_regressor = load_model('cache/original_training.h5')
-    mhh_mmc_HH_01 = original_regressor.predict(features_test_HH_01) * np.array(mvis_HH_01)
-    mhh_mmc_HH_10 = original_regressor.predict(features_test_HH_10) * np.array(mvis_HH_10)
-    mhh_mmc_ztautau = original_regressor.predict(features_test_ztautau) * np.array(mvis_ztautau)
-    mhh_mmc_ttbar = original_regressor.predict(features_test_ttbar) * np.array(mvis_ttbar)
-    """
-        
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    mhh_original_HH_01 = original_regressor.predict(features_test_HH_01)
+    mhh_original_HH_10 = original_regressor.predict(features_test_HH_10)
+    mhh_original_ztautau = original_regressor.predict(features_test_ztautau)
+    mhh_original_ttbar = original_regressor.predict(features_test_ttbar)
     
-    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
-    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
-    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
-    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
+    if args.library == 'keras':
+        mhh_original_HH_01 = np.reshape(
+            mhh_original_HH_01, (mhh_original_HH_01.shape[0], ))
+        mhh_original_HH_10 = np.reshape(
+            mhh_original_HH_10, (mhh_original_HH_10.shape[0], ))
+        mhh_original_ztautau = np.reshape(
+            mhh_original_ztautau, (mhh_original_ztautau.shape[0], ))
+        mhh_original_ttbar = np.reshape(
+            mhh_original_ttbar, (mhh_original_ttbar.shape[0], ))
+            
+    mhh_original_HH_01 *= np.array(mvis_HH_01)
+    mhh_original_HH_10 *= np.array(mvis_HH_10)
+    mhh_original_ztautau *= np.array(mvis_ztautau)
+    mhh_original_ttbar *= np.array(mvis_ttbar)
+    
+    log.info ('Beginning Sigma Plotting')
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    
+    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
+    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
+    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
+    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    
+    all_predictions = np.concatenate([
+        predictions_HH_01,
+        predictions_HH_10,
+        predictions_ztautau,
+        predictions_ttbar
+    ])
+    all_sigmas = np.concatenate([
+        sigmas_HH_01,
+        sigmas_HH_10,
+        sigmas_ztautau,
+        sigmas_ttbar
+    ])
+    all_fold_1_arrays = np.concatenate([
+        dihiggs_01.fold_1_array,
+        dihiggs_10.fold_1_array,
+        ztautau.fold_1_array,
+        ttbar.fold_1_array
+    ])
+    all_mvis = np.concatenate([
+        mvis_HH_01,
+        mvis_HH_10,
+        mvis_ztautau,
+        mvis_ttbar
+    ])
+    all_original = np.concatenate([
+        mhh_original_HH_01,
+        mhh_original_HH_10,
+        mhh_original_ztautau,
+        mhh_original_ttbar
+    ])
+    all_mmc = np.concatenate([
+        mhh_mmc_HH_01,
+        mhh_mmc_HH_10,
+        mhh_mmc_ztautau,
+        mhh_mmc_ttbar
+    ])
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all', all_mvis)
+    
+    log.info ('Finished Sigma Plotting, Beginning k_lambda Comparison Plotting')
+    
+    k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn', mvis_HH_01, mvis_HH_10)
+    k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc', mvis_HH_01, mvis_HH_10)
+    k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn', mvis_HH_01, mvis_HH_10)
+    
+    indices_1 = np.where(sigmas_HH_01 < 75)
+    indices_10 = np.where(sigmas_HH_10 < 75)
+    
+    k_lambda_comparison_plot(predictions_HH_01[indices_1], predictions_HH_10[indices_10], dihiggs_01.fold_1_array[indices_1], dihiggs_10.fold_1_array[indices_10], 'mdn_low_sigma', mvis_HH_01[indices_1], mvis_HH_10[indices_10])
+    
+    log.info ('Finished k_lambda Comparison Plotting, Beginning RNN-MMC Comparison Plotting')
+    
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, np.array(mvis_HH_10), predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, np.array(mvis_ztautau), predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, np.array(mvis_ttbar), predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar)
+
+    log.info ('Finished RNN-MMC Comparison Plotting')
 
     # Chi-Square calculations
 
