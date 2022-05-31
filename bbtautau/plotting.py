@@ -44,7 +44,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     plt.xlim((0,1500))
     plt.xlabel(r'$m_{HH}$')
     plt.ylabel('Events')
-    plt.legend(fontsize='xx-small')
+    plt.legend(fontsize='small')
     fig.savefig('plots/k_lambda_comparison_' + label + '.pdf')
     plt.close(fig)
     
@@ -406,7 +406,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.xlim((0,300))
     plt.xlabel(r'$\sigma(m_{HH})$')
     plt.ylabel('Events')
-    plt.legend(fontsize='xx-small')
+    plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
     plt.close(fig)
     
@@ -750,7 +750,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     plt.xlabel(r'$m_{HH}$: prediction / truth')
     plt.ylabel('Events')
-    plt.legend(fontsize='small', numpoints=3)
+    plt.legend(fontsize='xx-small', numpoints=3)
     fig.savefig('plots/' + str(label) + '_ratios_{}.pdf'.format(regressor))
     plt.close(fig)
 
