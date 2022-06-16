@@ -305,6 +305,11 @@ if __name__ == '__main__':
     features_test_HH_10 = features_table(dihiggs_10.fold_1_array)
     features_test_ztautau = features_table(ztautau.fold_1_array)
     features_test_ttbar = features_table(ttbar.fold_1_array)
+    
+    print(features_test_HH_01.shape)
+    for i in range(17):
+        print(scipy.stats.describe(features_test_HH_01[:,i]))
+    
     log.info ('features loaded')
 
     scaler = StandardScaler()
@@ -434,17 +439,26 @@ if __name__ == '__main__':
     mhh_original_ztautau *= np.array(mvis_ztautau)
     mhh_original_ttbar *= np.array(mvis_ttbar)
     
+    print('The number of events in each sample are:')
+    print('dihiggs_01: ' + str(len(predictions_HH_01)))
+    print('dihiggs_10: ' + str(len(predictions_HH_10)))
+    print('ztautau: ' + str(len(predictions_ztautau)))
+    print('ttbar: ' + str(len(predictions_ttbar)))
+    print('The number of MMC-failed events in each sample are:')
+    print('dihiggs_01: ' + str(len(predictions_HH_01[np.where(mhh_mmc_HH_01 < 200)])))
+    print('dihiggs_10: ' + str(len(predictions_HH_10[np.where(mhh_mmc_HH_10 < 200)])))
+    
     log.info ('Beginning Sigma Plotting')
     
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
     
-    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', np.array(mvis_HH_01))
-    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', np.array(mvis_HH_10))
-    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', np.array(mvis_ztautau))
-    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', np.array(mvis_ttbar))
+    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau')
+    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar')
     
     all_predictions = np.concatenate([
         predictions_HH_01,
@@ -464,12 +478,6 @@ if __name__ == '__main__':
         ztautau.fold_1_array,
         ttbar.fold_1_array
     ])
-    all_mvis = np.concatenate([
-        mvis_HH_01,
-        mvis_HH_10,
-        mvis_ztautau,
-        mvis_ttbar
-    ])
     all_original = np.concatenate([
         mhh_original_HH_01,
         mhh_original_HH_10,
@@ -482,26 +490,44 @@ if __name__ == '__main__':
         mhh_mmc_ztautau,
         mhh_mmc_ttbar
     ])
-    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
-    resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all', all_mvis)
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all')
+    resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all')
     
     log.info ('Finished Sigma Plotting, Beginning k_lambda Comparison Plotting')
     
-    k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn', mvis_HH_01, mvis_HH_10)
-    k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc', mvis_HH_01, mvis_HH_10)
-    k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn', mvis_HH_01, mvis_HH_10)
+    k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'truth')
+    k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn')
+    k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc')
+    k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn')
     
-    indices_1 = np.where(sigmas_HH_01 < 75)
-    indices_10 = np.where(sigmas_HH_10 < 75)
+    indices_1_1 = np.where(sigmas_HH_01 < 50)
+    indices_1_10 = np.where(sigmas_HH_10 < 50)
+    indices_1_z = np.where(sigmas_ztautau < 50)
+    indices_1_t = np.where(sigmas_ttbar < 50)
+    indices_2_1 = np.where((sigmas_HH_01 > 50) & (sigmas_HH_01 < 75))
+    indices_2_10 = np.where((sigmas_HH_10 > 50) & (sigmas_HH_10 < 75))
+    indices_2_z = np.where((sigmas_ztautau > 50) & (sigmas_ztautau < 75))
+    indices_2_t = np.where((sigmas_ttbar > 50) & (sigmas_ttbar < 75))
+    indices_3_1 = np.where((sigmas_HH_01 > 75) & (sigmas_HH_01 < 100))
+    indices_3_10 = np.where((sigmas_HH_10 > 75) & (sigmas_HH_10 < 100))
+    indices_3_z = np.where((sigmas_ztautau > 75) & (sigmas_ztautau < 100))
+    indices_3_t = np.where((sigmas_ttbar > 75) & (sigmas_ttbar < 100))
+    indices_4_1 = np.where(sigmas_HH_01 > 100)
+    indices_4_10 = np.where(sigmas_HH_10 > 100)
+    indices_4_z = np.where(sigmas_ztautau > 100)
+    indices_4_t = np.where(sigmas_ttbar > 100)
     
-    k_lambda_comparison_plot(predictions_HH_01[indices_1], predictions_HH_10[indices_10], dihiggs_01.fold_1_array[indices_1], dihiggs_10.fold_1_array[indices_10], 'mdn_low_sigma', mvis_HH_01[indices_1], mvis_HH_10[indices_10])
+    k_lambda_comparison_plot(predictions_HH_01[indices_1_1], predictions_HH_10[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'mdn_lowest_sigma')
+    k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_midlow_sigma')
+    k_lambda_comparison_plot(predictions_HH_01[indices_3_1], predictions_HH_10[indices_3_10], dihiggs_01.fold_1_array[indices_3_1], dihiggs_10.fold_1_array[indices_3_10], 'mdn_midhigh_sigma')
+    k_lambda_comparison_plot(predictions_HH_01[indices_4_1], predictions_HH_10[indices_4_10], dihiggs_01.fold_1_array[indices_4_1], dihiggs_10.fold_1_array[indices_4_10], 'mdn_highest_sigma')
     
     log.info ('Finished k_lambda Comparison Plotting, Beginning RNN-MMC Comparison Plotting')
     
-    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, np.array(mvis_HH_01), predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01)
-    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, np.array(mvis_HH_10), predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10)
-    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, np.array(mvis_ztautau), predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau)
-    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, np.array(mvis_ttbar), predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar)
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar)
 
     log.info ('Finished RNN-MMC Comparison Plotting')
 
@@ -514,12 +540,85 @@ if __name__ == '__main__':
     eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
     eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
     eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    """
+    print("ROC Array Shapes:")
+    print(len(eff_pred_HH_01_HH_10[0]))
+    print(len(eff_pred_HH_01_HH_10[1]))
+    print(len(eff_pred_HH_01_HH_10[2]))
+    print(len(eff_pred_HH_01_HH_10[3]))
+    print(len(eff_true_HH_01_HH_10[0]))
+    print(len(eff_true_HH_01_HH_10[1]))
+    """
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
+    
+    log.info ('Beginning Sigma-Split RNN-MMC Comparison Plotting')
+    
+    # lowest sigma
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01, sigma_label = '_lowest_sigma', sigma_slice = indices_1_1)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10, sigma_label = '_lowest_sigma', sigma_slice = indices_1_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau, sigma_label = '_lowest_sigma', sigma_slice = indices_1_z)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar, sigma_label = '_lowest_sigma', sigma_slice = indices_1_t)
+    eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
+    eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
+    eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
+    eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
+    eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
+    eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_lowest_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_lowest_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_lowest_sigma')
+    
+    # midlow sigma
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01, sigma_label = '_midlow_sigma', sigma_slice = indices_2_1)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10, sigma_label = '_midlow_sigma', sigma_slice = indices_2_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau, sigma_label = '_midlow_sigma', sigma_slice = indices_2_z)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar, sigma_label = '_midlow_sigma', sigma_slice = indices_2_t)
+    eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
+    eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
+    eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
+    eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
+    eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
+    eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_midlow_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_midlow_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_midlow_sigma')
+    
+    # midhigh sigma
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01, sigma_label = '_midhigh_sigma', sigma_slice = indices_3_1)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10, sigma_label = '_midhigh_sigma', sigma_slice = indices_3_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau, sigma_label = '_midhigh_sigma', sigma_slice = indices_3_z)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar, sigma_label = '_midhigh_sigma', sigma_slice = indices_3_t)
+    eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
+    eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
+    eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
+    eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
+    eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
+    eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_midhigh_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_midhigh_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_midhigh_sigma')
+    
+    # highest sigma
+    eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_1_array, 'dihiggs_01', args.library, predictions_old = mhh_original_HH_01, predictions_mmc = mhh_mmc_HH_01, sigma_label = '_highest_sigma', sigma_slice = indices_4_1)
+    eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_1_array, 'dihiggs_10', args.library, predictions_old = mhh_original_HH_10, predictions_mmc = mhh_mmc_HH_10, sigma_label = '_highest_sigma', sigma_slice = indices_4_10)
+    eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_1_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau, sigma_label = '_highest_sigma', sigma_slice = indices_4_z)
+    eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_1_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar, sigma_label = '_highest_sigma', sigma_slice = indices_4_t)
+    eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
+    eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
+    eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
+    eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
+    eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
+    eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
+    roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_highest_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_highest_sigma')
+    roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_highest_sigma')
 
     # Pile-up stability of the signal
+    """
     avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01.fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
     avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
+    """
