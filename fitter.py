@@ -139,7 +139,6 @@ if __name__ == '__main__':
         ztautau_target = ztautau.fold_0_array['universal_true_mhh']
         ttbar_target = ttbar.fold_0_array['universal_true_mhh']
         
-        """
         dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
         dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
         ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
@@ -149,7 +148,6 @@ if __name__ == '__main__':
         dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
         ztautau_target = ztautau_target / ztautau_vis_mass
         ttbar_target = ttbar_target / ttbar_vis_mass
-        """
 
         features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
         features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
