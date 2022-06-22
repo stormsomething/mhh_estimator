@@ -27,22 +27,21 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     fig = plt.figure()
     (n_01, bins_01, patches_01) = plt.hist(
         mhh_HH_01,
-        bins=80,
+        bins=40,
         weights=weights_1,
         range=(0,1500),
         histtype='step',
-        label=r'$\kappa_\lambda=1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
-        density=True)
+        label=r'$\kappa_\lambda=1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)))
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
-        bins=80,
+        bins=40,
         weights=weights_10,
         range=(0,1500),
         histtype='step',
-        label=r'$\kappa_\lambda=10$. Mean: ' + str(round(mean_10, 4)) + '. RMS: ' + str(round(rms_10, 4)),
-        density=True)
+        label=r'$\kappa_\lambda=10$. Mean: ' + str(round(mean_10, 4)) + '. RMS: ' + str(round(rms_10, 4)))
     sig_sum = 0
-    for i in range(len(n_01)):
+    # Skip the first 5 bins to avoid including the MMC failed events
+    for i in range(5, len(n_01)):
         #print(str(n_01[i]) + " ~~~ " + str(n_10[i]))
         if (n_01[i] > 0) and (n_10[i] > 0):
             sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
@@ -66,10 +65,20 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
 
+    # Split indices on absolute sigma ranges
     indices_1 = np.where(sigmas < 50)
     indices_2 = np.where((sigmas > 50) & (sigmas < 75))
     indices_3 = np.where((sigmas > 75) & (sigmas < 100))
     indices_4 = np.where(sigmas > 100)
+    
+    """
+    # Split indices on relative sigma ranges
+    rel_sigmas = sigmas / mus
+    indices_1 = np.where(rel_sigmas < 0.12)
+    indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
+    indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
+    indices_4 = np.where(rel_sigmas > 0.24)
+    """
     
     data = truths - mus
     mean_all = np.mean(data)
@@ -418,12 +427,23 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
     mean_sigma = np.mean(sigmas)
     rms_sigma = np.sqrt(np.mean((sigmas - mean_sigma) * (sigmas - mean_sigma)))
+    rel_sigmas = sigmas / mus
+    mean_rel = np.mean(rel_sigmas)
+    rms_rel = np.sqrt(np.mean((rel_sigmas - mean_rel) * (rel_sigmas - mean_rel)))
     
     # Split indices on absolute sigma ranges
     indices_1 = np.where(sigmas < 50)
     indices_2 = np.where((sigmas > 50) & (sigmas < 75))
     indices_3 = np.where((sigmas > 75) & (sigmas < 100))
     indices_4 = np.where(sigmas > 100)
+    
+    """
+    # Split indices on relative sigma ranges
+    indices_1 = np.where(rel_sigmas < 0.12)
+    indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
+    indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
+    indices_4 = np.where(rel_sigmas > 0.24)
+    """
     
     fig = plt.figure()
     plt.hist(
@@ -459,6 +479,21 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas,
+        bins=50,
+        weights=weights,
+        range=(0,0.5),
+        label='Mean: ' + str(round(mean_rel, 4)) + '. RMS: ' + str(round(rms_rel, 4)))
+    plt.xlim((0,0.5))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma(m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_relative_sigma_' + label + '.pdf')
     plt.close(fig)
 
     data = (truths - mus) / sigmas

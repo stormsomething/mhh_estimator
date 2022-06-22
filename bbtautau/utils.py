@@ -221,6 +221,25 @@ def features_table(ak_array):
         ak_array['MET_Reference_AntiKt4EMPFlow___NominalAuxDyn']['metSig']
     ], axis=1)
     table = ak.to_numpy(table)
+    
+    """
+    # Convert (mpx,mpy) to (mpt,mpphi)
+    mpt = np.sqrt(table[:,14] * table[:,14] + table[:,15] * table[:,15])
+    mpphi = np.arctan(table[:,15] / table[:,14])
+    table[:,14] = mpt
+    table[:,15] = mpphi
+    
+    # Set mpphi to 0 and rotate the other angles to match
+    for i in range(len(table[:,15])):
+        for j in [4,5,12,13]:
+            table[i,j] -= table[i,15]
+            if table[i,j] < -np.pi:
+                table[i,j] += 2 * np.pi
+            elif table[i,j] > np.pi:
+                table[i,j] -= 2 * np.pi
+    table[:,15] = np.zeros(len(table[:,15]))
+    """
+    
     return table
 
 

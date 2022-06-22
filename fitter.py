@@ -222,7 +222,7 @@ if __name__ == '__main__':
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 20
+            _epochs = 50
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -259,14 +259,24 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 0.00001
+                rate = 5e-7 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
+                #adam = optimizers.get('Nadam')
+                #adam = optimizers.get('SGD')
                 adam.learning_rate = rate
+                adam.beta_1 = 0.9 # default 0.9
+                adam.beta_2 = 0.999 # default 0.999
+                adam.epsilon = 1e-7 # default 1e-7
+                """
+                adam.momentum = 0.9
+                adam.nesterov = True
+                """
+                #regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
                 # For use with Tensorflow MixtureNormal
-                #regressor.compile(loss=lambda y, model: -model.log_prob(y), optimizer=adam, metrics=['mse', 'mae'])
+                regressor.compile(loss=tf_mdn_loss, optimizer=adam)
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
-                regressor.compile(loss=gaussian_nll, optimizer=adam)
+                #regressor.compile(loss=gaussian_nll, optimizer=adam)
                 #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 #regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
@@ -278,7 +288,7 @@ if __name__ == '__main__':
                     ## validation_split=0.1,
                     validation_data=(X_test, y_test),
                     callbacks=[
-                        EarlyStopping(verbose=True, patience=20, monitor='val_loss'),
+                        EarlyStopping(verbose=True, patience=10, monitor='val_loss'),
                         ModelCheckpoint(
                             _filename, monitor='val_loss',
                             verbose=True, save_best_only=True)])
@@ -500,6 +510,7 @@ if __name__ == '__main__':
     k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc')
     k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn')
     
+    # Split indices on absolute sigma ranges
     indices_1_1 = np.where(sigmas_HH_01 < 50)
     indices_1_10 = np.where(sigmas_HH_10 < 50)
     indices_1_z = np.where(sigmas_ztautau < 50)
@@ -516,6 +527,30 @@ if __name__ == '__main__':
     indices_4_10 = np.where(sigmas_HH_10 > 100)
     indices_4_z = np.where(sigmas_ztautau > 100)
     indices_4_t = np.where(sigmas_ttbar > 100)
+    
+    """
+    # Split indices on relative sigma ranges
+    rel_sigmas_HH_01 = sigmas_HH_01 / predictions_HH_01
+    rel_sigmas_HH_10 = sigmas_HH_10 / predictions_HH_10
+    rel_sigmas_ztautau = sigmas_ztautau / predictions_ztautau
+    rel_sigmas_ttbar = sigmas_ttbar / predictions_ttbar
+    indices_1_1 = np.where(rel_sigmas_HH_01 < 0.12)
+    indices_1_10 = np.where(rel_sigmas_HH_10 < 0.12)
+    indices_1_z = np.where(rel_sigmas_ztautau < 0.12)
+    indices_1_t = np.where(rel_sigmas_ttbar < 0.12)
+    indices_2_1 = np.where((rel_sigmas_HH_01 > 0.12) & (rel_sigmas_HH_01 < 0.18))
+    indices_2_10 = np.where((rel_sigmas_HH_10 > 0.12) & (rel_sigmas_HH_10 < 0.18))
+    indices_2_z = np.where((rel_sigmas_ztautau > 0.12) & (rel_sigmas_ztautau < 0.18))
+    indices_2_t = np.where((rel_sigmas_ttbar > 0.12) & (rel_sigmas_ttbar < 0.18))
+    indices_3_1 = np.where((rel_sigmas_HH_01 > 0.18) & (rel_sigmas_HH_01 < 0.24))
+    indices_3_10 = np.where((rel_sigmas_HH_10 > 0.18) & (rel_sigmas_HH_10 < 0.24))
+    indices_3_z = np.where((rel_sigmas_ztautau > 0.18) & (rel_sigmas_ztautau < 0.24))
+    indices_3_t = np.where((rel_sigmas_ttbar > 0.18) & (rel_sigmas_ttbar < 0.24))
+    indices_4_1 = np.where(rel_sigmas_HH_01 > 0.24)
+    indices_4_10 = np.where(rel_sigmas_HH_10 > 0.24)
+    indices_4_z = np.where(rel_sigmas_ztautau > 0.24)
+    indices_4_t = np.where(rel_sigmas_ttbar > 0.24)
+    """
     
     k_lambda_comparison_plot(predictions_HH_01[indices_1_1], predictions_HH_10[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'mdn_lowest_sigma')
     k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_midlow_sigma')
