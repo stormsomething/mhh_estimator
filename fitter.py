@@ -219,8 +219,10 @@ if __name__ == '__main__':
                 regressor.fit(train_features, train_target)
                 joblib.dump(regressor, 'cache/latest_scikit.clf')
         elif args.library == 'keras':
+            print("Columns in Training Features:")
+            print(train_features.shape[1])
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 50
+            _epochs = 80
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -241,7 +243,7 @@ if __name__ == '__main__':
             for i in range(len(X_train)):
                 temp = []
                 for j in range(len(X_train[i])):
-                    if j != 17:
+                    if j != train_features.shape[1] - 1:
                         temp.append(float(X_train[i][j]))
                 X_train_new.append(temp)
 
@@ -249,7 +251,7 @@ if __name__ == '__main__':
             for i in range(len(X_test)):
                 temp = []
                 for j in range(len(X_test[i])):
-                    if j != 17:
+                    if j != train_features.shape[1] - 1:
                         temp.append(float(X_test[i][j]))
                 X_test_new.append(temp)
 
@@ -257,7 +259,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 5e-7 # default 0.001
+                rate = 2e-6 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 #adam = optimizers.get('Nadam')
@@ -315,7 +317,7 @@ if __name__ == '__main__':
     features_test_ttbar = features_table(ttbar.fold_1_array)
     
     print(features_test_HH_01.shape)
-    for i in range(17):
+    for i in range(features_test_HH_01.shape[1]):
         print(scipy.stats.describe(features_test_HH_01[:,i]))
     
     log.info ('features loaded')
@@ -426,11 +428,13 @@ if __name__ == '__main__':
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
     log.info ('Loading Old Model for Comparison')
+    """
     original_regressor = load_model('cache/original_training.h5')
     mhh_original_HH_01 = original_regressor.predict(features_test_HH_01)
     mhh_original_HH_10 = original_regressor.predict(features_test_HH_10)
     mhh_original_ztautau = original_regressor.predict(features_test_ztautau)
     mhh_original_ttbar = original_regressor.predict(features_test_ttbar)
+    
     
     if args.library == 'keras':
         mhh_original_HH_01 = np.reshape(
@@ -446,6 +450,13 @@ if __name__ == '__main__':
     mhh_original_HH_10 *= np.array(mvis_HH_10)
     mhh_original_ztautau *= np.array(mvis_ztautau)
     mhh_original_ttbar *= np.array(mvis_ttbar)
+    """
+    
+    # Use this to replace original regressor with a copy of MDN (use when the input variable setup is mismatched)
+    mhh_original_HH_01 = predictions_HH_01
+    mhh_original_HH_10 = predictions_HH_10
+    mhh_original_ztautau = predictions_ztautau
+    mhh_original_ttbar = predictions_ttbar
     
     print('The number of events in each sample are:')
     print('dihiggs_01: ' + str(len(predictions_HH_01)))
@@ -458,15 +469,15 @@ if __name__ == '__main__':
     
     log.info ('Beginning Sigma Plotting')
     
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     
-    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
-    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
-    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau')
-    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar')
+    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     
     all_predictions = np.concatenate([
         predictions_HH_01,
@@ -498,8 +509,14 @@ if __name__ == '__main__':
         mhh_mmc_ztautau,
         mhh_mmc_ttbar
     ])
-    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all')
-    resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all')
+    all_mvis = np.concatenate([
+        mvis_HH_01,
+        mvis_HH_10,
+        mvis_ztautau,
+        mvis_ttbar
+    ])
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all', all_mvis)
     
     log.info ('Finished Sigma Plotting, Beginning k_lambda Comparison Plotting')
     
@@ -550,6 +567,30 @@ if __name__ == '__main__':
     indices_4_t = np.where(rel_sigmas_ttbar > 0.24)
     """
     
+    """
+    # Split indices on m_vis-relative sigma ranges
+    rel_sigmas_HH_01 = sigmas_HH_01 / mvis_HH_01
+    rel_sigmas_HH_10 = sigmas_HH_10 / mvis_HH_10
+    rel_sigmas_ztautau = sigmas_ztautau / mvis_ztautau
+    rel_sigmas_ttbar = sigmas_ttbar / mvis_ttbar
+    indices_1_1 = np.where(rel_sigmas_HH_01 < 0.16)
+    indices_1_10 = np.where(rel_sigmas_HH_10 < 0.16)
+    indices_1_z = np.where(rel_sigmas_ztautau < 0.16)
+    indices_1_t = np.where(rel_sigmas_ttbar < 0.16)
+    indices_2_1 = np.where((rel_sigmas_HH_01 > 0.16) & (rel_sigmas_HH_01 < 0.24))
+    indices_2_10 = np.where((rel_sigmas_HH_10 > 0.16) & (rel_sigmas_HH_10 < 0.24))
+    indices_2_z = np.where((rel_sigmas_ztautau > 0.16) & (rel_sigmas_ztautau < 0.24))
+    indices_2_t = np.where((rel_sigmas_ttbar > 0.16) & (rel_sigmas_ttbar < 0.24))
+    indices_3_1 = np.where((rel_sigmas_HH_01 > 0.24) & (rel_sigmas_HH_01 < 0.32))
+    indices_3_10 = np.where((rel_sigmas_HH_10 > 0.24) & (rel_sigmas_HH_10 < 0.32))
+    indices_3_z = np.where((rel_sigmas_ztautau > 0.24) & (rel_sigmas_ztautau < 0.32))
+    indices_3_t = np.where((rel_sigmas_ttbar > 0.24) & (rel_sigmas_ttbar < 0.32))
+    indices_4_1 = np.where(rel_sigmas_HH_01 > 0.32)
+    indices_4_10 = np.where(rel_sigmas_HH_10 > 0.32)
+    indices_4_z = np.where(rel_sigmas_ztautau > 0.32)
+    indices_4_t = np.where(rel_sigmas_ttbar > 0.32)
+    """
+    
     k_lambda_comparison_plot(predictions_HH_01[indices_1_1], predictions_HH_10[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'mdn_lowest_sigma')
     k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_midlow_sigma')
     k_lambda_comparison_plot(predictions_HH_01[indices_3_1], predictions_HH_10[indices_3_10], dihiggs_01.fold_1_array[indices_3_1], dihiggs_10.fold_1_array[indices_3_10], 'mdn_midhigh_sigma')
@@ -586,6 +627,7 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
     
+    """
     log.info ('Beginning Sigma-Split RNN-MMC Comparison Plotting')
     
     # lowest sigma
@@ -647,6 +689,7 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_highest_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_highest_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_highest_sigma')
+    """
 
     # Pile-up stability of the signal
     """

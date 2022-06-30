@@ -222,14 +222,13 @@ def features_table(ak_array):
     ], axis=1)
     table = ak.to_numpy(table)
     
-    """
     # Convert (mpx,mpy) to (mpt,mpphi)
     mpt = np.sqrt(table[:,14] * table[:,14] + table[:,15] * table[:,15])
     mpphi = np.arctan(table[:,15] / table[:,14])
     table[:,14] = mpt
     table[:,15] = mpphi
     
-    # Set mpphi to 0 and rotate the other angles to match
+    # Set mpphi to 0 and rotate the other angles to match, then remove mpphi from the table
     for i in range(len(table[:,15])):
         for j in [4,5,12,13]:
             table[i,j] -= table[i,15]
@@ -237,8 +236,19 @@ def features_table(ak_array):
                 table[i,j] += 2 * np.pi
             elif table[i,j] > np.pi:
                 table[i,j] -= 2 * np.pi
-    table[:,15] = np.zeros(len(table[:,15]))
-    """
+    table = np.delete(table,15,1)
+    
+    # Convert eta to pz using pt for each of the 4 jets
+    for i in [0,1,8,9]:
+        pz = np.sign(table[:,i+2]) * table[:,i] / np.sqrt(1 - np.square(np.tanh(table[:,i+2])))
+        table[:,i+2] = pz
+    
+    # Convert (pt,phi) to (px,py) for each of the 4 jets
+    for i in [0,1,8,9]:
+        px = table[:,i] * np.cos(table[:,i+4])
+        py = table[:,i] * np.sin(table[:,i+4])
+        table[:,i] = px
+        table[:,i+4] = py
     
     return table
 

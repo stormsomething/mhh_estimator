@@ -18,6 +18,10 @@ from . import log; log = log.getChild(__name__)
 def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
     weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
+    
+    #print(label + " kappa_lambda=1 Weight Sum: " + str(sum(weights_1)))
+    #print(label + " kappa_lambda=10 Weight Sum: " + str(sum(weights_10)))
+    weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
         
     mean_1 = np.mean(mhh_HH_01)
     mean_10 = np.mean(mhh_HH_10)
@@ -61,7 +65,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     fig.savefig('plots/k_lambda_comparison_' + label + '.pdf')
     plt.close(fig)
     
-def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, label):
+def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, label, mvis):
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
 
@@ -78,6 +82,15 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
     indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
     indices_4 = np.where(rel_sigmas > 0.24)
+    """
+    
+    """
+    # Split indices on m_vis-relative sigma ranges
+    mvis_rel_sigmas = sigmas / mvis
+    indices_1 = np.where(mvis_rel_sigmas < 0.16)
+    indices_2 = np.where((mvis_rel_sigmas > 0.16) & (mvis_rel_sigmas < 0.24))
+    indices_3 = np.where((mvis_rel_sigmas > 0.24) & (mvis_rel_sigmas < 0.32))
+    indices_4 = np.where(mvis_rel_sigmas > 0.32)
     """
     
     data = truths - mus
@@ -422,14 +435,20 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     fig.savefig('plots/mmc_pred_mhh_by_sigma_range_' + label + '.pdf')
     plt.close(fig)
 
-def sigma_plots(mus, sigmas, fold_1_array, label):
+def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+    
     mean_sigma = np.mean(sigmas)
     rms_sigma = np.sqrt(np.mean((sigmas - mean_sigma) * (sigmas - mean_sigma)))
+    
     rel_sigmas = sigmas / mus
     mean_rel = np.mean(rel_sigmas)
     rms_rel = np.sqrt(np.mean((rel_sigmas - mean_rel) * (rel_sigmas - mean_rel)))
+    
+    mvis_rel_sigmas = sigmas / mvis
+    mean_mvis_rel = np.mean(mvis_rel_sigmas)
+    rms_mvis_rel = np.sqrt(np.mean((mvis_rel_sigmas - mean_mvis_rel) * (mvis_rel_sigmas - mean_mvis_rel)))
     
     # Split indices on absolute sigma ranges
     indices_1 = np.where(sigmas < 50)
@@ -443,6 +462,14 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
     indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
     indices_4 = np.where(rel_sigmas > 0.24)
+    """
+    
+    """
+    # Split indices on m_vis-relative sigma ranges
+    indices_1 = np.where(mvis_rel_sigmas < 0.16)
+    indices_2 = np.where((mvis_rel_sigmas > 0.16) & (mvis_rel_sigmas < 0.24))
+    indices_3 = np.where((mvis_rel_sigmas > 0.24) & (mvis_rel_sigmas < 0.32))
+    indices_4 = np.where(mvis_rel_sigmas > 0.32)
     """
     
     fig = plt.figure()
@@ -494,6 +521,21 @@ def sigma_plots(mus, sigmas, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_relative_sigma_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        mvis_rel_sigmas,
+        bins=50,
+        weights=weights,
+        range=(0,0.8),
+        label='Mean: ' + str(round(mean_mvis_rel, 4)) + '. RMS: ' + str(round(rms_mvis_rel, 4)))
+    plt.xlim((0,0.8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_mvis_relative_sigma_' + label + '.pdf')
     plt.close(fig)
 
     data = (truths - mus) / sigmas
