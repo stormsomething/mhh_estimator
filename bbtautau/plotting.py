@@ -15,14 +15,21 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
     
-def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label):
+def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label, slice_indices_1 = None, slice_indices_10 = None):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
     weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
     
     #print(label + " kappa_lambda=1 Weight Sum: " + str(sum(weights_1)))
     #print(label + " kappa_lambda=10 Weight Sum: " + str(sum(weights_10)))
     weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
-        
+    
+    if (slice_indices_1 is not None):
+        weights_1 = weights_1[slice_indices_1]
+        mhh_HH_01 = mhh_HH_01[slice_indices_1]
+    if (slice_indices_10 is not None):
+        weights_10 = weights_10[slice_indices_10]
+        mhh_HH_10 = mhh_HH_10[slice_indices_10]
+    
     mean_1 = np.mean(mhh_HH_01)
     mean_10 = np.mean(mhh_HH_10)
     rms_1 = np.sqrt(np.mean((mhh_HH_01 - mean_1) * (mhh_HH_01 - mean_1)))
@@ -44,8 +51,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
         histtype='step',
         label=r'$\kappa_\lambda=10$. Mean: ' + str(round(mean_10, 4)) + '. RMS: ' + str(round(rms_10, 4)))
     sig_sum = 0
-    # Skip the first 5 bins to avoid including the MMC failed events
-    for i in range(5, len(n_01)):
+    for i in range(len(n_01)):
         #print(str(n_01[i]) + " ~~~ " + str(n_10[i]))
         if (n_01[i] > 0) and (n_10[i] > 0):
             sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])

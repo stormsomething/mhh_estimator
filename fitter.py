@@ -425,6 +425,17 @@ if __name__ == '__main__':
         mhh_mmc_ttbar = ttbar.fold_1_array['mmc_bbtautau']
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
+        
+    print("Stats for 4 samples where m_tautau is 0")
+    print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 == 0)]))
+    print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 == 0)]))
+    print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau == 0)]))
+    print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar == 0)]))
+    print("Stats for 4 samples where m_tautau is not 0")
+    print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 > 0)]))
+    print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 > 0)]))
+    print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau > 0)]))
+    print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar > 0)]))
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
     log.info ('Loading Old Model for Comparison')
@@ -523,6 +534,8 @@ if __name__ == '__main__':
     k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'truth')
     k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn')
     k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc')
+    k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc_fail', slice_indices_1 = np.where(mmc_HH_01 == 0), slice_indices_10 = np.where(mmc_HH_10 == 0))
+    k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc_pass', slice_indices_1 = np.where(mmc_HH_01 > 0), slice_indices_10 = np.where(mmc_HH_10 > 0))
     k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn')
     
     # Split indices on absolute sigma ranges

@@ -222,6 +222,7 @@ def features_table(ak_array):
     ], axis=1)
     table = ak.to_numpy(table)
     
+    """
     # Convert (mpx,mpy) to (mpt,mpphi)
     mpt = np.sqrt(table[:,14] * table[:,14] + table[:,15] * table[:,15])
     mpphi = np.arctan(table[:,15] / table[:,14])
@@ -249,6 +250,7 @@ def features_table(ak_array):
         py = table[:,i] * np.sin(table[:,i+4])
         table[:,i] = px
         table[:,i+4] = py
+    """
     
     return table
 
