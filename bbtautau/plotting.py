@@ -14,6 +14,136 @@ mpl.rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
 mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
+
+def monotonicity_plot(mdn_1, mmc_1, truth_1, fold_1_array_1, mdn_2, mmc_2, truth_2, fold_1_array_2, name_1, name_2):
+    weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array_1['fold_weight']
+    weights_2 = fold_1_array_2['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array_2['fold_weight']
+
+    (n_mdn_1, bins_mdn_1, patches_mdn_1) = plt.hist(
+        mdn_1,
+        bins=80,
+        weights=weights_1,
+        range=(0,1500))
+    (n_mmc_1, bins_mmc_1, patches_mmc_1) = plt.hist(
+        mmc_1,
+        bins=80,
+        weights=weights_1,
+        range=(0,1500))
+    (n_truth_1, bins_truth_1, patches_truth_1) = plt.hist(
+        truth_1,
+        bins=80,
+        weights=weights_1,
+        range=(0,1500))
+    (n_mdn_2, bins_mdn_2, patches_mdn_2) = plt.hist(
+        mdn_2,
+        bins=80,
+        weights=weights_2,
+        range=(0,1500))
+    (n_mmc_2, bins_mmc_2, patches_mmc_2) = plt.hist(
+        mmc_2,
+        bins=80,
+        weights=weights_2,
+        range=(0,1500))
+    (n_truth_2, bins_truth_2, patches_truth_2) = plt.hist(
+        truth_2,
+        bins=80,
+        weights=weights_2,
+        range=(0,1500))
+        
+    heights_mdn = []
+    heights_mmc = []
+    heights_truth = []
+    for i in range(len(n_mdn_1)):
+        if (n_mdn_2[i] <= 0):
+            heights_mdn.append(0)
+        else:
+            heights_mdn.append(n_mdn_1[i] / n_mdn_2[i])
+        if (n_mmc_2[i] <= 0):
+            heights_mmc.append(0)
+        else:
+            heights_mmc.append(n_mmc_1[i] / n_mmc_2[i])
+        if (n_truth_2[i] <= 0):
+            heights_truth.append(0)
+        else:
+            heights_truth.append(n_truth_1[i] / n_truth_2[i])
+
+    fig, ax = plt.subplots()
+    ax.bar(x=bins_mdn_1[:-1], height=heights_mdn, width=np.diff(bins_mdn_1), align='edge', label='MDN', fill=False, edgecolor='red')
+    ax.bar(x=bins_mdn_1[:-1], height=heights_mmc, width=np.diff(bins_mdn_1), align='edge', label='MMC', fill=False, edgecolor='purple')
+    ax.bar(x=bins_mdn_1[:-1], height=heights_truth, width=np.diff(bins_mdn_1), align='edge', label='Truth', fill=False, edgecolor='black')
+    """
+    print(name_2)
+    print(n_truth_2)
+    """
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('(' + name_1 + ')/(' + name_2 + ') Ratio')
+    plt.xlim((0,1500))
+    if (name_2 == 'Top Quark'):
+        plt.ylim((0,0.1))
+    else:
+        plt.ylim(bottom=0)
+    plt.legend()
+    if (name_1 == r'$\kappa_{\lambda}$ = 1'):
+        title_1 = 'HH_01'
+    if (name_2 == r'$\kappa_{\lambda}$ = 1'):
+        title_2 = 'HH_01'
+    if (name_1 == r'$\kappa_{\lambda}$ = 10'):
+        title_1 = 'HH_10'
+    if (name_2 == r'$\kappa_{\lambda}$ = 10'):
+        title_2 = 'HH_10'
+    if (name_1 == r'$Z\to\tau\tau$ + jets'):
+        title_1 = 'ztt'
+    if (name_2 == r'$Z\to\tau\tau$ + jets'):
+        title_2 = 'ztt'
+    if (name_1 == 'Top Quark'):
+        title_1 = 'ttbar'
+    if (name_2 == 'Top Quark'):
+        title_2 = 'ttbar'
+    fig.savefig('plots/' + title_1 + '_' + title_2 + '_monotonicity.pdf')
+    plt.close(fig)
+    
+def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweight_1, reweight_10, norm, label, slice_indices_1 = None, slice_indices_10 = None):
+    weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
+    weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
+    
+    if (slice_indices_1 is not None):
+        weights_1 = weights_1[slice_indices_1]
+        mhh_HH_01 = mhh_HH_01[slice_indices_1]
+    if (slice_indices_10 is not None):
+        weights_10 = weights_10[slice_indices_10]
+        mhh_HH_10 = mhh_HH_10[slice_indices_10]
+    
+    fig, ax = plt.subplots()
+    (n_1, bins_1, patches_1) = plt.hist(
+        mhh_HH_01,
+        bins=40,
+        weights=weights_1,
+        range=(200,1000),
+        histtype='step',
+        label=r'$\kappa_\lambda=1$')
+    (n_10, bins_10, patches_10) = plt.hist(
+        mhh_HH_10,
+        bins=40,
+        weights=weights_10,
+        range=(200,1000),
+        histtype='step',
+        label=r'$\kappa_\lambda=10$')
+    
+    counts_1 = n_1 * reweight_1[0] * norm
+    bin_edges_1 = reweight_1[1]
+    ax.bar(x=bin_edges_1[:-1], height=counts_1, width=np.diff(bin_edges_1), align='edge', label=r'$\kappa_\lambda=10$ (reweighted from $\kappa_\lambda=1$)', fill=False, edgecolor='green')
+    counts_10 = n_10 * reweight_10[0] / norm
+    bin_edges_10 = reweight_10[1]
+    ax.bar(x=bin_edges_10[:-1], height=counts_10, width=np.diff(bin_edges_10), align='edge', label=r'$\kappa_\lambda=1$ (reweighted from $\kappa_\lambda=10$)', fill=False, edgecolor='red')
+    
+    plt.xlim((200,1000))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/k_lambda_reweight_' + label + '.pdf')
+    plt.close(fig)
+    
     
 def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label, slice_indices_1 = None, slice_indices_10 = None):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']

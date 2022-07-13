@@ -4,13 +4,14 @@ import awkward as ak
 import numpy as np
 import scipy.stats
 import tensorflow as tf
+import uproot
 from argparse import ArgumentParser
 from bbtautau import log; log = log.getChild('fitter')
 from bbtautau.utils import features_table, universal_true_mhh, visable_mass, clean_samples, chi_square_test, rotate_events
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, monotonicity_plot
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -426,16 +427,22 @@ if __name__ == '__main__':
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_1_array)
         
-    print("Stats for 4 samples where m_tautau is 0")
+    print("Stats for 4 samples where m_tautau is 0:")
     print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 == 0)]))
     print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 == 0)]))
     print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau == 0)]))
     print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar == 0)]))
-    print("Stats for 4 samples where m_tautau is not 0")
+    print("Stats for 4 samples where m_tautau is not 0:")
     print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 > 0)]))
     print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 > 0)]))
     print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau > 0)]))
     print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar > 0)]))
+    """
+    print("Info about Cache Contents:")
+    for field in dihiggs_01.fold_1_array.fields:
+        print(str(field))
+        print(type(dihiggs_01.fold_1_array[field][0]))
+    """
     
     # I know that this is all labeled MMC even though its the original RNN. I'm leaving it like this to avoid changing all of the variable names.
     log.info ('Loading Old Model for Comparison')
@@ -711,3 +718,20 @@ if __name__ == '__main__':
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
     """
+    
+    # Attempt to reweight klambda=1 to klambda=2
+    log.info('Loading Reweight Root Files')
+    reweight_file_1 = uproot.open("data/weight-mHH-from-cHHHp01d0-to-cHHHpx_20GeV_Jul28.root")
+    reweight_1 = reweight_file_1["reweight_mHH_1p0_to_10p0"].to_numpy()
+    norm = reweight_file_1["norm10p0"].value
+    reweight_file_10 = uproot.open("data/weight-mHH-from-cHHHp10d0-to-cHHHpx_20GeV_Jul28.root")
+    reweight_10 = reweight_file_10["reweight_mHH_1p0_to_1p0"].to_numpy()
+    log.info('Beginning Reweight Plots')
+    reweight_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'truth')
+    reweight_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'mdn')
+    reweight_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'mmc')
+    
+    monotonicity_plot(predictions_HH_01, mhh_mmc_HH_01, test_target_HH_01, dihiggs_01.fold_1_array, predictions_HH_10, mhh_mmc_HH_10, test_target_HH_10, dihiggs_10.fold_1_array, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10')
+    monotonicity_plot(predictions_HH_01, mhh_mmc_HH_01, test_target_HH_01, dihiggs_01.fold_1_array, predictions_ztautau, mhh_mmc_ztautau, test_target_ztautau, ztautau.fold_1_array, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
+    monotonicity_plot(predictions_HH_01, mhh_mmc_HH_01, test_target_HH_01, dihiggs_01.fold_1_array, predictions_ttbar, mhh_mmc_ttbar, test_target_ttbar, ttbar.fold_1_array, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
+
