@@ -11,7 +11,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, monotonicity_plot
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, monotonicity_plot, resolution_plot
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -485,18 +485,6 @@ if __name__ == '__main__':
     print('dihiggs_01: ' + str(len(predictions_HH_01[np.where(mhh_mmc_HH_01 < 200)])))
     print('dihiggs_10: ' + str(len(predictions_HH_10[np.where(mhh_mmc_HH_10 < 200)])))
     
-    log.info ('Beginning Sigma Plotting')
-    
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
-    
-    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
-    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
-    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
-    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
-    
     all_predictions = np.concatenate([
         predictions_HH_01,
         predictions_HH_10,
@@ -533,8 +521,62 @@ if __name__ == '__main__':
         mvis_ztautau,
         mvis_ttbar
     ])
+    
+    resol_HH_01 = resolution_plot(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01_mdn')
+    resol_HH_10 = resolution_plot(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10_mdn')
+    resol_ztautau = resolution_plot(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau_mdn')
+    resol_ttbar = resolution_plot(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar_mdn')
+    resolution_plot(all_predictions, all_sigmas, all_fold_1_arrays, 'all_mdn')
+    resolution_plot(np.array(dihiggs_01.fold_1_array['universal_true_mhh']), sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01_truth')
+    resolution_plot(np.array(dihiggs_10.fold_1_array['universal_true_mhh']), sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10_truth')
+    resolution_plot(np.array(ztautau.fold_1_array['universal_true_mhh']), sigmas_ztautau, ztautau.fold_1_array, 'ztautau_truth')
+    resolution_plot(np.array(ttbar.fold_1_array['universal_true_mhh']), sigmas_ttbar, ttbar.fold_1_array, 'ttbar_truth')
+    resolution_plot(np.array(all_fold_1_arrays['universal_true_mhh']), all_sigmas, all_fold_1_arrays, 'all_truth')
+    
+    # Use this to split by resolution rather than sigma
+    """
+    sigmas_HH_01 = resol_HH_01
+    sigmas_HH_10 = resol_HH_10
+    sigmas_ztautau = resol_ztautau
+    sigmas_ttbar = resol_ttbar
+    all_sigmas = np.concatenate([
+        sigmas_HH_01,
+        sigmas_HH_10,
+        sigmas_ztautau,
+        sigmas_ttbar
+    ])
+    indices_1_1 = np.where(sigmas_HH_01 < 13.5)
+    indices_1_10 = np.where(sigmas_HH_10 < 13.5)
+    indices_1_z = np.where(sigmas_ztautau < 13.5)
+    indices_1_t = np.where(sigmas_ttbar < 13.5)
+    indices_2_1 = np.where((sigmas_HH_01 > 13.5) & (sigmas_HH_01 < 14.5))
+    indices_2_10 = np.where((sigmas_HH_10 > 13.5) & (sigmas_HH_10 < 14.5))
+    indices_2_z = np.where((sigmas_ztautau > 13.5) & (sigmas_ztautau < 14.5))
+    indices_2_t = np.where((sigmas_ttbar > 13.5) & (sigmas_ttbar < 14.5))
+    indices_3_1 = np.where((sigmas_HH_01 > 14.5) & (sigmas_HH_01 < 15.5))
+    indices_3_10 = np.where((sigmas_HH_10 > 14.5) & (sigmas_HH_10 < 15.5))
+    indices_3_z = np.where((sigmas_ztautau > 14.5) & (sigmas_ztautau < 15.5))
+    indices_3_t = np.where((sigmas_ttbar > 14.5) & (sigmas_ttbar < 15.5))
+    indices_4_1 = np.where(sigmas_HH_01 > 15.5)
+    indices_4_10 = np.where(sigmas_HH_10 > 15.5)
+    indices_4_z = np.where(sigmas_ztautau > 15.5)
+    indices_4_t = np.where(sigmas_ttbar > 15.5)
+    """
+    
+    log.info ('Beginning Sigma Plotting')
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    
+    resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all', all_mvis)
+
     
     log.info ('Finished Sigma Plotting, Beginning k_lambda Comparison Plotting')
     
@@ -545,6 +587,7 @@ if __name__ == '__main__':
     k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mmc_pass', slice_indices_1 = np.where(mmc_HH_01 > 0), slice_indices_10 = np.where(mmc_HH_10 > 0))
     k_lambda_comparison_plot(mhh_original_HH_01, mhh_original_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'dnn')
     
+    """
     # Split indices on absolute sigma ranges
     indices_1_1 = np.where(sigmas_HH_01 < 50)
     indices_1_10 = np.where(sigmas_HH_10 < 50)
@@ -562,6 +605,7 @@ if __name__ == '__main__':
     indices_4_10 = np.where(sigmas_HH_10 > 100)
     indices_4_z = np.where(sigmas_ztautau > 100)
     indices_4_t = np.where(sigmas_ttbar > 100)
+    """
     
     """
     # Split indices on relative sigma ranges
@@ -587,7 +631,6 @@ if __name__ == '__main__':
     indices_4_t = np.where(rel_sigmas_ttbar > 0.24)
     """
     
-    """
     # Split indices on m_vis-relative sigma ranges
     rel_sigmas_HH_01 = sigmas_HH_01 / mvis_HH_01
     rel_sigmas_HH_10 = sigmas_HH_10 / mvis_HH_10
@@ -609,7 +652,6 @@ if __name__ == '__main__':
     indices_4_10 = np.where(rel_sigmas_HH_10 > 0.32)
     indices_4_z = np.where(rel_sigmas_ztautau > 0.32)
     indices_4_t = np.where(rel_sigmas_ttbar > 0.32)
-    """
     
     k_lambda_comparison_plot(predictions_HH_01[indices_1_1], predictions_HH_10[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'mdn_lowest_sigma')
     k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_midlow_sigma')
