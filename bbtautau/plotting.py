@@ -75,93 +75,6 @@ def response_curve(res, var, bins):
         _bin_centers += [bins[i] + (bins[i+1] - bins[i]) / 2]
         _bin_errors += [(bins[i+1] - bins[i]) / 2]
     return np.array(_bin_centers), np.array(_bin_errors), np.array(_means), np.array(_mean_stat_err), np.array(_resol)
-
-def monotonicity_plot(mdn_1, mmc_1, truth_1, fold_1_array_1, mdn_2, mmc_2, truth_2, fold_1_array_2, name_1, name_2):
-    weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array_1['fold_weight']
-    weights_2 = fold_1_array_2['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array_2['fold_weight']
-
-    (n_mdn_1, bins_mdn_1, patches_mdn_1) = plt.hist(
-        mdn_1,
-        bins=80,
-        weights=weights_1,
-        range=(0,1500))
-    (n_mmc_1, bins_mmc_1, patches_mmc_1) = plt.hist(
-        mmc_1,
-        bins=80,
-        weights=weights_1,
-        range=(0,1500))
-    (n_truth_1, bins_truth_1, patches_truth_1) = plt.hist(
-        truth_1,
-        bins=80,
-        weights=weights_1,
-        range=(0,1500))
-    (n_mdn_2, bins_mdn_2, patches_mdn_2) = plt.hist(
-        mdn_2,
-        bins=80,
-        weights=weights_2,
-        range=(0,1500))
-    (n_mmc_2, bins_mmc_2, patches_mmc_2) = plt.hist(
-        mmc_2,
-        bins=80,
-        weights=weights_2,
-        range=(0,1500))
-    (n_truth_2, bins_truth_2, patches_truth_2) = plt.hist(
-        truth_2,
-        bins=80,
-        weights=weights_2,
-        range=(0,1500))
-        
-    heights_mdn = []
-    heights_mmc = []
-    heights_truth = []
-    for i in range(len(n_mdn_1)):
-        if (n_mdn_2[i] <= 0):
-            heights_mdn.append(0)
-        else:
-            heights_mdn.append(n_mdn_1[i] / n_mdn_2[i])
-        if (n_mmc_2[i] <= 0):
-            heights_mmc.append(0)
-        else:
-            heights_mmc.append(n_mmc_1[i] / n_mmc_2[i])
-        if (n_truth_2[i] <= 0):
-            heights_truth.append(0)
-        else:
-            heights_truth.append(n_truth_1[i] / n_truth_2[i])
-
-    fig, ax = plt.subplots()
-    ax.bar(x=bins_mdn_1[:-1], height=heights_mdn, width=np.diff(bins_mdn_1), align='edge', label='MDN', fill=False, edgecolor='red')
-    ax.bar(x=bins_mdn_1[:-1], height=heights_mmc, width=np.diff(bins_mdn_1), align='edge', label='MMC', fill=False, edgecolor='purple')
-    ax.bar(x=bins_mdn_1[:-1], height=heights_truth, width=np.diff(bins_mdn_1), align='edge', label='Truth', fill=False, edgecolor='black')
-    """
-    print(name_2)
-    print(n_truth_2)
-    """
-    plt.xlabel(r'$m_{HH}$')
-    plt.ylabel('(' + name_1 + ')/(' + name_2 + ') Ratio')
-    plt.xlim((0,1500))
-    if (name_2 == 'Top Quark'):
-        plt.ylim((0,0.1))
-    else:
-        plt.ylim(bottom=0)
-    plt.legend()
-    if (name_1 == r'$\kappa_{\lambda}$ = 1'):
-        title_1 = 'HH_01'
-    if (name_2 == r'$\kappa_{\lambda}$ = 1'):
-        title_2 = 'HH_01'
-    if (name_1 == r'$\kappa_{\lambda}$ = 10'):
-        title_1 = 'HH_10'
-    if (name_2 == r'$\kappa_{\lambda}$ = 10'):
-        title_2 = 'HH_10'
-    if (name_1 == r'$Z\to\tau\tau$ + jets'):
-        title_1 = 'ztt'
-    if (name_2 == r'$Z\to\tau\tau$ + jets'):
-        title_2 = 'ztt'
-    if (name_1 == 'Top Quark'):
-        title_1 = 'ttbar'
-    if (name_2 == 'Top Quark'):
-        title_2 = 'ttbar'
-    fig.savefig('plots/' + title_1 + '_' + title_2 + '_monotonicity.pdf')
-    plt.close(fig)
     
 def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweight_1, reweight_10, norm, label, slice_indices_1 = None, slice_indices_10 = None):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
@@ -300,37 +213,9 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
 
-    """
     # Split indices on absolute sigma ranges
-    indices_1 = np.where(sigmas < 50)
-    indices_2 = np.where((sigmas > 50) & (sigmas < 75))
-    indices_3 = np.where((sigmas > 75) & (sigmas < 100))
-    indices_4 = np.where(sigmas > 100)
-    """
-    
-    """
-    # Split indices on relative sigma ranges
-    rel_sigmas = sigmas / mus
-    indices_1 = np.where(rel_sigmas < 0.12)
-    indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
-    indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
-    indices_4 = np.where(rel_sigmas > 0.24)
-    """
-    
-    # Split indices on m_vis-relative sigma ranges
-    mvis_rel_sigmas = sigmas / mvis
-    indices_1 = np.where(mvis_rel_sigmas < 0.16)
-    indices_2 = np.where((mvis_rel_sigmas > 0.16) & (mvis_rel_sigmas < 0.24))
-    indices_3 = np.where((mvis_rel_sigmas > 0.24) & (mvis_rel_sigmas < 0.32))
-    indices_4 = np.where(mvis_rel_sigmas > 0.32)
-
-    """
-    # Split indices on resolution ranges
-    indices_1 = np.where(sigmas < 13.5)
-    indices_2 = np.where((sigmas > 13.5) & (sigmas < 14.5))
-    indices_3 = np.where((sigmas > 14.5) & (sigmas < 15.5))
-    indices_4 = np.where(sigmas > 15.5)
-    """
+    indices_1 = np.where(sigmas < 4)
+    indices_2 = np.where(sigmas > 4)
     
     data = truths - mus
     mean_all = np.mean(data)
@@ -339,25 +224,17 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     old_data = truths - old_preds
     old_mean_1 = np.mean(old_data[indices_1])
     old_mean_2 = np.mean(old_data[indices_2])
-    old_mean_3 = np.mean(old_data[indices_3])
-    old_mean_4 = np.mean(old_data[indices_4])
     old_mean_all = np.mean(old_data)
     old_rms_1 = np.sqrt(np.mean((old_data[indices_1] - old_mean_1) * (old_data[indices_1] - old_mean_1)))
     old_rms_2 = np.sqrt(np.mean((old_data[indices_2] - old_mean_2) * (old_data[indices_2] - old_mean_2)))
-    old_rms_3 = np.sqrt(np.mean((old_data[indices_3] - old_mean_3) * (old_data[indices_3] - old_mean_3)))
-    old_rms_4 = np.sqrt(np.mean((old_data[indices_4] - old_mean_4) * (old_data[indices_4] - old_mean_4)))
     old_rms_all = np.sqrt(np.mean((old_data - old_mean_all) * (old_data - old_mean_all)))
 
     mmc_data = truths - mmc_preds
     mmc_mean_1 = np.mean(mmc_data[indices_1])
     mmc_mean_2 = np.mean(mmc_data[indices_2])
-    mmc_mean_3 = np.mean(mmc_data[indices_3])
-    mmc_mean_4 = np.mean(mmc_data[indices_4])
     mmc_mean_all = np.mean(mmc_data)
     mmc_rms_1 = np.sqrt(np.mean((mmc_data[indices_1] - mmc_mean_1) * (mmc_data[indices_1] - mmc_mean_1)))
     mmc_rms_2 = np.sqrt(np.mean((mmc_data[indices_2] - mmc_mean_2) * (mmc_data[indices_2] - mmc_mean_2)))
-    mmc_rms_3 = np.sqrt(np.mean((mmc_data[indices_3] - mmc_mean_3) * (mmc_data[indices_3] - mmc_mean_3)))
-    mmc_rms_4 = np.sqrt(np.mean((mmc_data[indices_4] - mmc_mean_4) * (mmc_data[indices_4] - mmc_mean_4)))
     mmc_rms_all = np.sqrt(np.mean((mmc_data - mmc_mean_all) * (mmc_data - mmc_mean_all)))
     
     fig = plt.figure()
@@ -411,7 +288,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$, DNN. Mean: ' + str(round(old_mean_1, 4)) + '. RMS: ' + str(round(old_rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$, DNN. Mean: ' + str(round(old_mean_1, 4)) + '. RMS: ' + str(round(old_rms_1, 4)),
         density=True)
     plt.hist(
         old_data[indices_2],
@@ -419,23 +296,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$, DNN. Mean: ' + str(round(old_mean_2, 4)) + '. RMS: ' + str(round(old_rms_2, 4)),
-        density=True)
-    plt.hist(
-        old_data[indices_3],
-        bins=60,
-        weights=weights[indices_3],
-        range=(-500,500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$, DNN. Mean: ' + str(round(old_mean_3, 4)) + '. RMS: ' + str(round(old_rms_3, 4)),
-        density=True)
-    plt.hist(
-        old_data[indices_4],
-        bins=60,
-        weights=weights[indices_4],
-        range=(-500,500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$, DNN. Mean: ' + str(round(old_mean_4, 4)) + '. RMS: ' + str(round(old_rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$, DNN. Mean: ' + str(round(old_mean_2, 4)) + '. RMS: ' + str(round(old_rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -460,7 +321,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$, MMC. Mean: ' + str(round(mmc_mean_1, 4)) + '. RMS: ' + str(round(mmc_rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$, MMC. Mean: ' + str(round(mmc_mean_1, 4)) + '. RMS: ' + str(round(mmc_rms_1, 4)),
         density=True)
     plt.hist(
         mmc_data[indices_2],
@@ -468,23 +329,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$, MMC. Mean: ' + str(round(mmc_mean_2, 4)) + '. RMS: ' + str(round(mmc_rms_2, 4)),
-        density=True)
-    plt.hist(
-        mmc_data[indices_3],
-        bins=60,
-        weights=weights[indices_3],
-        range=(-500,500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$, MMC. Mean: ' + str(round(mmc_mean_3, 4)) + '. RMS: ' + str(round(mmc_rms_3, 4)),
-        density=True)
-    plt.hist(
-        mmc_data[indices_4],
-        bins=60,
-        weights=weights[indices_4],
-        range=(-500,500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$, MMC. Mean: ' + str(round(mmc_mean_4, 4)) + '. RMS: ' + str(round(mmc_rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$, MMC. Mean: ' + str(round(mmc_mean_2, 4)) + '. RMS: ' + str(round(mmc_rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -496,13 +341,9 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     
     mean_1 = np.mean(mus[indices_1])
     mean_2 = np.mean(mus[indices_2])
-    mean_3 = np.mean(mus[indices_3])
-    mean_4 = np.mean(mus[indices_4])
     mean_all = np.mean(mus)
     rms_1 = np.sqrt(np.mean((mus[indices_1] - mean_1) * (mus[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((mus[indices_2] - mean_2) * (mus[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((mus[indices_3] - mean_3) * (mus[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((mus[indices_4] - mean_4) * (mus[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((mus - mean_all) * (mus - mean_all)))
     
     fig = plt.figure()
@@ -520,7 +361,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         mus[indices_2],
@@ -528,23 +369,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        mus[indices_3],
-        bins=80,
-        weights=weights[indices_3],
-        range=(0,1500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        mus[indices_4],
-        bins=80,
-        weights=weights[indices_4],
-        range=(0,1500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
@@ -556,13 +381,9 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     
     mean_1 = np.mean(old_preds[indices_1])
     mean_2 = np.mean(old_preds[indices_2])
-    mean_3 = np.mean(old_preds[indices_3])
-    mean_4 = np.mean(old_preds[indices_4])
     mean_all = np.mean(old_preds)
     rms_1 = np.sqrt(np.mean((old_preds[indices_1] - mean_1) * (old_preds[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((old_preds[indices_2] - mean_2) * (old_preds[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((old_preds[indices_3] - mean_3) * (old_preds[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((old_preds[indices_4] - mean_4) * (old_preds[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((old_preds - mean_all) * (old_preds - mean_all)))
     
     fig = plt.figure()
@@ -580,7 +401,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         old_preds[indices_2],
@@ -588,23 +409,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        old_preds[indices_3],
-        bins=80,
-        weights=weights[indices_3],
-        range=(0,1500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        old_preds[indices_4],
-        bins=80,
-        weights=weights[indices_4],
-        range=(0,1500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
@@ -616,13 +421,9 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
 
     mean_1 = np.mean(mmc_preds[indices_1])
     mean_2 = np.mean(mmc_preds[indices_2])
-    mean_3 = np.mean(mmc_preds[indices_3])
-    mean_4 = np.mean(mmc_preds[indices_4])
     mean_all = np.mean(mmc_preds)
     rms_1 = np.sqrt(np.mean((mmc_preds[indices_1] - mean_1) * (mmc_preds[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((mmc_preds[indices_2] - mean_2) * (mmc_preds[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((mmc_preds[indices_3] - mean_3) * (mmc_preds[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((mmc_preds[indices_4] - mean_4) * (mmc_preds[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((mmc_preds - mean_all) * (mmc_preds - mean_all)))
     
     fig = plt.figure()
@@ -640,7 +441,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         mmc_preds[indices_2],
@@ -648,23 +449,7 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        mmc_preds[indices_3],
-        bins=80,
-        weights=weights[indices_3],
-        range=(0,1500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        mmc_preds[indices_4],
-        bins=80,
-        weights=weights[indices_4],
-        range=(0,1500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
@@ -678,123 +463,48 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
     
-    mean_sigma = np.mean(sigmas)
-    rms_sigma = np.sqrt(np.mean((sigmas - mean_sigma) * (sigmas - mean_sigma)))
+    trimmed_sigmas = sigmas[np.where(sigmas < 100)]
     
-    rel_sigmas = sigmas / mus
-    mean_rel = np.mean(rel_sigmas)
-    rms_rel = np.sqrt(np.mean((rel_sigmas - mean_rel) * (rel_sigmas - mean_rel)))
+    mean_sigma = np.mean(trimmed_sigmas)
+    rms_sigma = np.sqrt(np.mean((trimmed_sigmas - mean_sigma) * (trimmed_sigmas - mean_sigma)))
+    median_sigma = np.median(sigmas)
     
-    mvis_rel_sigmas = sigmas / mvis
-    mean_mvis_rel = np.mean(mvis_rel_sigmas)
-    rms_mvis_rel = np.sqrt(np.mean((mvis_rel_sigmas - mean_mvis_rel) * (mvis_rel_sigmas - mean_mvis_rel)))
-    
-    """
-    # Split indices on absolute sigma ranges
-    indices_1 = np.where(sigmas < 50)
-    indices_2 = np.where((sigmas > 50) & (sigmas < 75))
-    indices_3 = np.where((sigmas > 75) & (sigmas < 100))
-    indices_4 = np.where(sigmas > 100)
-    """
-    
-    """
-    # Split indices on relative sigma ranges
-    indices_1 = np.where(rel_sigmas < 0.12)
-    indices_2 = np.where((rel_sigmas > 0.12) & (rel_sigmas < 0.18))
-    indices_3 = np.where((rel_sigmas > 0.18) & (rel_sigmas < 0.24))
-    indices_4 = np.where(rel_sigmas > 0.24)
-    """
-    
-    # Split indices on m_vis-relative sigma ranges
-    indices_1 = np.where(mvis_rel_sigmas < 0.16)
-    indices_2 = np.where((mvis_rel_sigmas > 0.16) & (mvis_rel_sigmas < 0.24))
-    indices_3 = np.where((mvis_rel_sigmas > 0.24) & (mvis_rel_sigmas < 0.32))
-    indices_4 = np.where(mvis_rel_sigmas > 0.32)
-    
-    """
-    # Split indices on resolution ranges
-    indices_1 = np.where(sigmas < 13.5)
-    indices_2 = np.where((sigmas > 13.5) & (sigmas < 14.5))
-    indices_3 = np.where((sigmas > 14.5) & (sigmas < 15.5))
-    indices_4 = np.where(sigmas > 15.5)
-    """
+    # Split indices on sigma ranges
+    indices_1 = np.where(sigmas < 4)
+    indices_2 = np.where(sigmas > 4)
     
     fig = plt.figure()
     plt.hist(
         sigmas,
-        bins=50,
+        bins=45,
         weights=weights,
-        range=(0,250),
-        label='Mean: ' + str(round(mean_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
+        range=(0,12),
+        label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
         color='white')
     plt.hist(
         sigmas[indices_1],
-        bins=50,
+        bins=45,
         weights=weights[indices_1],
-        range=(0,250))
+        range=(0,12))
     plt.hist(
         sigmas[indices_2],
-        bins=50,
+        bins=45,
         weights=weights[indices_2],
-        range=(0,250))
-    plt.hist(
-        sigmas[indices_3],
-        bins=50,
-        weights=weights[indices_3],
-        range=(0,250))
-    plt.hist(
-        sigmas[indices_4],
-        bins=50,
-        weights=weights[indices_4],
-        range=(0,250))
-    plt.xlim((0,250))
+        range=(0,12))
+    plt.xlim((0,12))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$\sigma(m_{HH})$')
+    plt.xlabel(r'$\sigma(m_{HH})$/Resolution')
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
-    plt.close(fig)
-    
-    fig = plt.figure()
-    plt.hist(
-        rel_sigmas,
-        bins=50,
-        weights=weights,
-        range=(0,0.5),
-        label='Mean: ' + str(round(mean_rel, 4)) + '. RMS: ' + str(round(rms_rel, 4)))
-    plt.xlim((0,0.5))
-    plt.ylim(bottom=0)
-    plt.xlabel(r'$\sigma(m_{HH})/m_{HH}$')
-    plt.ylabel('Events')
-    plt.legend(fontsize='small')
-    fig.savefig('plots/mdn_relative_sigma_' + label + '.pdf')
-    plt.close(fig)
-    
-    fig = plt.figure()
-    plt.hist(
-        mvis_rel_sigmas,
-        bins=50,
-        weights=weights,
-        range=(0,0.8),
-        label='Mean: ' + str(round(mean_mvis_rel, 4)) + '. RMS: ' + str(round(rms_mvis_rel, 4)))
-    plt.xlim((0,0.8))
-    plt.ylim(bottom=0)
-    plt.xlabel(r'$\sigma(m_{HH}/m_{vis})$')
-    plt.ylabel('Events')
-    plt.legend(fontsize='small')
-    fig.savefig('plots/mdn_mvis_relative_sigma_' + label + '.pdf')
     plt.close(fig)
 
     data = (truths - mus) / sigmas
     mean_1 = np.mean(data[indices_1])
     mean_2 = np.mean(data[indices_2])
-    mean_3 = np.mean(data[indices_3])
-    mean_4 = np.mean(data[indices_4])
     mean_all = np.mean(data)
     rms_1 = np.sqrt(np.mean((data[indices_1] - mean_1) * (data[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((data[indices_2] - mean_2) * (data[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((data[indices_3] - mean_3) * (data[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((data[indices_4] - mean_4) * (data[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
     
     fig = plt.figure()
@@ -812,7 +522,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-4,4),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -820,23 +530,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-4,4),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        data[indices_3],
-        bins=60,
-        weights=weights[indices_3],
-        range=(-4,4),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        data[indices_4],
-        bins=60,
-        weights=weights[indices_4],
-        range=(-4,4),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-4,4))
     plt.ylim(bottom=0)
@@ -849,13 +543,9 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     data = truths - mus
     mean_1 = np.mean(data[indices_1])
     mean_2 = np.mean(data[indices_2])
-    mean_3 = np.mean(data[indices_3])
-    mean_4 = np.mean(data[indices_4])
     mean_all = np.mean(data)
     rms_1 = np.sqrt(np.mean((data[indices_1] - mean_1) * (data[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((data[indices_2] - mean_2) * (data[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((data[indices_3] - mean_3) * (data[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((data[indices_4] - mean_4) * (data[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((data - mean_all) * (data - mean_all)))
     
     fig = plt.figure()
@@ -873,7 +563,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -881,23 +571,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        data[indices_3],
-        bins=60,
-        weights=weights[indices_3],
-        range=(-500,500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        data[indices_4],
-        bins=60,
-        weights=weights[indices_4],
-        range=(-500,500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -909,13 +583,9 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     
     mean_1 = np.mean(truths[indices_1])
     mean_2 = np.mean(truths[indices_2])
-    mean_3 = np.mean(truths[indices_3])
-    mean_4 = np.mean(truths[indices_4])
     mean_all = np.mean(truths)
     rms_1 = np.sqrt(np.mean((truths[indices_1] - mean_1) * (truths[indices_1] - mean_1)))
     rms_2 = np.sqrt(np.mean((truths[indices_2] - mean_2) * (truths[indices_2] - mean_2)))
-    rms_3 = np.sqrt(np.mean((truths[indices_3] - mean_3) * (truths[indices_3] - mean_3)))
-    rms_4 = np.sqrt(np.mean((truths[indices_4] - mean_4) * (truths[indices_4] - mean_4)))
     rms_all = np.sqrt(np.mean((truths - mean_all) * (truths - mean_all)))
     
     fig = plt.figure()
@@ -933,7 +603,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})<0.16$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
@@ -941,23 +611,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$0.16<\sigma(m_{HH}/m_{vis})<0.24$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
-        density=True)
-    plt.hist(
-        truths[indices_3],
-        bins=80,
-        weights=weights[indices_3],
-        range=(0,1500),
-        histtype='step',
-        label=r'$0.24<\sigma(m_{HH}/m_{vis})<0.32$. Mean: ' + str(round(mean_3, 4)) + '. RMS: ' + str(round(rms_3, 4)),
-        density=True)
-    plt.hist(
-        truths[indices_4],
-        bins=80,
-        weights=weights[indices_4],
-        range=(0,1500),
-        histtype='step',
-        label=r'$\sigma(m_{HH}/m_{vis})>0.32$. Mean: ' + str(round(mean_4, 4)) + '. RMS: ' + str(round(rms_4, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
