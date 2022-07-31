@@ -15,6 +15,83 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances):
+    fig = plt.figure()
+    plt.plot(
+        klambdas,
+        truth_significances,
+        label='Truth',
+        color='black')
+    plt.plot(
+        klambdas,
+        mdn_significances,
+        label='MDN',
+        color='red')
+    plt.plot(
+        klambdas,
+        mmc_significances,
+        label='MMC',
+        color='purple')
+    plt.xlim((klambdas[0],klambdas[-1]))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\kappa_\lambda$')
+    plt.ylabel(r'Separation Significance Compared to $\kappa_\lambda=1$')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/klambda_scan.pdf')
+    plt.close(fig)
+
+def reweight_and_compare(mhh, fold_1_array, reweight, norm, label, klambda):
+    original_weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+
+    reweights_by_bin = reweight[0] * norm
+    bin_edges = reweight[1]
+    num_bins = len(reweights_by_bin)
+    
+    new_weights = []
+    for i in range(len(mhh)):
+        reweight_bin = int((mhh[i] - 200) / 20)
+        if ((reweight_bin > -1) and (reweight_bin < num_bins)):
+            new_weights.append(original_weights[i] * reweights_by_bin[reweight_bin])
+        else:
+            new_weights.append(0)
+    
+    fig = plt.figure()
+    (n_01, bins_01, patches_01) = plt.hist(
+        mhh,
+        bins=40,
+        weights=original_weights,
+        range=(200,1000),
+        histtype='step',
+        label=r'$\kappa_\lambda=1$')
+    (n_10, bins_10, patches_10) = plt.hist(
+        mhh,
+        bins=40,
+        weights=new_weights,
+        range=(200,1000),
+        histtype='step',
+        label=r'$\kappa_\lambda=$' + klambda)
+    sig_sum = 0
+    for i in range(len(n_01)):
+        if (n_01[i] > 0) and (n_10[i] > 0):
+            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
+    z = np.sqrt(2 * sig_sum)
+    plt.hist(
+        [0],
+        bins=1,
+        weights=[n_01[1]],
+        range=(0,1500),
+        label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
+        color='white')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '.pdf')
+    plt.close(fig)
+    
+    return z
+
 def resolution_plot(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array['fold_weight']
 

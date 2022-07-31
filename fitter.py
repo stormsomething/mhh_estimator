@@ -11,7 +11,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot, klambda_scan_plot, reweight_and_compare
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -317,9 +317,11 @@ if __name__ == '__main__':
     features_test_ztautau = features_table(ztautau.fold_1_array)
     features_test_ttbar = features_table(ttbar.fold_1_array)
     
+    """
     print(features_test_HH_01.shape)
     for i in range(features_test_HH_01.shape[1]):
         print(scipy.stats.describe(features_test_HH_01[:,i]))
+    """
     
     log.info ('features loaded')
 
@@ -553,6 +555,7 @@ if __name__ == '__main__':
     indices_2_z = np.where(sigmas_ztautau > 4)
     indices_2_t = np.where(sigmas_ttbar > 4)
     
+    """
     log.info ('Beginning Sigma Plotting')
     
     sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
@@ -598,7 +601,6 @@ if __name__ == '__main__':
     eff_true_HH_01_HH_10 = [eff_true_HH_01] + [eff_true_HH_10]
     eff_true_HH_01_ztt = [eff_true_HH_01] + [eff_true_ztt]
     eff_true_HH_01_ttbar = [eff_true_HH_01] + [eff_true_ttbar]
-    """
     print("ROC Array Shapes:")
     print(len(eff_pred_HH_01_HH_10[0]))
     print(len(eff_pred_HH_01_HH_10[1]))
@@ -606,12 +608,10 @@ if __name__ == '__main__':
     print(len(eff_pred_HH_01_HH_10[3]))
     print(len(eff_true_HH_01_HH_10[0]))
     print(len(eff_true_HH_01_HH_10[1]))
-    """
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
     
-    """
     log.info ('Beginning Sigma-Split RNN-MMC Comparison Plotting')
     
     # lowest sigma
@@ -643,15 +643,12 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_high_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_high_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_high_sigma')
-    """
 
     # Pile-up stability of the signal
-    """
     avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01.fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
     avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
     avg_mhh_plot(avg_mhh_HH_01, 'pileup_stability_avg_mhh_HH_01', dihiggs_01)
     avg_mhh_plot(avg_mhh_HH_10, 'pileup_stability_avg_mhh_HH_10', dihiggs_10)
-    """
     
     # Attempt to reweight klambda=1 to klambda=2
     log.info('Loading Reweight Root Files')
@@ -664,3 +661,29 @@ if __name__ == '__main__':
     reweight_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'truth')
     reweight_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'mdn')
     reweight_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, reweight_1, reweight_10, norm, 'mmc')
+    """
+    
+    # Scan over a range of klambda values and find their significances
+    klambda_scan_list = ['n8p0', 'n7p0', 'n6p0', 'n5p0', 'n4p0', 'n3p0', 'n2p0', 'n1p0', '0p0', '1p0', '2p0', '3p0', '4p0', '5p0', '6p0', '7p0', '8p0', '9p0', '10p0', '11p0']
+    reweight_file = uproot.open("data/weight-mHH-from-cHHHp01d0-to-cHHHpx_20GeV_Jul28.root")
+    truth_significances = []
+    mdn_significances = []
+    mmc_significances = []
+    for klambda in klambda_scan_list:
+        print('klambda reweight scan: ' + klambda)
+        if (klambda == '1p0'):
+            truth_significances.append(0)
+            mdn_significances.append(0)
+            mmc_significances.append(0)
+            continue
+        reweight = reweight_file['reweight_mHH_1p0_to_' + klambda].to_numpy()
+        norm = reweight_file['norm' + klambda].value
+        z = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, reweight, norm, 'truth', klambda)
+        truth_significances.append(z)
+        z = reweight_and_compare(predictions_HH_01, dihiggs_01.fold_1_array, reweight, norm, 'mdn', klambda)
+        mdn_significances.append(z)
+        z = reweight_and_compare(mhh_mmc_HH_01, dihiggs_01.fold_1_array, reweight, norm, 'mmc', klambda)
+        mmc_significances.append(z)
+    klambda_scan_plot(range(-8, 12), truth_significances, mdn_significances, mmc_significances)
+        
+        
