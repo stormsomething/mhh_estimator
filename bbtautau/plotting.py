@@ -44,7 +44,7 @@ def reweight_and_compare(mhh, fold_1_array, reweight, norm, label, klambda):
     original_weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
 
     reweights_by_bin = reweight[0] * norm
-    bin_edges = reweight[1]
+    #bin_edges = reweight[1]
     num_bins = len(reweights_by_bin)
     
     new_weights = []
@@ -54,6 +54,9 @@ def reweight_and_compare(mhh, fold_1_array, reweight, norm, label, klambda):
             new_weights.append(original_weights[i] * reweights_by_bin[reweight_bin])
         else:
             new_weights.append(0)
+            
+    # Option to renormalize so that both signals have the same total weights
+    new_weights = np.array(new_weights) * (sum(original_weights) / sum(new_weights))
     
     fig = plt.figure()
     (n_01, bins_01, patches_01) = plt.hist(
