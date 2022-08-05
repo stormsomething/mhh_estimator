@@ -46,6 +46,17 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.legend(fontsize='small')
     fig.savefig('plots/resolutions_' + label + '.pdf')
     plt.close(fig)
+    
+    fig = plt.figure()
+    plt.scatter(
+        mus,
+        event_resol,
+        s=5)
+    plt.xlim((0,1500))
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'$m_{HH}$ Resolution (GeV)')
+    fig.savefig('plots/resolution_v_mass_scatter_' + label + '.pdf')
+    plt.close(fig)
 
     return np.array(event_resol)
 
