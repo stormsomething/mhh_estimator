@@ -40,21 +40,7 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
     fig.savefig('plots/klambda_scan.pdf')
     plt.close(fig)
 
-def reweight_and_compare(mhh, fold_1_array, reweight, norm, label, klambda):
-    original_weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
-
-    reweights_by_bin = reweight[0] * norm
-    #bin_edges = reweight[1]
-    num_bins = len(reweights_by_bin)
-    
-    new_weights = []
-    for i in range(len(mhh)):
-        reweight_bin = int((mhh[i] - 200) / 20)
-        if ((reweight_bin > -1) and (reweight_bin < num_bins)):
-            new_weights.append(original_weights[i] * reweights_by_bin[reweight_bin])
-        else:
-            new_weights.append(0)
-            
+def reweight_and_compare(mhh, original_weights, new_weights, label, klambda):
     # Option to renormalize so that both signals have the same total weights
     new_weights = np.array(new_weights) * (sum(original_weights) / sum(new_weights))
     
@@ -73,11 +59,13 @@ def reweight_and_compare(mhh, fold_1_array, reweight, norm, label, klambda):
         range=(200,1000),
         histtype='step',
         label=r'$\kappa_\lambda=$' + klambda)
+        
     sig_sum = 0
     for i in range(len(n_01)):
         if (n_01[i] > 0) and (n_10[i] > 0):
             sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
     z = np.sqrt(2 * sig_sum)
+    
     plt.hist(
         [0],
         bins=1,

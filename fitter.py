@@ -666,24 +666,45 @@ if __name__ == '__main__':
     # Scan over a range of klambda values and find their significances
     klambda_scan_list = ['n8p0', 'n7p0', 'n6p0', 'n5p0', 'n4p0', 'n3p0', 'n2p0', 'n1p0', '0p0', '1p0', '2p0', '3p0', '4p0', '5p0', '6p0', '7p0', '8p0', '9p0', '10p0', '11p0']
     reweight_file = uproot.open("data/weight-mHH-from-cHHHp01d0-to-cHHHpx_20GeV_Jul28.root")
+    
     truth_significances = []
     mdn_significances = []
     mmc_significances = []
+    original_weights = dihiggs_01.fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * dihiggs_01.fold_1_array['fold_weight']
+    
     for klambda in klambda_scan_list:
+    
         print('klambda reweight scan: ' + klambda)
+        
         if (klambda == '1p0'):
             truth_significances.append(0)
             mdn_significances.append(0)
             mmc_significances.append(0)
             continue
+            
         reweight = reweight_file['reweight_mHH_1p0_to_' + klambda].to_numpy()
         norm = reweight_file['norm' + klambda].value
-        z = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, reweight, norm, 'truth', klambda)
+        
+        reweights_by_bin = reweight[0] * norm
+        num_bins = len(reweights_by_bin)
+        
+        new_weights = []
+        for i in range(len(dihiggs_01.fold_1_array['universal_true_mhh'])):
+            reweight_bin = int((dihiggs_01.fold_1_array['universal_true_mhh'][i] - 200) / 20)
+            if ((reweight_bin > -1) and (reweight_bin < num_bins)):
+                new_weights.append(original_weights[i] * reweights_by_bin[reweight_bin])
+            else:
+                new_weights.append(0)
+                
+        z = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'], original_weights, new_weights, 'truth', klambda)
         truth_significances.append(z)
-        z = reweight_and_compare(predictions_HH_01, dihiggs_01.fold_1_array, reweight, norm, 'mdn', klambda)
+        
+        z = reweight_and_compare(predictions_HH_01, original_weights, new_weights, 'mdn', klambda)
         mdn_significances.append(z)
-        z = reweight_and_compare(mhh_mmc_HH_01, dihiggs_01.fold_1_array, reweight, norm, 'mmc', klambda)
+        
+        z = reweight_and_compare(mhh_mmc_HH_01, original_weights, new_weights, 'mmc', klambda)
         mmc_significances.append(z)
+        
     klambda_scan_plot(range(-8, 12), truth_significances, mdn_significances, mmc_significances)
         
         
