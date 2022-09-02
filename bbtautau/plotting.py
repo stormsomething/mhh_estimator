@@ -15,7 +15,7 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
-def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances):
+def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = False, bonus_pts = None):
     fig = plt.figure()
     plt.plot(
         klambdas,
@@ -32,26 +32,97 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
         mmc_significances,
         label='MMC',
         color='purple')
+    plt.plot(
+        klambdas,
+        split_significances,
+        label='MDN Split by Sigma/Resolution',
+        color='green')
+    if (bonus_pts != None):
+        if (k10mode):
+            plt.scatter(
+                1,
+                bonus_pts[0],
+                label='Truth',
+                color='black',
+                marker='o')
+            plt.scatter(
+                1,
+                bonus_pts[1],
+                label='MDN',
+                color='red',
+                marker='o')
+            plt.scatter(
+                1,
+                bonus_pts[2],
+                label='MMC',
+                color='purple',
+                marker='o')
+            plt.scatter(
+                1,
+                bonus_pts[3],
+                label='MDN Split by Sigma/Resolution',
+                color='green',
+                marker='o')
+        else:
+            plt.scatter(
+                10,
+                bonus_pts[0],
+                label='Truth',
+                color='black',
+                marker='o')
+            plt.scatter(
+                10,
+                bonus_pts[1],
+                label='MDN',
+                color='red',
+                marker='o')
+            plt.scatter(
+                10,
+                bonus_pts[2],
+                label='MMC',
+                color='purple',
+                marker='o')
+            plt.scatter(
+                10,
+                bonus_pts[3],
+                label='MDN Split by Sigma/Resolution',
+                color='green',
+                marker='o')
     plt.xlim((klambdas[0],klambdas[-1]))
     plt.ylim(bottom=0)
     plt.xlabel(r'$\kappa_\lambda$')
-    plt.ylabel(r'Separation Significance Compared to $\kappa_\lambda=1$')
     plt.legend(fontsize='small')
-    fig.savefig('plots/klambda_scan.pdf')
+    if (k10mode):
+        plt.ylabel(r'Separation Significance Compared to $\kappa_\lambda=10$')
+        fig.savefig('plots/klambda_scan_from_k10.pdf')
+    else:
+        plt.ylabel(r'Separation Significance Compared to $\kappa_\lambda=1$')
+        fig.savefig('plots/klambda_scan.pdf')
     plt.close(fig)
 
-def reweight_and_compare(mhh, original_weights, new_weights, label, klambda):
+def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_norm = None, k10mode = False):
     # Option to renormalize so that both signals have the same total weights
-    new_weights = np.array(new_weights) * (sum(original_weights) / sum(new_weights))
+    if (cs_norm is None):
+        cs_norm = sum(original_weights) / sum(new_weights)
+    new_weights = np.array(new_weights) * cs_norm
     
     fig = plt.figure()
-    (n_01, bins_01, patches_01) = plt.hist(
-        mhh,
-        bins=40,
-        weights=original_weights,
-        range=(200,1000),
-        histtype='step',
-        label=r'$\kappa_\lambda=1$')
+    if (k10mode):
+        (n_01, bins_01, patches_01) = plt.hist(
+            mhh,
+            bins=40,
+            weights=original_weights,
+            range=(200,1000),
+            histtype='step',
+            label=r'$\kappa_\lambda=10$')
+    else:
+        (n_01, bins_01, patches_01) = plt.hist(
+            mhh,
+            bins=40,
+            weights=original_weights,
+            range=(200,1000),
+            histtype='step',
+            label=r'$\kappa_\lambda=1$')
     (n_10, bins_10, patches_10) = plt.hist(
         mhh,
         bins=40,
@@ -66,22 +137,34 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda):
             sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
     z = np.sqrt(2 * sig_sum)
     
-    plt.hist(
-        [0],
-        bins=1,
-        weights=[n_01[1]],
-        range=(0,1500),
-        label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
-        color='white')
+    if (k10mode):
+        plt.hist(
+            [0],
+            bins=1,
+            weights=[n_01[1]],
+            range=(0,1500),
+            label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=10$: $Z = $' + str(round(z, 4)),
+            color='white')
+    else:
+        plt.hist(
+            [0],
+            bins=1,
+            weights=[n_01[1]],
+            range=(0,1500),
+            label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
+            color='white')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$')
     plt.ylabel('Events')
     plt.legend(fontsize='small')
-    fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '.pdf')
+    if (k10mode):
+        fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '_from_k10.pdf')
+    else:
+        fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '.pdf')
     plt.close(fig)
     
-    return z
+    return z, cs_norm
 
 def resolution_plot(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array['fold_weight']
@@ -221,13 +304,16 @@ def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweigh
     plt.close(fig)
     
     
-def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label, slice_indices_1 = None, slice_indices_10 = None):
+def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label, slice_indices_1 = None, slice_indices_10 = None, k10mode = False):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
     weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
     
-    #print(label + " kappa_lambda=1 Weight Sum: " + str(sum(weights_1)))
-    #print(label + " kappa_lambda=10 Weight Sum: " + str(sum(weights_10)))
-    weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
+    print(label + " kappa_lambda=1 Weight Sum: " + str(sum(weights_1)))
+    print(label + " kappa_lambda=10 Weight Sum: " + str(sum(weights_10)))
+    if (k10mode):
+        weights_10 = np.array(weights_10) * 11.8944157416 # Normalization factor calculated by hand
+    else:
+        weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
     
     if (slice_indices_1 is not None):
         weights_1 = weights_1[slice_indices_1]
@@ -246,14 +332,14 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
         mhh_HH_01,
         bins=40,
         weights=weights_1,
-        range=(0,1500),
+        range=(200,1000),
         histtype='step',
         label=r'$\kappa_\lambda=1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)))
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
         bins=40,
         weights=weights_10,
-        range=(0,1500),
+        range=(200,1000),
         histtype='step',
         label=r'$\kappa_\lambda=10$. Mean: ' + str(round(mean_10, 4)) + '. RMS: ' + str(round(rms_10, 4)))
     sig_sum = 0
@@ -266,7 +352,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
         [0],
         bins=1,
         weights=[n_01[1]],
-        range=(0,1500),
+        range=(200,1000),
         label=r'$\kappa_\lambda=10$ Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
         color='white')
     plt.xlim((0,1500))
@@ -276,6 +362,8 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     plt.legend(fontsize='small')
     fig.savefig('plots/k_lambda_comparison_' + label + '.pdf')
     plt.close(fig)
+    
+    return z
     
 def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, label, mvis):
     truths = fold_1_array['universal_true_mhh']
@@ -538,8 +626,8 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     median_sigma = np.median(sigmas)
     
     # Split indices on sigma ranges
-    indices_1 = np.where(sigmas < 4)
-    indices_2 = np.where(sigmas > 4)
+    indices_1 = np.where(sigmas < 3)
+    indices_2 = np.where(sigmas > 3)
     
     fig = plt.figure()
     plt.hist(
@@ -590,7 +678,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-4,4),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -598,7 +686,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-4,4),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-4,4))
     plt.ylim(bottom=0)
@@ -631,7 +719,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -639,7 +727,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -671,7 +759,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<4$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
@@ -679,7 +767,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>4$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
