@@ -555,7 +555,6 @@ if __name__ == '__main__':
     indices_2_z = np.where(sigmas_ztautau > 3)
     indices_2_t = np.where(sigmas_ttbar > 3)
     
-    """
     log.info ('Beginning Sigma Plotting')
     
     sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
@@ -564,6 +563,7 @@ if __name__ == '__main__':
     sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
     
+    """
     resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
     resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
     resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
@@ -672,6 +672,7 @@ if __name__ == '__main__':
     mmc_significances = []
     split_significances = []
     original_significances = []
+    split_truth = []
     original_weights = dihiggs_01.fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * dihiggs_01.fold_1_array['fold_weight']
     
     for klambda in klambda_scan_list:
@@ -683,6 +684,7 @@ if __name__ == '__main__':
             mdn_significances.append(0)
             mmc_significances.append(0)
             split_significances.append(0)
+            split_truth.append(0)
             continue
             
         reweight = reweight_file['reweight_mHH_1p0_to_' + klambda].to_numpy()
@@ -713,6 +715,11 @@ if __name__ == '__main__':
         z2, cs_norm = reweight_and_compare(predictions_HH_01[indices_2_1], original_weights[indices_2_1], new_weights[indices_2_1], 'mdn_bad', klambda, cs_norm = cs_norm)
         z = np.sqrt(z1 * z1 + z2 * z2)
         split_significances.append(z)
+        
+        z1, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], original_weights[indices_1_1], new_weights[indices_1_1], 'truth_good', klambda, cs_norm = cs_norm)
+        z2, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], original_weights[indices_2_1], new_weights[indices_2_1], 'truth_bad', klambda, cs_norm = cs_norm)
+        z = np.sqrt(z1 * z1 + z2 * z2)
+        split_truth.append(z)
     
     z = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'truth')
     original_significances.append(z)
@@ -722,12 +729,14 @@ if __name__ == '__main__':
     original_significances.append(z)
     z1 = k_lambda_comparison_plot(predictions_HH_01[indices_1_1], predictions_HH_10[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'mdn_good')
     z2 = k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_bad')
-    k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn_good_slice_mode', slice_indices_1 = indices_1_1, slice_indices_10 = indices_1_10)
-    k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'mdn_bad_slice_mode', slice_indices_1 = indices_2_1, slice_indices_10 = indices_2_10)
+    z = np.sqrt(z1 * z1 + z2 * z2)
+    original_significances.append(z)
+    z1 = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'truth_good')
+    z2 = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'truth_bad')
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
     
-    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances)
+    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances, split_truth = split_truth)
     
     # Scan over a range of klambda values and find their significances again, but starting from klambda=10
     reweight_file = uproot.open("data/weight-mHH-from-cHHHp10d0-to-cHHHpx_20GeV_Jul28.root")
@@ -737,6 +746,7 @@ if __name__ == '__main__':
     mmc_significances = []
     split_significances = []
     original_significances = []
+    split_truth = []
     original_weights = dihiggs_10.fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * dihiggs_10.fold_1_array['fold_weight']
     
     for klambda in klambda_scan_list:
@@ -748,6 +758,7 @@ if __name__ == '__main__':
             mdn_significances.append(0)
             mmc_significances.append(0)
             split_significances.append(0)
+            split_truth.append(0)
             continue
             
         reweight = reweight_file['reweight_mHH_1p0_to_' + klambda].to_numpy()
@@ -779,6 +790,11 @@ if __name__ == '__main__':
         z = np.sqrt(z1 * z1 + z2 * z2)
         split_significances.append(z)
         
+        z1, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], original_weights[indices_1_10], new_weights[indices_1_10], 'truth_good', klambda, k10mode = True, cs_norm = cs_norm)
+        z2, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], original_weights[indices_2_10], new_weights[indices_2_10], 'truth_bad', klambda, k10mode = True, cs_norm = cs_norm)
+        z = np.sqrt(z1 * z1 + z2 * z2)
+        split_truth.append(z)
+        
     z = k_lambda_comparison_plot(dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array, dihiggs_01.fold_1_array, 'truth_reversed', k10mode = True)
     original_significances.append(z)
     z = k_lambda_comparison_plot(predictions_HH_10, predictions_HH_01, dihiggs_10.fold_1_array, dihiggs_01.fold_1_array, 'mdn_reversed', k10mode = True)
@@ -789,7 +805,11 @@ if __name__ == '__main__':
     z2 = k_lambda_comparison_plot(predictions_HH_10[indices_2_10], predictions_HH_01[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], 'mdn_bad_reversed', k10mode = True)
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
+    z1 = k_lambda_comparison_plot(dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], dihiggs_10.fold_1_array[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], 'truth_good_reversed', k10mode = True)
+    z2 = k_lambda_comparison_plot(dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], dihiggs_10.fold_1_array[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], 'truth_bad_reversed', k10mode = True)
+    z = np.sqrt(z1 * z1 + z2 * z2)
+    original_significances.append(z)
         
-    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances)
+    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances, split_truth = split_truth)
         
         

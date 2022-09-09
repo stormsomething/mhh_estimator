@@ -15,7 +15,7 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
-def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = False, bonus_pts = None):
+def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = False, bonus_pts = None, split_truth = None):
     fig = plt.figure()
     plt.plot(
         klambdas,
@@ -37,7 +37,13 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
         split_significances,
         label='MDN Split by Sigma/Resolution',
         color='green')
-    if (bonus_pts != None):
+    if (split_truth is not None):
+        plt.plot(
+            klambdas,
+            split_truth,
+            label='Truth Split by Sigma/Resolution',
+            color='pink')
+    if (bonus_pts is not None):
         if (k10mode):
             plt.scatter(
                 1,
@@ -63,6 +69,13 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
                 label='MDN Split by Sigma/Resolution',
                 color='green',
                 marker='o')
+            if (split_truth is not None):
+                plt.scatter(
+                    1,
+                    bonus_pts[4],
+                    label='Truth Split by Sigma/Resolution',
+                    color='pink',
+                    marker='o')
         else:
             plt.scatter(
                 10,
@@ -88,6 +101,13 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
                 label='MDN Split by Sigma/Resolution',
                 color='green',
                 marker='o')
+            if (split_truth is not None):
+                plt.scatter(
+                    10,
+                    bonus_pts[4],
+                    label='Truth Split by Sigma/Resolution',
+                    color='pink',
+                    marker='o')
     plt.xlim((klambdas[0],klambdas[-1]))
     plt.ylim(bottom=0)
     plt.xlabel(r'$\kappa_\lambda$')
@@ -153,11 +173,18 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
             range=(0,1500),
             label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
             color='white')
+    plt.hist(
+        [0],
+        bins=1,
+        weights=[n_01[1]],
+        range=(0,1500),
+        label='Integral Scale Factor Between Signals: ' + str(round(cs_norm, 4)),
+        color='white')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='x-small')
     if (k10mode):
         fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '_from_k10.pdf')
     else:
@@ -196,6 +223,27 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/resolutions_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.plot(
+        bin_centers,
+        resol,
+        label='Resolution')
+    plt.plot(
+        bin_centers,
+        mean_stat_err,
+        label='Mean Statistical Error')
+    plt.plot(
+        bin_centers,
+        means,
+        label=r'Mean $\sigma$')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'Uncertainty in $m_{HH}$ (GeV)')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/resolutions_by_bin_' + label + '.pdf')
     plt.close(fig)
 
     return np.array(event_resol)
@@ -355,11 +403,27 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
         range=(200,1000),
         label=r'$\kappa_\lambda=10$ Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
         color='white')
+    if (k10mode):
+        plt.hist(
+            [0],
+            bins=1,
+            weights=[n_01[1]],
+            range=(0,1500),
+            label='Integral Scale Factor Between Signals: ' + str(round(11.894416, 4)),
+            color='white')
+    else:
+        plt.hist(
+            [0],
+            bins=1,
+            weights=[n_01[1]],
+            range=(0,1500),
+            label='Integral Scale Factor Between Signals: ' + str(round(1 / 11.894416, 4)),
+            color='white')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$')
     plt.ylabel('Events')
-    plt.legend(fontsize='small')
+    plt.legend(fontsize='x-small')
     fig.savefig('plots/k_lambda_comparison_' + label + '.pdf')
     plt.close(fig)
     
@@ -632,19 +696,19 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     fig = plt.figure()
     plt.hist(
         sigmas,
-        bins=45,
+        bins=60,
         weights=weights,
         range=(0,12),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
         color='white')
     plt.hist(
         sigmas[indices_1],
-        bins=45,
+        bins=60,
         weights=weights[indices_1],
         range=(0,12))
     plt.hist(
         sigmas[indices_2],
-        bins=45,
+        bins=60,
         weights=weights[indices_2],
         range=(0,12))
     plt.xlim((0,12))
