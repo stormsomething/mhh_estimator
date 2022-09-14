@@ -35,13 +35,13 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
     plt.plot(
         klambdas,
         split_significances,
-        label='MDN Split by Sigma/Resolution',
+        label=r'MDN Split by Relative $\sigma$/Resolution',
         color='green')
     if (split_truth is not None):
         plt.plot(
             klambdas,
             split_truth,
-            label='Truth Split by Sigma/Resolution',
+            label=r'Truth Split by Relative $\sigma$/Resolution',
             color='pink')
     if (bonus_pts is not None):
         if (k10mode):
@@ -66,14 +66,14 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
             plt.scatter(
                 1,
                 bonus_pts[3],
-                label='MDN Split by Sigma/Resolution',
+                label=r'MDN Split by Relative $\sigma$/Resolution',
                 color='green',
                 marker='o')
             if (split_truth is not None):
                 plt.scatter(
                     1,
                     bonus_pts[4],
-                    label='Truth Split by Sigma/Resolution',
+                    label=r'Truth Split by Relative $\sigma$/Resolution',
                     color='pink',
                     marker='o')
         else:
@@ -98,14 +98,14 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
             plt.scatter(
                 10,
                 bonus_pts[3],
-                label='MDN Split by Sigma/Resolution',
+                label=r'MDN Split by Relative $\sigma$/Resolution',
                 color='green',
                 marker='o')
             if (split_truth is not None):
                 plt.scatter(
                     10,
                     bonus_pts[4],
-                    label='Truth Split by Sigma/Resolution',
+                    label=r'Truth Split by Relative $\sigma$/Resolution',
                     color='pink',
                     marker='o')
     plt.xlim((klambdas[0],klambdas[-1]))
@@ -196,16 +196,28 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
 def resolution_plot(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array['fold_weight']
 
+    res = mus / fold_1_array['universal_true_mhh']
     bins = np.arange(0,1500+1500./80.,1500./80.)
-    bin_centers, bin_errors, means, mean_stat_err, resol = response_curve(sigmas, mus, bins)
+    bin_centers, bin_errors, means, mean_stat_err, resol = response_curve(res, mus, bins)
     
-    bin_nums = (np.floor(80 * mus / 1500)).astype(int)
     event_resol = []
-    for num in bin_nums:
-        if ((num < 0) or (num > len(bins) - 2)):
+    tot_sigma_by_bin = np.zeros(len(bins))
+    count_by_bin = np.zeros(len(bins))
+    for i in range(len(mus)):
+        bin_num = (np.floor(80 * mus[i] / 1500)).astype(int)
+        if ((bin_num < 0) or (bin_num > len(bins) - 2)):
             event_resol += [0]
         else:
-            event_resol += [resol[num]]
+            event_resol += [resol[bin_num]]
+            tot_sigma_by_bin[bin_num] += sigmas[i] / mus[i]
+            count_by_bin[bin_num] += 1
+    
+    mean_sigma_by_bin = np.zeros(len(bins) - 1)
+    for j in range(len(bins) - 1):
+        if (count_by_bin[j] == 0):
+            mean_sigma_by_bin[j] = 0
+        else:
+            mean_sigma_by_bin[j] = tot_sigma_by_bin[j] / count_by_bin[j]
     
     mean_resol = np.mean(event_resol)
     rms_resol = np.sqrt(np.mean((event_resol - mean_resol) * (event_resol - mean_resol)))
@@ -215,9 +227,9 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         event_resol,
         bins=30,
         weights=weights,
-        range=(0,30),
+        range=(0,0.3),
         label='Mean: ' + str(round(mean_resol, 4)) + '. RMS: ' + str(round(rms_resol, 4)))
-    plt.xlim((0,30))
+    plt.xlim((0,0.3))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ Resolution (GeV)')
     plt.ylabel('Events')
@@ -234,14 +246,19 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         bin_centers,
         mean_stat_err,
         label='Mean Statistical Error')
+    """
     plt.plot(
         bin_centers,
         means,
-        label=r'Mean $\sigma$')
+        label='Mean Response')
+    """
+    plt.plot(
+        bin_centers,
+        mean_sigma_by_bin,
+        label=r'Mean $\sigma(m_{HH})/m_{HH}$')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ (GeV)')
-    plt.ylabel(r'Uncertainty in $m_{HH}$ (GeV)')
     plt.legend(fontsize='small')
     fig.savefig('plots/resolutions_by_bin_' + label + '.pdf')
     plt.close(fig)
@@ -690,30 +707,30 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     median_sigma = np.median(sigmas)
     
     # Split indices on sigma ranges
-    indices_1 = np.where(sigmas < 3)
-    indices_2 = np.where(sigmas > 3)
+    indices_1 = np.where(sigmas < 1)
+    indices_2 = np.where(sigmas > 1)
     
     fig = plt.figure()
     plt.hist(
         sigmas,
-        bins=60,
+        bins=30,
         weights=weights,
-        range=(0,12),
+        range=(0,6),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
         color='white')
     plt.hist(
         sigmas[indices_1],
-        bins=60,
+        bins=30,
         weights=weights[indices_1],
-        range=(0,12))
+        range=(0,6))
     plt.hist(
         sigmas[indices_2],
-        bins=60,
+        bins=30,
         weights=weights[indices_2],
-        range=(0,12))
-    plt.xlim((0,12))
+        range=(0,6))
+    plt.xlim((0,6))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$\sigma(m_{HH})$/Resolution')
+    plt.xlabel(r'Relative $\sigma$/Resolution')
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
@@ -742,7 +759,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-4,4),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -750,11 +767,11 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-4,4),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-4,4))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$m_{HH}$ Residual / $\sigma(m_{HH})$')
+    plt.xlabel(r'$m_{HH}$ Residual / Relative $\sigma$')
     plt.ylabel('Events')
     plt.legend(fontsize='xx-small')
     fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
@@ -783,7 +800,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -791,7 +808,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -823,7 +840,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$<3$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
@@ -831,7 +848,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'$\sigma(m_{HH})$/Resolution$>3$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)

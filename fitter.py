@@ -524,36 +524,31 @@ if __name__ == '__main__':
         mvis_ttbar
     ])
     
-    resol_HH_01 = resolution_plot(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01_mdn')
-    resol_HH_10 = resolution_plot(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10_mdn')
-    resol_ztautau = resolution_plot(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau_mdn')
-    resol_ttbar = resolution_plot(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar_mdn')
-    resolution_plot(all_predictions, all_sigmas, all_fold_1_arrays, 'all_mdn')
-    resolution_plot(np.array(dihiggs_01.fold_1_array['universal_true_mhh']), sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01_truth')
-    resolution_plot(np.array(dihiggs_10.fold_1_array['universal_true_mhh']), sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10_truth')
-    resolution_plot(np.array(ztautau.fold_1_array['universal_true_mhh']), sigmas_ztautau, ztautau.fold_1_array, 'ztautau_truth')
-    resolution_plot(np.array(ttbar.fold_1_array['universal_true_mhh']), sigmas_ttbar, ttbar.fold_1_array, 'ttbar_truth')
-    resolution_plot(np.array(all_fold_1_arrays['universal_true_mhh']), all_sigmas, all_fold_1_arrays, 'all_truth')
+    resol_HH_01 = resolution_plot(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    resol_HH_10 = resolution_plot(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    resol_ztautau = resolution_plot(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
+    resol_ttbar = resolution_plot(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    resolution_plot(all_predictions, all_sigmas, all_fold_1_arrays, 'all')
     
     # Use this to split by resolution rather than sigma
-    sigmas_HH_01 /= resol_HH_01
-    sigmas_HH_10 /= resol_HH_10
-    sigmas_ztautau /= resol_ztautau
-    sigmas_ttbar /= resol_ttbar
+    sigmas_HH_01 /= predictions_HH_01 * resol_HH_01
+    sigmas_HH_10 /= predictions_HH_10 * resol_HH_10
+    sigmas_ztautau /= predictions_ztautau * resol_ztautau
+    sigmas_ttbar /= predictions_ttbar * resol_ttbar
     all_sigmas = np.concatenate([
         sigmas_HH_01,
         sigmas_HH_10,
         sigmas_ztautau,
         sigmas_ttbar
     ])
-    indices_1_1 = np.where(sigmas_HH_01 < 3)
-    indices_1_10 = np.where(sigmas_HH_10 < 3)
-    indices_1_z = np.where(sigmas_ztautau < 3)
-    indices_1_t = np.where(sigmas_ttbar < 3)
-    indices_2_1 = np.where(sigmas_HH_01 > 3)
-    indices_2_10 = np.where(sigmas_HH_10 > 3)
-    indices_2_z = np.where(sigmas_ztautau > 3)
-    indices_2_t = np.where(sigmas_ttbar > 3)
+    indices_1_1 = np.where(sigmas_HH_01 < 1)
+    indices_1_10 = np.where(sigmas_HH_10 < 1)
+    indices_1_z = np.where(sigmas_ztautau < 1)
+    indices_1_t = np.where(sigmas_ttbar < 1)
+    indices_2_1 = np.where(sigmas_HH_01 > 1)
+    indices_2_10 = np.where(sigmas_HH_10 > 1)
+    indices_2_z = np.where(sigmas_ztautau > 1)
+    indices_2_t = np.where(sigmas_ttbar > 1)
     
     log.info ('Beginning Sigma Plotting')
     
@@ -703,6 +698,7 @@ if __name__ == '__main__':
         new_weights = np.array(new_weights)
                 
         z, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'], original_weights, new_weights, 'truth', klambda)
+        print("Truth: " + str(z))
         truth_significances.append(z)
         
         z, cs_norm = reweight_and_compare(predictions_HH_01, original_weights, new_weights, 'mdn', klambda, cs_norm = cs_norm)
@@ -716,9 +712,10 @@ if __name__ == '__main__':
         z = np.sqrt(z1 * z1 + z2 * z2)
         split_significances.append(z)
         
-        z1, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], original_weights[indices_1_1], new_weights[indices_1_1], 'truth_good', klambda, cs_norm = cs_norm)
-        z2, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], original_weights[indices_2_1], new_weights[indices_2_1], 'truth_bad', klambda, cs_norm = cs_norm)
+        z1, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array[indices_1_1]['universal_true_mhh'], original_weights[indices_1_1], new_weights[indices_1_1], 'truth_good', klambda, cs_norm = cs_norm)
+        z2, cs_norm = reweight_and_compare(dihiggs_01.fold_1_array[indices_2_1]['universal_true_mhh'], original_weights[indices_2_1], new_weights[indices_2_1], 'truth_bad', klambda, cs_norm = cs_norm)
         z = np.sqrt(z1 * z1 + z2 * z2)
+        print("Split Truth: " + str(z1) + ", " + str(z2) + ", " + str(np.sqrt(z1 * z1 + z2 * z2)))
         split_truth.append(z)
     
     z = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'], dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, 'truth')
@@ -731,8 +728,8 @@ if __name__ == '__main__':
     z2 = k_lambda_comparison_plot(predictions_HH_01[indices_2_1], predictions_HH_10[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'mdn_bad')
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
-    z1 = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'truth_good')
-    z2 = k_lambda_comparison_plot(dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'truth_bad')
+    z1 = k_lambda_comparison_plot(dihiggs_01.fold_1_array[indices_1_1]['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], dihiggs_01.fold_1_array[indices_1_1], dihiggs_10.fold_1_array[indices_1_10], 'truth_good')
+    z2 = k_lambda_comparison_plot(dihiggs_01.fold_1_array[indices_2_1]['universal_true_mhh'], dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], dihiggs_01.fold_1_array[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], 'truth_bad')
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
     
@@ -790,8 +787,8 @@ if __name__ == '__main__':
         z = np.sqrt(z1 * z1 + z2 * z2)
         split_significances.append(z)
         
-        z1, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], original_weights[indices_1_10], new_weights[indices_1_10], 'truth_good', klambda, k10mode = True, cs_norm = cs_norm)
-        z2, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], original_weights[indices_2_10], new_weights[indices_2_10], 'truth_bad', klambda, k10mode = True, cs_norm = cs_norm)
+        z1, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array[indices_1_10]['universal_true_mhh'], original_weights[indices_1_10], new_weights[indices_1_10], 'truth_good', klambda, k10mode = True, cs_norm = cs_norm)
+        z2, cs_norm = reweight_and_compare(dihiggs_10.fold_1_array[indices_2_10]['universal_true_mhh'], original_weights[indices_2_10], new_weights[indices_2_10], 'truth_bad', klambda, k10mode = True, cs_norm = cs_norm)
         z = np.sqrt(z1 * z1 + z2 * z2)
         split_truth.append(z)
         
@@ -805,8 +802,8 @@ if __name__ == '__main__':
     z2 = k_lambda_comparison_plot(predictions_HH_10[indices_2_10], predictions_HH_01[indices_2_1], dihiggs_10.fold_1_array[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], 'mdn_bad_reversed', k10mode = True)
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
-    z1 = k_lambda_comparison_plot(dihiggs_10.fold_1_array['universal_true_mhh'][indices_1_10], dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], dihiggs_10.fold_1_array[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], 'truth_good_reversed', k10mode = True)
-    z2 = k_lambda_comparison_plot(dihiggs_10.fold_1_array['universal_true_mhh'][indices_2_10], dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], dihiggs_10.fold_1_array[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], 'truth_bad_reversed', k10mode = True)
+    z1 = k_lambda_comparison_plot(dihiggs_10.fold_1_array[indices_1_10]['universal_true_mhh'], dihiggs_01.fold_1_array['universal_true_mhh'][indices_1_1], dihiggs_10.fold_1_array[indices_1_10], dihiggs_01.fold_1_array[indices_1_1], 'truth_good_reversed', k10mode = True)
+    z2 = k_lambda_comparison_plot(dihiggs_10.fold_1_array[indices_2_10]['universal_true_mhh'], dihiggs_01.fold_1_array['universal_true_mhh'][indices_2_1], dihiggs_10.fold_1_array[indices_2_10], dihiggs_01.fold_1_array[indices_2_1], 'truth_bad_reversed', k10mode = True)
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
         
