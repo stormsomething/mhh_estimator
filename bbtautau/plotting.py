@@ -15,6 +15,68 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def eta_plot(higgs_array, weights, label):
+    """
+    print(higgs_array)
+    print(higgs_array['px'])
+    print(np.array(higgs_array['px']).shape)
+    """
+    px_tot = np.array(np.sum(higgs_array['px'], axis=1))
+    py_tot = np.array(np.sum(higgs_array['py'], axis=1))
+    pz_tot = np.array(np.sum(higgs_array['pz'], axis=1))
+    p_tot = np.sqrt(px_tot * px_tot + py_tot * py_tot + pz_tot * pz_tot)
+    eta = np.arctanh(pz_tot / p_tot)
+    
+    trimmed_eta = eta[np.where(np.abs(eta) < 100)]
+    mean_eta = np.mean(trimmed_eta)
+    rms_eta = np.sqrt(np.mean((trimmed_eta - mean_eta) * (trimmed_eta - mean_eta)))
+    median_eta = np.median(eta)
+    
+    """
+    print(px_tot)
+    print(py_tot)
+    print(px_tot.shape)
+    print(py_tot.shape)
+    print(pz_tot.shape)
+    print(p_tot.shape)
+    print(eta.shape)
+    print(weights.shape)
+    """
+
+    fig = plt.figure()
+    plt.hist(
+        eta,
+        bins=64,
+        weights=weights,
+        range=(-8,8),
+        label='Mean: ' + str(round(mean_eta, 4)) + '. Median: ' + str(round(median_eta, 4)) + '. RMS: ' + str(round(rms_eta, 4)))
+    plt.xlim((-8,8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\eta_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/eta_' + label + '.pdf')
+    plt.close(fig)
+    
+    mean_eta_abs = np.mean(np.abs(trimmed_eta))
+    rms_eta_abs = np.sqrt(np.mean((np.abs(trimmed_eta) - mean_eta_abs) * (np.abs(trimmed_eta) - mean_eta_abs)))
+    median_eta_abs = np.median(np.abs(trimmed_eta))
+
+    fig = plt.figure()
+    plt.hist(
+        np.abs(eta),
+        bins=32,
+        weights=weights,
+        range=(0,8),
+        label='Mean: ' + str(round(mean_eta_abs, 4)) + '. Median: ' + str(round(median_eta_abs, 4)) + '. RMS: ' + str(round(rms_eta_abs, 4)))
+    plt.xlim((0,8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\eta_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/eta_abs_' + label + '.pdf')
+    plt.close(fig)
+
 def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = False, bonus_pts = None, split_truth = None):
     fig = plt.figure()
     plt.plot(
@@ -292,7 +354,7 @@ def response_curve(res, var, bins):
         _bin_errors += [(bins[i+1] - bins[i]) / 2]
     return np.array(_bin_centers), np.array(_bin_errors), np.array(_means), np.array(_mean_stat_err), np.array(_resol)
     
-def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweight_1, reweight_10, norm, label, slice_indices_1 = None, slice_indices_10 = None):
+def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, new_weights, label, slice_indices_1 = None, slice_indices_10 = None):
     weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
     weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
     
@@ -304,6 +366,7 @@ def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweigh
         mhh_HH_10 = mhh_HH_10[slice_indices_10]
     
     fig, ax = plt.subplots()
+    """
     (n_1, bins_1, patches_1) = plt.hist(
         mhh_HH_01,
         bins=40,
@@ -311,6 +374,7 @@ def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweigh
         range=(200,1000),
         histtype='step',
         label=r'$\kappa_\lambda=1$')
+    """
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
         bins=40,
@@ -319,12 +383,22 @@ def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweigh
         histtype='step',
         label=r'$\kappa_\lambda=10$')
     
+    """
     counts_1 = n_1 * reweight_1[0] * norm
     bin_edges_1 = reweight_1[1]
     ax.bar(x=bin_edges_1[:-1], height=counts_1, width=np.diff(bin_edges_1), align='edge', label=r'$\kappa_\lambda=10$ (reweighted from $\kappa_\lambda=1$)', fill=False, edgecolor='green')
     counts_10 = n_10 * reweight_10[0] / norm
     bin_edges_10 = reweight_10[1]
     ax.bar(x=bin_edges_10[:-1], height=counts_10, width=np.diff(bin_edges_10), align='edge', label=r'$\kappa_\lambda=1$ (reweighted from $\kappa_\lambda=10$)', fill=False, edgecolor='red')
+    """
+    
+    (counts_1, bins_1, patches_1) = plt.hist(
+        mhh_HH_01,
+        bins=40,
+        weights=new_weights,
+        range=(200,1000),
+        histtype='step',
+        label=r'$\kappa_\lambda=10$ (reweighted from $\kappa_\lambda=1$)')
     
     """
     print("My Histogram's Bins Are:")
@@ -346,20 +420,24 @@ def reweight_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, reweigh
     ratios_1 = []
     ratios_10 = []
     for i in range(len(counts_1)):
-        if (n_10[i] <= 0):
+        if (n_10[i] == 0):
             ratios_10.append(0)
         else:
             ratios_10.append(counts_1[i] / n_10[i])
+        """
         if (n_1[i] <= 0):
             ratios_1.append(0)
         else:
             ratios_1.append(counts_10[i] / n_1[i])
+        """
     
     fig, ax = plt.subplots()
-    ax.bar(x=bin_edges_1[:-1], height=ratios_10, width=np.diff(bin_edges_1), align='edge', label=r'$\kappa_\lambda=10$', fill=False, edgecolor='green')
+    ax.bar(x=bins_10[:-1], height=ratios_10, width=np.diff(bins_10), align='edge', label=r'$\kappa_\lambda=10$')
+    """
     counts_10 = n_10 * reweight_10[0] / norm
     bin_edges_10 = reweight_10[1]
     ax.bar(x=bin_edges_10[:-1], height=ratios_1, width=np.diff(bin_edges_10), align='edge', label=r'$\kappa_\lambda=1$', fill=False, edgecolor='red')
+    """
     plt.xlim((200,1000))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$')
@@ -395,16 +473,16 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     fig = plt.figure()
     (n_01, bins_01, patches_01) = plt.hist(
         mhh_HH_01,
-        bins=40,
+        bins=75,
         weights=weights_1,
-        range=(200,1000),
+        range=(0,1500),
         histtype='step',
         label=r'$\kappa_\lambda=1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)))
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
-        bins=40,
+        bins=75,
         weights=weights_10,
-        range=(200,1000),
+        range=(0,1500),
         histtype='step',
         label=r'$\kappa_\lambda=10$. Mean: ' + str(round(mean_10, 4)) + '. RMS: ' + str(round(rms_10, 4)))
     sig_sum = 0
@@ -417,7 +495,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
         [0],
         bins=1,
         weights=[n_01[1]],
-        range=(200,1000),
+        range=(0,1500),
         label=r'$\kappa_\lambda=10$ Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
         color='white')
     if (k10mode):
