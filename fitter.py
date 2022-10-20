@@ -126,8 +126,8 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            # regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
-            regressor = load_model('cache/my_keras_training', custom_objects={'tf_mdn_loss': tf_mdn_loss})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
+            # regressor = load_model('cache/my_keras_training', custom_objects={'tf_mdn_loss': tf_mdn_loss})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -164,33 +164,33 @@ if __name__ == '__main__':
         train_features_new = np.concatenate([
             features_dihiggs_01,
             features_dihiggs_10,
-            features_ztautau,
-            features_ttbar
+            #features_ztautau,
+            #features_ttbar
         ])
 
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
         features_dihiggs_01 = train_features_new[:len_HH_01]
         features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
-        features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
-        features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        #features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
+        #features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
         features_dihiggs_01 = np.append(features_dihiggs_01, [['dihiggs_01']]*len_HH_01, 1)
         features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
-        features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
-        features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
+        #features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
+        #features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
 
         train_target = ak.concatenate([
             dihiggs_01_target,
             dihiggs_10_target,
-            ztautau_target,
-            ttbar_target
+            #ztautau_target,
+            #ttbar_target
         ])
         train_features = np.concatenate([
             features_dihiggs_01,
             features_dihiggs_10,
-            features_ztautau,
-            features_ttbar
+            #features_ztautau,
+            #features_ttbar
         ])
 
         if args.library == 'scikit':
@@ -548,7 +548,7 @@ if __name__ == '__main__':
     resol_ttbar = resolution_plot(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
     """
     #resol_all = resolution_plot(all_predictions, all_sigmas, all_fold_1_arrays, 'all')
-    #res_plots(all_predictions, all_fold_1_arrays, 'all')
+    #res_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all')
     signal_predictions = np.concatenate([
         predictions_HH_01,
         predictions_HH_10
@@ -562,7 +562,7 @@ if __name__ == '__main__':
         dihiggs_10.fold_1_array
     ])
     resol_signal = resolution_plot(signal_predictions, signal_sigmas, signal_fold_1_arrays, 'signal')
-    res_plots(signal_predictions, signal_fold_1_arrays, 'signal')
+    res_plots(signal_predictions, signal_sigmas, signal_fold_1_arrays, 'signal')
     background_predictions = np.concatenate([
         predictions_ztautau,
         predictions_ttbar
@@ -576,7 +576,7 @@ if __name__ == '__main__':
         ttbar.fold_1_array
     ])
     resol_background = resolution_plot(background_predictions, background_sigmas, background_fold_1_arrays, 'background')
-    res_plots(background_predictions, background_fold_1_arrays, 'background')
+    res_plots(background_predictions, background_sigmas, background_fold_1_arrays, 'background')
 
     """
     resol_HH_01 = resol_all[:len_HH_01]

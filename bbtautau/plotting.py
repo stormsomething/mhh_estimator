@@ -15,13 +15,29 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
-def res_plots(mus, fold_1_array, label):
+def res_plots(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array['fold_weight']
     res = mus / fold_1_array['universal_true_mhh']
+    rel_sigmas = sigmas / mus
     
     indices_low = np.where(fold_1_array['universal_true_mhh'] < 400)
     indices_mid = np.where((fold_1_array['universal_true_mhh'] > 400) & (fold_1_array['universal_true_mhh'] < 800))
     indices_high = np.where(fold_1_array['universal_true_mhh'] > 800)
+    
+    fig = plt.figure()
+    plt.hist(
+        res,
+        bins=40,
+        weights=weights,
+        range=(0,2),
+        label='Mean: ' + str(round(np.mean(res), 4)))
+    plt.xlim((0,2))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'MDN $m_{HH}$/Truth $m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/response_dist_all_mhh_' + label + '.pdf')
+    plt.close(fig)
     
     fig = plt.figure()
     plt.hist(
@@ -66,6 +82,66 @@ def res_plots(mus, fold_1_array, label):
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/response_dist_high_mhh_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas,
+        bins=40,
+        weights=weights,
+        range=(0,0.8),
+        label='Mean: ' + str(round(np.mean(rel_sigmas), 4)))
+    plt.xlim((0,0.8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma (m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_dist_all_mhh_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas[indices_low],
+        bins=40,
+        weights=weights[indices_low],
+        range=(0,0.8),
+        label='Mean: ' + str(round(np.mean(rel_sigmas[indices_low]), 4)))
+    plt.xlim((0,0.8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma (m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_dist_low_mhh_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas[indices_mid],
+        bins=40,
+        weights=weights[indices_mid],
+        range=(0,0.8),
+        label='Mean: ' + str(round(np.mean(rel_sigmas[indices_mid]), 4)))
+    plt.xlim((0,0.8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma (m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_dist_mid_mhh_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas[indices_high],
+        bins=40,
+        weights=weights[indices_high],
+        range=(0,0.8),
+        label='Mean: ' + str(round(np.mean(rel_sigmas[indices_high]), 4)))
+    plt.xlim((0,0.8))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma (m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_dist_high_mhh_' + label + '.pdf')
     plt.close(fig)
 
 def eta_plot(higgs_array, weights, label):
@@ -322,10 +398,12 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     plt.xlabel(r'$m_{HH}$')
     plt.ylabel('Events')
     plt.legend(fontsize='x-small')
+    """
     if (k10mode):
         fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '_from_k10.pdf')
     else:
         fig.savefig('plots/reweight_and_compare_' + label + '_' + klambda + '.pdf')
+    """
     plt.close(fig)
     
     return z, cs_norm
@@ -337,9 +415,12 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     bins = np.arange(0,1500+1500./80.,1500./80.)
     # Use this to bin by regressed mHH
     bin_centers, bin_errors, means, mean_stat_err, resol = response_curve(res, mus, bins)
+    _, _, _, _, resol_2 = response_curve(res, mus, bins, mode=1)
+    _, _, _, _, resol_std = response_curve(res, mus, bins, mode=2)
     
     event_resol = []
     tot_sigma_by_bin = np.zeros(len(bins))
+    tot_sigma_sq_by_bin = np.zeros(len(bins))
     tot_res_by_bin = np.zeros(len(bins))
     count_by_bin = np.zeros(len(bins))
     for i in range(len(mus)):
@@ -349,17 +430,21 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         else:
             event_resol += [resol[bin_num]]
             tot_sigma_by_bin[bin_num] += sigmas[i] / mus[i]
+            tot_sigma_sq_by_bin[bin_num] += (sigmas[i] / mus[i]) ** 2
             tot_res_by_bin[bin_num] += mus[i] / fold_1_array['universal_true_mhh'][i]
             count_by_bin[bin_num] += 1
     
     mean_sigma_by_bin = np.zeros(len(bins) - 1)
+    rms_sigma_by_bin = np.zeros(len(bins) - 1)
     mean_res_by_bin = np.zeros(len(bins) - 1)
     for j in range(len(bins) - 1):
         if (count_by_bin[j] == 0):
             mean_sigma_by_bin[j] = 0
+            rms_sigma_by_bin[j] = 0
             mean_res_by_bin[j] = 0
         else:
             mean_sigma_by_bin[j] = tot_sigma_by_bin[j] / count_by_bin[j]
+            rms_sigma_by_bin[j] = np.sqrt(tot_sigma_sq_by_bin[j] / count_by_bin[j])
             mean_res_by_bin[j] = tot_res_by_bin[j] / count_by_bin[j]
     
     mean_resol = np.mean(event_resol)
@@ -393,6 +478,18 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         bin_centers,
         mean_sigma_by_bin,
         label=r'Mean $\sigma(m_{HH})/m_{HH}$')
+    plt.plot(
+        bin_centers,
+        rms_sigma_by_bin,
+        label=r'RMS $\sigma(m_{HH})/m_{HH}$')
+    plt.plot(
+        bin_centers,
+        resol_2,
+        label=r'Resolution ($2\sigma$ Width Divided by 2)')
+    plt.plot(
+        bin_centers,
+        resol_std,
+        label='Resolution (Std. Dev.)')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ (GeV)')
@@ -414,25 +511,32 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     
     # Use this to bin by true mHH
     bin_centers, bin_errors, means, mean_stat_err, resol = response_curve(res, fold_1_array['universal_true_mhh'], bins)
+    _, _, _, _, resol_2 = response_curve(res, fold_1_array['universal_true_mhh'], bins, mode=1)
+    _, _, _, _, resol_std = response_curve(res, fold_1_array['universal_true_mhh'], bins, mode=2)
     
     tot_sigma_by_bin = np.zeros(len(bins))
+    tot_sigma_sq_by_bin = np.zeros(len(bins))
     tot_res_by_bin = np.zeros(len(bins))
     count_by_bin = np.zeros(len(bins))
     for i in range(len(mus)):
         bin_num = (np.floor(80 * fold_1_array['universal_true_mhh'][i] / 1500)).astype(int)
         if ((bin_num >= 0) and (bin_num <= len(bins) - 2)):
             tot_sigma_by_bin[bin_num] += sigmas[i] / mus[i]
+            tot_sigma_sq_by_bin[bin_num] += (sigmas[i] / mus[i]) ** 2
             tot_res_by_bin[bin_num] += mus[i] / fold_1_array['universal_true_mhh'][i]
             count_by_bin[bin_num] += 1
     
     mean_sigma_by_bin = np.zeros(len(bins) - 1)
+    rms_sigma_by_bin = np.zeros(len(bins) - 1)
     mean_res_by_bin = np.zeros(len(bins) - 1)
     for j in range(len(bins) - 1):
         if (count_by_bin[j] == 0):
             mean_sigma_by_bin[j] = 0
+            rms_sigma_by_bin[j] = 0
             mean_res_by_bin[j] = 0
         else:
             mean_sigma_by_bin[j] = tot_sigma_by_bin[j] / count_by_bin[j]
+            rms_sigma_by_bin[j] = np.sqrt(tot_sigma_sq_by_bin[j] / count_by_bin[j])
             mean_res_by_bin[j] = tot_res_by_bin[j] / count_by_bin[j]
             
     fig = plt.figure()
@@ -448,6 +552,18 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         bin_centers,
         mean_sigma_by_bin,
         label=r'Mean $\sigma(m_{HH})/m_{HH}$')
+    plt.plot(
+        bin_centers,
+        rms_sigma_by_bin,
+        label=r'RMS $\sigma(m_{HH})/m_{HH}$')
+    plt.plot(
+        bin_centers,
+        resol_2,
+        label=r'Resolution ($2\sigma$ Width Divided by 2)')
+    plt.plot(
+        bin_centers,
+        resol_std,
+        label='Resolution (Std. Dev.)')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ (GeV)')
@@ -476,7 +592,7 @@ def get_quantile_width(arr, cl=0.68):
     width = (y[1] - y[0]) / 2.
     return width
 
-def response_curve(res, var, bins):
+def response_curve(res, var, bins, mode=0):
     _bin_centers = []
     _bin_errors = []
     _means = []
@@ -491,7 +607,12 @@ def response_curve(res, var, bins):
         else:
             _means += [np.mean(a)]
             _mean_stat_err += [np.std(a, ddof=1) / np.sqrt(np.size(a))]
-            _resol += [get_quantile_width(a)]
+            if (mode == 1):
+                _resol += [get_quantile_width(a, cl=0.95) / 2]
+            elif (mode == 2):
+                _resol += [np.std(a)]
+            else:
+                _resol += [get_quantile_width(a)]
         _bin_centers += [bins[i] + (bins[i+1] - bins[i]) / 2]
         _bin_errors += [(bins[i+1] - bins[i]) / 2]
     return np.array(_bin_centers), np.array(_bin_errors), np.array(_means), np.array(_mean_stat_err), np.array(_resol)
