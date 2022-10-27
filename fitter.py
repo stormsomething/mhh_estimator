@@ -22,6 +22,18 @@ from keras import optimizers
 from keras.utils.vis_utils import plot_model
 from keras import backend
 
+def gaussian_loss(targ, pred, sample_weight=None):
+    """
+    Basic gaussian loss model. Probably not properly normalized
+    From: https://gitlab.cern.ch/atlas-flavor-tagging-tools/trigger/dipz/-/blob/main/keras/train.py#L186-L203
+    """
+    z = pred[:,0]
+    q = pred[:,1]
+    loss = -q + K.square(z - targ) * K.exp(q)
+    if sample_weight is not None:
+        return loss * sample_weight
+    return loss
+
 def tf_mdn_loss(y, model, sample_weight=None):
     if sample_weight is not None:
         return -model.log_prob(y) * sample_weight
@@ -126,8 +138,8 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
-            # regressor = load_model('cache/my_keras_training', custom_objects={'tf_mdn_loss': tf_mdn_loss})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll, 'gaussian_loss': gaussian_loss})
+            # regressor = load_model('cache/my_keras_training', custom_objects={'gaussian_nll': gaussian_nll})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -276,9 +288,9 @@ if __name__ == '__main__':
                 """
                 #regressor = load_model('cache/my_keras_training.h5', custom_objects={'tf_mdn_loss': tf_mdn_loss})
                 # For use with Tensorflow MixtureNormal
-                regressor.compile(loss=tf_mdn_loss, optimizer=adam)
+                #regressor.compile(loss=tf_mdn_loss, optimizer=adam)
                 # For use with "fake" single Gaussian MDN that's actually just a 2-output NN (mu, logsigma)
-                #regressor.compile(loss=gaussian_nll, optimizer=adam)
+                regressor.compile(loss=gaussian_loss, optimizer=adam)
                 #regressor.compile(loss=gaussian_nll, optimizer=adam, metrics=['mse', 'mae'])
                 #regressor.compile(loss=sharp_peak_loss, optimizer=adam, metrics=['mse', 'mae'])
                 history = regressor.fit(
@@ -357,41 +369,31 @@ if __name__ == '__main__':
     
     regressor.save('cache/my_keras_training', save_traces=False)
 
-    model_HH_01 = regressor(features_test_HH_01)
-    model_HH_10 = regressor(features_test_HH_10)
-    model_ztautau = regressor(features_test_ztautau)
-    model_ttbar = regressor(features_test_ttbar)
-    
-    predictions_HH_01 = np.array(model_HH_01.mean())
-    predictions_HH_10 = np.array(model_HH_10.mean())
-    predictions_ztautau = np.array(model_ztautau.mean())
-    predictions_ttbar = np.array(model_ttbar.mean())
-    
-    sigmas_HH_01 = np.array(model_HH_01.stddev())
-    sigmas_HH_10 = np.array(model_HH_10.stddev())
-    sigmas_ztautau = np.array(model_ztautau.stddev())
-    sigmas_ttbar = np.array(model_ttbar.stddev())
+    predictions_HH_01 = regressor.predict(features_test_HH_01)
+    predictions_HH_10 = regressor.predict(features_test_HH_10)
+    predictions_ztautau = regressor.predict(features_test_ztautau)
+    predictions_ttbar = regressor.predict(features_test_ttbar)
     
     log.info ('regressor ran')
 
     if args.library == 'keras':
-        sigmas_HH_01 = np.reshape(
-            sigmas_HH_01, (sigmas_HH_01.shape[0], ))
-        sigmas_HH_10 = np.reshape(
-            sigmas_HH_10, (sigmas_HH_10.shape[0], ))
-        sigmas_ztautau = np.reshape(
-            sigmas_ztautau, (sigmas_ztautau.shape[0], ))
-        sigmas_ttbar = np.reshape(
-            sigmas_ttbar, (sigmas_ttbar.shape[0], ))
+        sigmas_HH_01 = np.exp(-0.5 * np.reshape(
+            predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
+        sigmas_HH_10 = np.exp(-0.5 * np.reshape(
+            predictions_HH_10[:,1], (predictions_HH_10[:,1].shape[0], )))
+        sigmas_ztautau = np.exp(-0.5 * np.reshape(
+            predictions_ztautau[:,1], (predictions_ztautau[:,1].shape[0], )))
+        sigmas_ttbar = np.exp(-0.5 * np.reshape(
+            predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
             
         predictions_HH_01 = np.reshape(
-            predictions_HH_01, (predictions_HH_01.shape[0], ))
+            predictions_HH_01[:,0], (predictions_HH_01[:,0].shape[0], ))
         predictions_HH_10 = np.reshape(
-            predictions_HH_10, (predictions_HH_10.shape[0], ))
+            predictions_HH_10[:,0], (predictions_HH_10[:,0].shape[0], ))
         predictions_ztautau = np.reshape(
-            predictions_ztautau, (predictions_ztautau.shape[0], ))
+            predictions_ztautau[:,0], (predictions_ztautau[:,0].shape[0], ))
         predictions_ttbar = np.reshape(
-            predictions_ttbar, (predictions_ttbar.shape[0], ))
+            predictions_ttbar[:,0], (predictions_ttbar[:,0].shape[0], ))
             
     print("Sample Event Output")
     print(predictions_HH_01[0])
@@ -589,6 +591,28 @@ if __name__ == '__main__':
     resol_ztautau = resol_background[:len_ztautau]
     resol_ttbar = resol_background[len_ztautau:]
     
+    log.info ('Beginning Sigma Plotting')
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    
+    indices_signal_low = np.where((signal_sigmas / signal_predictions) < resol_signal)
+    indices_signal_high = np.where((signal_sigmas / signal_predictions) > resol_signal)
+    indices_background_low = np.where((background_sigmas / background_predictions) < resol_background)
+    indices_background_high = np.where((background_sigmas / background_predictions) > resol_background)
+    
+    resolution_plot(signal_predictions[indices_signal_low], signal_sigmas[indices_signal_low], signal_fold_1_arrays[indices_signal_low], 'signal_sigma_less_than_resol')
+    resolution_plot(signal_predictions[indices_signal_high], signal_sigmas[indices_signal_high], signal_fold_1_arrays[indices_signal_high], 'signal_sigma_greater_than_resol')
+    resolution_plot(background_predictions[indices_background_low], background_sigmas[indices_background_low], background_fold_1_arrays[indices_background_low], 'background_sigma_less_than_resol')
+    resolution_plot(background_predictions[indices_background_high], background_sigmas[indices_background_high], background_fold_1_arrays[indices_background_high], 'background_sigma_greater_than_resol')
+    res_plots(signal_predictions[indices_signal_low], signal_sigmas[indices_signal_low], signal_fold_1_arrays[indices_signal_low], 'signal_sigma_less_than_resol')
+    res_plots(signal_predictions[indices_signal_high], signal_sigmas[indices_signal_high], signal_fold_1_arrays[indices_signal_high], 'signal_sigma_greater_than_resol')
+    res_plots(background_predictions[indices_background_low], background_sigmas[indices_background_low], background_fold_1_arrays[indices_background_low], 'background_sigma_less_than_resol')
+    res_plots(background_predictions[indices_background_high], background_sigmas[indices_background_high], background_fold_1_arrays[indices_background_high], 'background_sigma_greater_than_resol')
+    
     # Use this to split by resolution rather than sigma
     sigmas_HH_01 /= predictions_HH_01 * resol_HH_01
     sigmas_HH_10 /= predictions_HH_10 * resol_HH_10
@@ -608,14 +632,6 @@ if __name__ == '__main__':
     indices_2_10 = np.where(sigmas_HH_10 > 1)
     indices_2_z = np.where(sigmas_ztautau > 1)
     indices_2_t = np.where(sigmas_ttbar > 1)
-    
-    log.info ('Beginning Sigma Plotting')
-    
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
-    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
     
     """
     resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)

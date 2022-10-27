@@ -14,8 +14,7 @@ def keras_model_main(n_variables):
     hidden_5 = Dense(32, activation='relu')(hidden_4)
     hidden_6 = Dense(16, activation='relu')(hidden_5)
     hidden_7 = Dense(8, activation='relu')(hidden_6)
-    hidden_8 = Dense(tfp.layers.MixtureNormal.params_size(1, [1]), activation=None)(hidden_7)
-    output = tfp.layers.MixtureNormal(1, [1])(hidden_8)
+    output = Dense(2, activation='linear')(hidden_7)
     return Model(inputs=x_1, outputs=output)
     
 def keras_model_fake_mdn(n_variables):
