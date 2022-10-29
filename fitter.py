@@ -589,6 +589,28 @@ if __name__ == '__main__':
     resol_ztautau = resol_background[:len_ztautau]
     resol_ttbar = resol_background[len_ztautau:]
     
+    log.info ('Beginning Sigma Plotting')
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    
+    indices_signal_low = np.where((signal_sigmas / signal_predictions) < resol_signal)
+    indices_signal_high = np.where((signal_sigmas / signal_predictions) > resol_signal)
+    indices_background_low = np.where((background_sigmas / background_predictions) < resol_background)
+    indices_background_high = np.where((background_sigmas / background_predictions) > resol_background)
+    
+    resolution_plot(signal_predictions[indices_signal_low], signal_sigmas[indices_signal_low], signal_fold_1_arrays[indices_signal_low], 'signal_sigma_less_than_resol')
+    resolution_plot(signal_predictions[indices_signal_high], signal_sigmas[indices_signal_high], signal_fold_1_arrays[indices_signal_high], 'signal_sigma_greater_than_resol')
+    resolution_plot(background_predictions[indices_background_low], background_sigmas[indices_background_low], background_fold_1_arrays[indices_background_low], 'background_sigma_less_than_resol')
+    resolution_plot(background_predictions[indices_background_high], background_sigmas[indices_background_high], background_fold_1_arrays[indices_background_high], 'background_sigma_greater_than_resol')
+    res_plots(signal_predictions[indices_signal_low], signal_sigmas[indices_signal_low], signal_fold_1_arrays[indices_signal_low], 'signal_sigma_less_than_resol')
+    res_plots(signal_predictions[indices_signal_high], signal_sigmas[indices_signal_high], signal_fold_1_arrays[indices_signal_high], 'signal_sigma_greater_than_resol')
+    res_plots(background_predictions[indices_background_low], background_sigmas[indices_background_low], background_fold_1_arrays[indices_background_low], 'background_sigma_less_than_resol')
+    res_plots(background_predictions[indices_background_high], background_sigmas[indices_background_high], background_fold_1_arrays[indices_background_high], 'background_sigma_greater_than_resol')
+    
     # Use this to split by resolution rather than sigma
     sigmas_HH_01 /= predictions_HH_01 * resol_HH_01
     sigmas_HH_10 /= predictions_HH_10 * resol_HH_10
@@ -609,21 +631,12 @@ if __name__ == '__main__':
     indices_2_z = np.where(sigmas_ztautau > 1)
     indices_2_t = np.where(sigmas_ttbar > 1)
     
-    log.info ('Beginning Sigma Plotting')
-    
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
-    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
-    
     """
     resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
     resid_comparison_plots(predictions_HH_10, sigmas_HH_10, mhh_original_HH_10, mhh_mmc_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
     resid_comparison_plots(predictions_ztautau, sigmas_ztautau, mhh_original_ztautau, mhh_mmc_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
     resid_comparison_plots(predictions_ttbar, sigmas_ttbar, mhh_original_ttbar, mhh_mmc_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
     resid_comparison_plots(all_predictions, all_sigmas, all_original, all_mmc, all_fold_1_arrays, 'all', all_mvis)
-
     
     log.info ('Finished Sigma Plotting, Beginning k_lambda Comparison Plotting')
     
@@ -705,7 +718,6 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10', sigma_label = '_high_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets', sigma_label = '_high_sigma')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark', sigma_label = '_high_sigma')
-
     # Pile-up stability of the signal
     avg_mhh_HH_01 = avg_mhh_calculation(dihiggs_01.fold_1_array, test_target_HH_01, predictions_HH_01, mhh_mmc_HH_01)
     avg_mhh_HH_10 = avg_mhh_calculation(dihiggs_10.fold_1_array, test_target_HH_10, predictions_HH_10, mhh_mmc_HH_10)
@@ -896,5 +908,4 @@ if __name__ == '__main__':
         
     #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances, split_truth = split_truth)
     klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances)
-        
         
