@@ -15,6 +15,145 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def separation_overlay_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, indices_1_1, indices_1_10, indices_2_1, indices_2_10):
+    truths_1 = fold_1_array_1['universal_true_mhh']
+    truths_10 = fold_1_array_10['universal_true_mhh']
+    
+    weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
+    weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
+    weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
+    
+    mean_1 = np.mean(mhh_HH_01)
+    mean_10 = np.mean(mhh_HH_10)
+    rms_1 = np.sqrt(np.mean((mhh_HH_01 - mean_1) * (mhh_HH_01 - mean_1)))
+    rms_10 = np.sqrt(np.mean((mhh_HH_10 - mean_10) * (mhh_HH_10 - mean_10)))
+    
+    fig = plt.figure()
+    plt.hist(
+        mhh_HH_01,
+        bins=75,
+        weights=weights_1,
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$')
+    plt.hist(
+        mhh_HH_10,
+        bins=75,
+        weights=weights_10,
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$')
+    plt.hist(
+        truths_1,
+        bins=75,
+        weights=weights_1,
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=1$')
+    plt.hist(
+        truths_10,
+        bins=75,
+        weights=weights_10,
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=10$')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/separation_overlay_truth_MDN.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        mhh_HH_01,
+        bins=75,
+        weights=weights_1,
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$')
+    plt.hist(
+        mhh_HH_10,
+        bins=75,
+        weights=weights_10,
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$')
+    plt.hist(
+        mhh_HH_01[indices_1_1],
+        bins=75,
+        weights=weights_1[indices_1_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma<$Resolution)')
+    plt.hist(
+        mhh_HH_10[indices_1_10],
+        bins=75,
+        weights=weights_10[indices_1_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma<$Resolution)')
+    plt.hist(
+        mhh_HH_01[indices_2_1],
+        bins=75,
+        weights=weights_1[indices_2_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma>$Resolution)')
+    plt.hist(
+        mhh_HH_10[indices_2_10],
+        bins=75,
+        weights=weights_10[indices_2_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma>$Resolution)')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/separation_overlay_sigma_category.pdf')
+    plt.close(fig)
+
+def simple_sigma_plot(sigmas, fold_1_array, label):
+    weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
+    
+    trimmed_sigmas = sigmas[np.where(sigmas < 100)]
+    
+    mean_sigma = np.mean(trimmed_sigmas)
+    rms_sigma = np.sqrt(np.mean((trimmed_sigmas - mean_sigma) * (trimmed_sigmas - mean_sigma)))
+    median_sigma = np.median(sigmas)
+    
+    # Split indices on sigma ranges
+    indices_1 = np.where(sigmas < 1)
+    indices_2 = np.where(sigmas > 1)
+    
+    fig = plt.figure()
+    plt.hist(
+        sigmas,
+        bins=30,
+        weights=weights,
+        range=(0,6),
+        label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
+    plt.hist(
+        sigmas[indices_1],
+        bins=30,
+        weights=weights[indices_1],
+        range=(0,6))
+    plt.hist(
+        sigmas[indices_2],
+        bins=30,
+        weights=weights[indices_2],
+        range=(0,6))
+    plt.xlim((0,6))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'Relative $\sigma$ / Resolution')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/rel_sigma_over_resol_' + label + '.pdf')
+    plt.close(fig)
+
 def res_plots(mus, sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight']*fold_1_array['fold_weight']
     res = mus / fold_1_array['universal_true_mhh']
@@ -470,6 +609,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     mean_sigma_over_resol = np.mean(trimmed_sigma_over_resol)
     rms_sigma_over_resol = np.sqrt(np.mean((trimmed_sigma_over_resol - mean_sigma_over_resol) * (trimmed_sigma_over_resol - mean_sigma_over_resol)))
     
+    """
     fig = plt.figure()
     plt.hist(
         sigma_over_resol,
@@ -484,6 +624,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.legend(fontsize='small')
     fig.savefig('plots/sigma_over_resol_' + label + '.pdf')
     plt.close(fig)
+    """
     
     fig = plt.figure()
     plt.plot(
@@ -1057,19 +1198,21 @@ def resid_comparison_plots(mus, sigmas, old_preds, mmc_preds, fold_1_array, labe
     fig.savefig('plots/mmc_pred_mhh_by_sigma_range_' + label + '.pdf')
     plt.close(fig)
 
-def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
+def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indices_2 = None):
     truths = fold_1_array['universal_true_mhh']
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
     
-    trimmed_sigmas = sigmas[np.where(sigmas < 100)]
+    trimmed_sigmas = sigmas[np.where(sigmas < 1000)]
     
     mean_sigma = np.mean(trimmed_sigmas)
     rms_sigma = np.sqrt(np.mean((trimmed_sigmas - mean_sigma) * (trimmed_sigmas - mean_sigma)))
     median_sigma = np.median(sigmas)
     
     # Split indices on sigma ranges
-    indices_1 = np.where(sigmas < 1)
-    indices_2 = np.where(sigmas > 1)
+    if (indices_1 is None):
+        indices_1 = np.where(sigmas < 1)
+    if (indices_2 is None):
+        indices_2 = np.where(sigmas > 1)
     
     fig = plt.figure()
     plt.hist(
@@ -1097,6 +1240,27 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
     plt.close(fig)
+    
+    rel_sigmas = sigmas / mus
+    trimmed_rel_sigmas = rel_sigmas[np.where(rel_sigmas < 100)]
+    mean_rel_sigma = np.mean(trimmed_rel_sigmas)
+    rms_rel_sigma = np.sqrt(np.mean((trimmed_rel_sigmas - mean_rel_sigma) * (trimmed_rel_sigmas - mean_rel_sigma)))
+    median_rel_sigma = np.median(rel_sigmas)
+    
+    fig = plt.figure()
+    plt.hist(
+        rel_sigmas,
+        bins=30,
+        weights=weights,
+        range=(0,0.6),
+        label='Mean: ' + str(round(mean_rel_sigma, 4)) + '. Median: ' + str(round(median_rel_sigma, 4)) + '. RMS: ' + str(round(rms_rel_sigma, 4)))
+    plt.xlim((0,0.6))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$\sigma(m_{HH})/m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/mdn_rel_sigma_' + label + '.pdf')
+    plt.close(fig)
 
     data = (truths - mus) / sigmas
     mean_1 = np.mean(data[indices_1])
@@ -1115,24 +1279,22 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
-    """
     plt.hist(
         data[indices_1],
-        bins=60,
+        bins=50,
         weights=weights[indices_1],
-        range=(-4,4),
+        range=(-5,5),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
-        bins=60,
+        bins=50,
         weights=weights[indices_2],
-        range=(-4,4),
+        range=(-5,5),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
-    """
     plt.xlim((-5,5))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ Residual / $\sigma$')
@@ -1158,24 +1320,22 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
-    """
     plt.hist(
         data[indices_1],
-        bins=60,
+        bins=50,
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
-        bins=60,
+        bins=50,
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
-    """
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ Residual')
@@ -1191,7 +1351,6 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     rms_2 = np.sqrt(np.mean((truths[indices_2] - mean_2) * (truths[indices_2] - mean_2)))
     rms_all = np.sqrt(np.mean((truths - mean_all) * (truths - mean_all)))
     
-    """
     fig = plt.figure()
     plt.hist(
         truths,
@@ -1207,7 +1366,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$<1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
@@ -1215,7 +1374,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'Relative $\sigma$/Resolution$>1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
@@ -1224,7 +1383,16 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis):
     plt.legend(fontsize='xx-small')
     fig.savefig('plots/true_mhh_by_sigma_range_' + label + '.pdf')
     plt.close(fig)
-    """
+    
+    fig = plt.figure()
+    plt.scatter(x=mus, y=rel_sigmas, s=1, marker='.')
+    plt.xlim((0,1500))
+    plt.ylim((0,0.8))
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'$\sigma (m_{HH})/m_{HH}$')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/rel_sigma_v_mhh_scatter_' + label + '.pdf')
+    plt.close(fig)
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_old = None, predictions_mmc = None, sigma_label = '', sigma_slice = None):
 

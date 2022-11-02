@@ -11,7 +11,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot, klambda_scan_plot, reweight_and_compare, eta_plot, res_plots
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot, klambda_scan_plot, reweight_and_compare, eta_plot, res_plots, simple_sigma_plot, separation_overlay_plot
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -29,7 +29,7 @@ def gaussian_loss(targ, pred, sample_weight=None):
     """
     z = pred[:,0]
     q = pred[:,1]
-    loss = -q + K.square(z - targ) * K.exp(q)
+    loss = -q + backend.square(z - targ) * backend.exp(q)
     if sample_weight is not None:
         return loss * sample_weight
     return loss
@@ -236,7 +236,7 @@ if __name__ == '__main__':
             print("Columns in Training Features:")
             print(train_features.shape[1])
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 200
+            _epochs = 300
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -273,7 +273,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 2e-6 # default 0.001
+                rate = 3e-6 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 #adam = optimizers.get('Nadam')
@@ -590,14 +590,30 @@ if __name__ == '__main__':
     resol_HH_10 = resol_signal[len_HH_01:]
     resol_ztautau = resol_background[:len_ztautau]
     resol_ttbar = resol_background[len_ztautau:]
+    resol_all = np.concatenate([
+        resol_signal,
+        resol_background
+    ])
     
     log.info ('Beginning Sigma Plotting')
     
-    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
-    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
-    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
-    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
-    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
+    indices_1_1 = np.where(sigmas_HH_01 / predictions_HH_01 < resol_HH_01)
+    indices_1_10 = np.where(sigmas_HH_10 / predictions_HH_10 < resol_HH_10)
+    indices_1_z = np.where(sigmas_ztautau / predictions_ztautau < resol_ztautau)
+    indices_1_t = np.where(sigmas_ttbar / predictions_ttbar < resol_ttbar)
+    indices_2_1 = np.where(sigmas_HH_01 / predictions_HH_01 > resol_HH_01)
+    indices_2_10 = np.where(sigmas_HH_10 / predictions_HH_10 > resol_HH_10)
+    indices_2_z = np.where(sigmas_ztautau / predictions_ztautau > resol_ztautau)
+    indices_2_t = np.where(sigmas_ttbar / predictions_ttbar > resol_ttbar)
+    
+    indices_1_all = np.where(all_sigmas / all_predictions < resol_all)
+    indices_2_all = np.where(all_sigmas / all_predictions > resol_all)
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01, indices_1=indices_1_1, indices_2=indices_2_1)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10, indices_1=indices_1_10, indices_2=indices_2_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau, indices_1=indices_1_z, indices_2=indices_2_z)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar, indices_1=indices_1_t, indices_2=indices_2_t)
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis, indices_1=indices_1_all, indices_2=indices_2_all)
     
     indices_signal_low = np.where((signal_sigmas / signal_predictions) < resol_signal)
     indices_signal_high = np.where((signal_sigmas / signal_predictions) > resol_signal)
@@ -624,14 +640,22 @@ if __name__ == '__main__':
         sigmas_ztautau,
         sigmas_ttbar
     ])
-    indices_1_1 = np.where(sigmas_HH_01 < 1)
-    indices_1_10 = np.where(sigmas_HH_10 < 1)
-    indices_1_z = np.where(sigmas_ztautau < 1)
-    indices_1_t = np.where(sigmas_ttbar < 1)
-    indices_2_1 = np.where(sigmas_HH_01 > 1)
-    indices_2_10 = np.where(sigmas_HH_10 > 1)
-    indices_2_z = np.where(sigmas_ztautau > 1)
-    indices_2_t = np.where(sigmas_ttbar > 1)
+    
+    simple_sigma_plot(sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01')
+    simple_sigma_plot(sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10')
+    simple_sigma_plot(sigmas_ztautau, ztautau.fold_1_array, 'ztautau')
+    simple_sigma_plot(sigmas_ttbar, ttbar.fold_1_array, 'ttbar')
+    simple_sigma_plot(all_sigmas, all_fold_1_arrays, 'all',)
+    
+    print('How many events in each split category:')
+    print(len(predictions_HH_01[indices_1_1]))
+    print(len(predictions_HH_10[indices_1_10]))
+    print(len(predictions_ztautau[indices_1_z]))
+    print(len(predictions_ttbar[indices_1_t]))
+    print(len(predictions_HH_01[indices_2_1]))
+    print(len(predictions_HH_10[indices_2_10]))
+    print(len(predictions_ztautau[indices_2_z]))
+    print(len(predictions_ttbar[indices_2_t]))
     
     """
     resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
@@ -833,8 +857,9 @@ if __name__ == '__main__':
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
     
-    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances, split_truth = split_truth)
-    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances)
+    separation_overlay_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_1_array, dihiggs_10.fold_1_array, indices_1_1, indices_1_10, indices_2_1, indices_2_10)
+    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances, split_truth = split_truth)
+    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances)
     
     # Scan over a range of klambda values and find their significances again, but starting from klambda=10
     reweight_file = uproot.open("data/weight-mHH-from-cHHHp10d0-to-cHHHpx_20GeV_Jul28.root")
@@ -910,7 +935,7 @@ if __name__ == '__main__':
     z = np.sqrt(z1 * z1 + z2 * z2)
     original_significances.append(z)
         
-    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances, split_truth = split_truth)
-    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances)
+    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances, split_truth = split_truth)
+    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, k10mode = True, bonus_pts = original_significances)
         
         
