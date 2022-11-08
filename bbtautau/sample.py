@@ -187,7 +187,7 @@ class sample(object):
             self._ak_array = ak.concatenate(_ak_arrays)
 
 
-    def process(self, max_files=None, use_cache=False, remove_bad_training_events=False, run_mmc=False, **kwargs):
+    def process(self, max_files=None, use_cache=False, remove_bad_training_events=False, run_mmc=False, modulus_options=(3,0), **kwargs):
         if use_cache:
             self._ak_array = self.load_from_cache()
 
@@ -215,7 +215,7 @@ class sample(object):
                 self._name, len(self._ak_array), n_before_cleaning))
             
         from .utils import train_test_split
-        self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array)
+        self._fold_0_array, self._fold_1_array = train_test_split(self._ak_array, modulus=modulus_options[0], mod_rotation=modulus_options[1])
 
     def load_from_cache(self):
         log.warning('{} -- loading awkward array from cache!'.format(self._name))

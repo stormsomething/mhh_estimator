@@ -109,28 +109,33 @@ if __name__ == '__main__':
 
     log.info('loading samples ..')
 
+    modulus_options = (3,2) # modulus (fraction) for train-test split, rotation number for train-test split (starts at 0)
     dihiggs_01.process(
         verbose=True,
         max_files=max_files,
         use_cache=args.use_cache,
-        remove_bad_training_events=True)
+        remove_bad_training_events=True,
+        modulus_options=modulus_options)
     dihiggs_10.process(
         verbose=True,
         max_files=max_files,
         use_cache=args.use_cache,
-        remove_bad_training_events=True)
+        remove_bad_training_events=True,
+        modulus_options=modulus_options)
     ztautau.process(
         verbose=True,
         is_signal=False,
         max_files=max_files,
         use_cache=args.use_cache,
-        remove_bad_training_events=True)
+        remove_bad_training_events=True,
+        modulus_options=modulus_options)
     ttbar.process(
         verbose=True,
         is_signal=False,
         max_files=max_files,
         use_cache=args.use_cache,
-        remove_bad_training_events=True)
+        remove_bad_training_events=True,
+        modulus_options=modulus_options)
     log.info('..done')
 
     if not args.fit:
@@ -236,7 +241,7 @@ if __name__ == '__main__':
             print("Columns in Training Features:")
             print(train_features.shape[1])
             regressor = keras_model_main((train_features.shape[1] - 1,))
-            _epochs = 300
+            _epochs = 250
             _filename = 'cache/my_keras_training.h5'
             X_train, X_test, y_train, y_test = train_test_split(
                 train_features, train_target, test_size=0.1, random_state=42)
@@ -273,7 +278,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 3e-6 # default 0.001
+                rate = 4e-6 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 #adam = optimizers.get('Nadam')
@@ -368,6 +373,13 @@ if __name__ == '__main__':
     print(features_test_HH_01[0])
     
     regressor.save('cache/my_keras_training', save_traces=False)
+    # get the architecture as a json string
+    arch = regressor.to_json()
+    # save the architecture string to a file somehow, the below will work
+    with open('cache/architecture.json', 'w') as arch_file:
+        arch_file.write(arch)
+    # now save the weights as an HDF5 file
+    regressor.save_weights('cache/weights.h5')
 
     predictions_HH_01 = regressor.predict(features_test_HH_01)
     predictions_HH_10 = regressor.predict(features_test_HH_10)
