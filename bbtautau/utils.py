@@ -314,6 +314,10 @@ def gauss_fit_calculator(n, bins, name, fitter, network_label = None):
             if (mids[i] >= 0.6 and mids[i] <= 1.4):
                 mids_new.append(mids[i])
                 n_new.append(n[i])
+        elif (name == 'all'):
+            if (mids[i] >= 0.55 and mids[i] <= 1.4):
+                mids_new.append(mids[i])
+                n_new.append(n[i])
     mids = np.array(mids_new)
     n = np.array(n_new)
     height = max(n)

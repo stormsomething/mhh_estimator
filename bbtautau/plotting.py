@@ -115,6 +115,169 @@ def separation_overlay_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_1
     plt.legend(fontsize='x-small')
     fig.savefig('plots/separation_overlay_sigma_category.pdf')
     plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        mhh_HH_01[indices_1_1],
+        bins=75,
+        weights=weights_1[indices_1_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma<$Resolution)',
+        color='red')
+    plt.hist(
+        mhh_HH_10[indices_1_10],
+        bins=75,
+        weights=weights_10[indices_1_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma<$Resolution)',
+        color='blue')
+    plt.hist(
+        truths_1[indices_1_1],
+        bins=75,
+        weights=weights_1[indices_1_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=1$ (Relative $\sigma<$Resolution)',
+        color='red',
+        linestyle='dashed')
+    plt.hist(
+        truths_10[indices_1_10],
+        bins=75,
+        weights=weights_10[indices_1_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=10$ (Relative $\sigma<$Resolution)',
+        color='blue',
+        linestyle='dashed')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/separation_overlay_low_sigma.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        mhh_HH_01[indices_2_1],
+        bins=75,
+        weights=weights_1[indices_2_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma>$Resolution)',
+        color='red')
+    plt.hist(
+        mhh_HH_10[indices_2_10],
+        bins=75,
+        weights=weights_10[indices_2_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma>$Resolution)',
+        color='blue')
+    plt.hist(
+        truths_1[indices_2_1],
+        bins=75,
+        weights=weights_1[indices_2_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=1$ (Relative $\sigma>$Resolution)',
+        color='red',
+        linestyle='dashed')
+    plt.hist(
+        truths_10[indices_2_10],
+        bins=75,
+        weights=weights_10[indices_2_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=10$ (Relative $\sigma>$Resolution)',
+        color='blue',
+        linestyle='dashed')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/separation_overlay_high_sigma.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.hist(
+        mhh_HH_01[indices_1_1],
+        bins=75,
+        weights=weights_1[indices_1_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma<$Resolution)',
+        color='red')
+    plt.hist(
+        mhh_HH_10[indices_1_10],
+        bins=75,
+        weights=weights_10[indices_1_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma<$Resolution)',
+        color='blue')
+    plt.hist(
+        truths_1[indices_1_1],
+        bins=75,
+        weights=weights_1[indices_1_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=1$ (Relative $\sigma<$Resolution)',
+        color='red',
+        linestyle='dashed')
+    plt.hist(
+        truths_10[indices_1_10],
+        bins=75,
+        weights=weights_10[indices_1_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=10$ (Relative $\sigma<$Resolution)',
+        color='blue',
+        linestyle='dashed')
+    plt.hist(
+        mhh_HH_01[indices_2_1],
+        bins=75,
+        weights=weights_1[indices_2_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=1$ (Relative $\sigma>$Resolution)',
+        color='orange')
+    plt.hist(
+        mhh_HH_10[indices_2_10],
+        bins=75,
+        weights=weights_10[indices_2_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'MDN $\kappa_\lambda=10$ (Relative $\sigma>$Resolution)',
+        color='green')
+    plt.hist(
+        truths_1[indices_2_1],
+        bins=75,
+        weights=weights_1[indices_2_1],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=1$ (Relative $\sigma>$Resolution)',
+        color='orange',
+        linestyle='dashed')
+    plt.hist(
+        truths_10[indices_2_10],
+        bins=75,
+        weights=weights_10[indices_2_10],
+        range=(0,1500),
+        histtype='step',
+        label=r'Truth $\kappa_\lambda=10$ (Relative $\sigma>$Resolution)',
+        color='green',
+        linestyle='dashed')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/separation_overlay_both_sigma.pdf')
+    plt.close(fig)
 
 def simple_sigma_plot(sigmas, fold_1_array, label):
     weights = fold_1_array['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array['fold_weight']
@@ -567,7 +730,10 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         if ((bin_num < 0) or (bin_num > len(bins) - 2)):
             event_resol += [0]
         else:
-            event_resol += [resol[bin_num]]
+            if (bin_num < 16):
+                event_resol += [resol[16]]
+            else:
+                event_resol += [resol[bin_num]]
             tot_sigma_by_bin[bin_num] += sigmas[i] / mus[i]
             tot_sigma_sq_by_bin[bin_num] += (sigmas[i] / mus[i]) ** 2
             tot_res_by_bin[bin_num] += mus[i] / fold_1_array['universal_true_mhh'][i]
@@ -670,6 +836,18 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     fig.savefig('plots/mean_response_by_bin_' + label + '.pdf')
     plt.close(fig)
     
+    fig = plt.figure()
+    plt.plot(
+        bin_centers,
+        mean_sigma_by_bin / resol,
+        label=r'Mean Relative $\sigma(m_{HH})$ / Resolution')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_over_resol_by_bin_' + label + '.pdf')
+    plt.close(fig)
+    
     # Use this to bin by true mHH
     bin_centers, bin_errors, means, mean_stat_err, resol = response_curve(res, fold_1_array['universal_true_mhh'], bins)
     _, _, _, _, resol_2 = response_curve(res, fold_1_array['universal_true_mhh'], bins, mode=1)
@@ -742,6 +920,18 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.xlabel(r'$m_{HH}$ (GeV)')
     plt.legend(fontsize='small')
     fig.savefig('plots/mean_response_by_truth_bin_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.plot(
+        bin_centers,
+        mean_sigma_by_bin / resol,
+        label=r'Mean Relative $\sigma(m_{HH})$ / Resolution')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.legend(fontsize='small')
+    fig.savefig('plots/sigma_over_resol_by_truth_bin_' + label + '.pdf')
     plt.close(fig)
 
     return np.array(event_resol)
@@ -1385,13 +1575,39 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
     plt.close(fig)
     
     fig = plt.figure()
-    plt.scatter(x=mus, y=rel_sigmas, s=1, marker='.')
+    plt.hist2d(x=mus, y=rel_sigmas, bins=[80,80], range=[[0,1500],[0,0.6]])
     plt.xlim((0,1500))
-    plt.ylim((0,0.8))
+    plt.ylim((0,0.6))
     plt.xlabel(r'$m_{HH}$ (GeV)')
     plt.ylabel(r'$\sigma (m_{HH})/m_{HH}$')
-    plt.legend(fontsize='small')
-    fig.savefig('plots/rel_sigma_v_mhh_scatter_' + label + '.pdf')
+    fig.savefig('plots/rel_sigma_v_mhh_2d_hist_' + label + '.pdf')
+    plt.close(fig)
+    
+    fig = plt.figure()
+    plt.scatter(x=mus, y=rel_sigmas, s=1, marker='.')
+    plt.xlim((0,1500))
+    plt.ylim((0,0.1))
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'$\sigma (m_{HH})/m_{HH}$')
+    fig.savefig('plots/rel_sigma_v_mhh_scatter_low_' + label + '.pdf')
+    plt.close(fig)
+
+    fig = plt.figure()
+    plt.scatter(x=mus, y=rel_sigmas, s=1, marker='.')
+    plt.xlim((0,1500))
+    plt.ylim((0.1,0.3))
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'$\sigma (m_{HH})/m_{HH}$')
+    fig.savefig('plots/rel_sigma_v_mhh_scatter_med_' + label + '.pdf')
+    plt.close(fig)
+
+    fig = plt.figure()
+    plt.scatter(x=mus, y=rel_sigmas, s=1, marker='.')
+    plt.xlim((0,1500))
+    plt.ylim((0.3,0.8))
+    plt.xlabel(r'$m_{HH}$ (GeV)')
+    plt.ylabel(r'$\sigma (m_{HH})/m_{HH}$')
+    fig.savefig('plots/rel_sigma_v_mhh_scatter_high_' + label + '.pdf')
     plt.close(fig)
 
 def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_array, label, regressor, predictions_old = None, predictions_mmc = None, sigma_label = '', sigma_slice = None):
