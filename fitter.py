@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     log.info('loading samples ..')
 
-    modulus_options = (3,2) # modulus (fraction) for train-test split, rotation number for train-test split (starts at 0)
+    modulus_options = (3,0) # modulus (fraction) for train-test split, rotation number for train-test split (starts at 0)
     dihiggs_01.process(
         verbose=True,
         max_files=max_files,
@@ -136,6 +136,16 @@ if __name__ == '__main__':
         use_cache=args.use_cache,
         remove_bad_training_events=True,
         modulus_options=modulus_options)
+        
+    log.info('Training Events HH01: ' + str(len(dihiggs_01.fold_0_array['universal_true_mhh'])))
+    log.info('Training Events HH10: ' + str(len(dihiggs_10.fold_0_array['universal_true_mhh'])))
+    log.info('Training Events ztautau: ' + str(len(ztautau.fold_0_array['universal_true_mhh'])))
+    log.info('Training Events ttbar: ' + str(len(ttbar.fold_0_array['universal_true_mhh'])))
+    log.info('Testing Events HH01: ' + str(len(dihiggs_01.fold_1_array['universal_true_mhh'])))
+    log.info('Testing Events HH10: ' + str(len(dihiggs_10.fold_1_array['universal_true_mhh'])))
+    log.info('Testing Events ztautau: ' + str(len(ztautau.fold_1_array['universal_true_mhh'])))
+    log.info('Testing Events ttbar: ' + str(len(ttbar.fold_1_array['universal_true_mhh'])))
+        
     log.info('..done')
 
     if not args.fit:
@@ -155,28 +165,28 @@ if __name__ == '__main__':
 
         dihiggs_01_target = dihiggs_01.fold_0_array['universal_true_mhh']
         dihiggs_10_target = dihiggs_10.fold_0_array['universal_true_mhh']
-        ztautau_target = ztautau.fold_0_array['universal_true_mhh']
-        ttbar_target = ttbar.fold_0_array['universal_true_mhh']
+        #ztautau_target = ztautau.fold_0_array['universal_true_mhh']
+        #ttbar_target = ttbar.fold_0_array['universal_true_mhh']
         
         dihiggs_01_vis_mass = visable_mass(dihiggs_01.fold_0_array, 'dihiggs_01')
         dihiggs_10_vis_mass = visable_mass(dihiggs_10.fold_0_array, 'dihiggs_10')
-        ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
-        ttbar_vis_mass = visable_mass(ttbar.fold_0_array, 'ttbar')
+        #ztautau_vis_mass = visable_mass(ztautau.fold_0_array, 'ztautau')
+        #ttbar_vis_mass = visable_mass(ttbar.fold_0_array, 'ttbar')
 
         dihiggs_01_target = dihiggs_01_target / dihiggs_01_vis_mass
         dihiggs_10_target = dihiggs_10_target / dihiggs_10_vis_mass
-        ztautau_target = ztautau_target / ztautau_vis_mass
-        ttbar_target = ttbar_target / ttbar_vis_mass
+        #ztautau_target = ztautau_target / ztautau_vis_mass
+        #ttbar_target = ttbar_target / ttbar_vis_mass
 
         features_dihiggs_01 = features_table(dihiggs_01.fold_0_array)
         features_dihiggs_10 = features_table(dihiggs_10.fold_0_array)
-        features_ztautau = features_table(ztautau.fold_0_array)
-        features_ttbar = features_table(ttbar.fold_0_array)
+        #features_ztautau = features_table(ztautau.fold_0_array)
+        #features_ttbar = features_table(ttbar.fold_0_array)
 
         len_HH_01 = len(features_dihiggs_01)
         len_HH_10 = len(features_dihiggs_10)
-        len_ztautau = len(features_ztautau)
-        len_ttbar = len(features_ttbar)
+        #len_ztautau = len(features_ztautau)
+        #len_ttbar = len(features_ttbar)
         
         train_features_new = np.concatenate([
             features_dihiggs_01,
@@ -253,6 +263,7 @@ if __name__ == '__main__':
             sample_weights = []
             for i in range(len(X_train)):
                 if (X_train[i][-1] == 'ztautau'):
+                    assert(False)
                     sample_weights.append(2.00)
                 else:
                     sample_weights.append(1.00)
@@ -278,7 +289,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 4e-6 # default 0.001
+                rate = 8e-6 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 #adam = optimizers.get('Nadam')
@@ -606,6 +617,16 @@ if __name__ == '__main__':
     ])
     
     log.info ('Beginning Sigma Plotting')
+    
+    # Use this to define the cut on a constant rather than resolution as a function of mHH
+    split_const = 0.085
+    resol_HH_01 = split_const
+    resol_HH_10 = split_const
+    resol_ztautau = split_const
+    resol_ttbar = split_const
+    resol_all = split_const
+    resol_signal = split_const
+    resol_background = split_const
     
     indices_1_1 = np.where(sigmas_HH_01 / predictions_HH_01 < resol_HH_01)
     indices_1_10 = np.where(sigmas_HH_10 / predictions_HH_10 < resol_HH_10)
