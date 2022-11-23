@@ -153,8 +153,8 @@ if __name__ == '__main__':
         if args.library == 'scikit':
             regressor = joblib.load('cache/latest_scikit.clf')
         elif args.library == 'keras':
-            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_nll': gaussian_nll, 'gaussian_loss': gaussian_loss})
-            # regressor = load_model('cache/my_keras_training', custom_objects={'gaussian_nll': gaussian_nll})
+            regressor = load_model('cache/my_keras_training.h5', custom_objects={'gaussian_loss': gaussian_loss})
+            # regressor = load_model('cache/my_keras_training', custom_objects={'tf_mdn_loss': tf_mdn_loss})
             # regressor = load_model('cache/best_keras_training.h5')
             regressor.summary()
         else:
@@ -619,7 +619,7 @@ if __name__ == '__main__':
     log.info ('Beginning Sigma Plotting')
     
     # Use this to define the cut on a constant rather than resolution as a function of mHH
-    split_const = 0.085
+    split_const = 0.2
     resol_HH_01 = split_const
     resol_HH_10 = split_const
     resol_ztautau = split_const
@@ -687,6 +687,14 @@ if __name__ == '__main__':
     print(len(predictions_HH_10[indices_2_10]))
     print(len(predictions_ztautau[indices_2_z]))
     print(len(predictions_ttbar[indices_2_t]))
+    
+    log.info ('Beginning Sigma Plotting')
+    
+    sigma_plots(predictions_HH_01, sigmas_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)
+    sigma_plots(predictions_HH_10, sigmas_HH_10, dihiggs_10.fold_1_array, 'dihiggs_10', mvis_HH_10)
+    sigma_plots(predictions_ztautau, sigmas_ztautau, ztautau.fold_1_array, 'ztautau', mvis_ztautau)
+    sigma_plots(predictions_ttbar, sigmas_ttbar, ttbar.fold_1_array, 'ttbar', mvis_ttbar)
+    sigma_plots(all_predictions, all_sigmas, all_fold_1_arrays, 'all', all_mvis)
     
     """
     resid_comparison_plots(predictions_HH_01, sigmas_HH_01, mhh_original_HH_01, mhh_mmc_HH_01, dihiggs_01.fold_1_array, 'dihiggs_01', mvis_HH_01)

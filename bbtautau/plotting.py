@@ -808,7 +808,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.plot(
         bin_centers,
         rms_sigma_by_bin,
-        label=r'Quad. Mean $\sigma(m_{HH})/m_{HH}$')
+        label=r'RMS $\sigma(m_{HH})/m_{HH}$')
     plt.plot(
         bin_centers,
         resol_2,
@@ -818,7 +818,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         resol_std,
         label='Resolution (Std. Dev.)')
     plt.xlim((0,1500))
-    plt.ylim((0,0.7))
+    plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ (GeV)')
     plt.legend(fontsize='small')
     fig.savefig('plots/resolutions_by_bin_' + label + '.pdf')
@@ -894,7 +894,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
     plt.plot(
         bin_centers,
         rms_sigma_by_bin,
-        label=r'Quad. Mean $\sigma(m_{HH})/m_{HH}$')
+        label=r'RMS $\sigma(m_{HH})/m_{HH}$')
     plt.plot(
         bin_centers,
         resol_2,
@@ -904,7 +904,7 @@ def resolution_plot(mus, sigmas, fold_1_array, label):
         resol_std,
         label='Resolution (Std. Dev.)')
     plt.xlim((0,1500))
-    plt.ylim((0,0.7))
+    plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$ (GeV)')
     plt.legend(fontsize='small')
     fig.savefig('plots/resolutions_by_truth_bin_' + label + '.pdf')
@@ -1407,11 +1407,11 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
     fig = plt.figure()
     plt.hist(
         sigmas,
-        bins=35,
+        bins=30,
         weights=weights,
-        range=(0,70),
-        label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)))
-    """
+        range=(0,6),
+        label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
+        color='white')
     plt.hist(
         sigmas[indices_1],
         bins=30,
@@ -1422,10 +1422,9 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         bins=30,
         weights=weights[indices_2],
         range=(0,6))
-    """
-    plt.xlim((0,70))
+    plt.xlim((0,6))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$\sigma(m_{HH})$ (GeV)')
+    plt.xlabel(r'Relative $\sigma$/Resolution')
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
@@ -1463,9 +1462,9 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
     fig = plt.figure()
     plt.hist(
         data,
-        bins=50,
+        bins=60,
         weights=weights,
-        range=(-5,5),
+        range=(-4,4),
         histtype='step',
         label='All events. Mean: ' + str(round(mean_all, 4)) + '. RMS: ' + str(round(rms_all, 4)),
         density=True)
@@ -1487,7 +1486,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         density=True)
     plt.xlim((-5,5))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$m_{HH}$ Residual / $\sigma$')
+    plt.xlabel(r'$m_{HH}$ Residual / Relative $\sigma$')
     plt.ylabel('Events')
     plt.legend(fontsize='xx-small')
     fig.savefig('plots/mdn_resid_over_sigma_' + label + '.pdf')
@@ -1504,7 +1503,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
     fig = plt.figure()
     plt.hist(
         data,
-        bins=50,
+        bins=60,
         weights=weights,
         range=(-500,500),
         histtype='step',
