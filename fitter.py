@@ -27,8 +27,8 @@ def gaussian_loss(targ, pred, sample_weight=None):
     Basic gaussian loss model. Probably not properly normalized
     From: https://gitlab.cern.ch/atlas-flavor-tagging-tools/trigger/dipz/-/blob/main/keras/train.py#L186-L203
     """
-    z = pred[:,0]
-    q = pred[:,1]
+    z = pred[:,0:1]
+    q = pred[:,1:2]
     loss = -q + backend.square(z - targ) * backend.exp(q)
     if sample_weight is not None:
         return loss * sample_weight
@@ -38,11 +38,11 @@ def gaussian_loss_prec(targ, pred, sample_weight=None):
     """
     This seems to be more stable than the gaussian loss above
     """
-    z = pred[:,0]
-    prec = backend.abs(pred[:,1]) + 1e-6
+    z = pred[:,0:1]
+    prec = backend.abs(pred[:,1:2]) + 1e-6
     loss = - backend.log(prec) + backend.square(z - targ) * prec
     if sample_weight is not None:
-        return loss * sample_weigh
+        return loss * sample_weight
     return loss
 
 def tf_mdn_loss(y, model, sample_weight=None):
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     log.info('loading samples ..')
 
-    modulus_options = (3,0) # modulus (fraction) for train-test split, rotation number for train-test split (starts at 0)
+    modulus_options = (3,2) # modulus (fraction) for train-test split, rotation number for train-test split (starts at 0)
     dihiggs_01.process(
         verbose=True,
         max_files=max_files,
@@ -300,7 +300,7 @@ if __name__ == '__main__':
             X_test = np.array(X_test_new)
             
             try:
-                rate = 1e-6 # default 0.001
+                rate = 4e-6 # default 0.001
                 batch_size = 64
                 adam = optimizers.get('Adam')
                 #adam = optimizers.get('Nadam')
@@ -411,6 +411,7 @@ if __name__ == '__main__':
     log.info ('regressor ran')
 
     if args.library == 'keras':
+        # For use with "gaussian_loss"
         sigmas_HH_01 = np.exp(-0.5 * np.reshape(
             predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
         sigmas_HH_10 = np.exp(-0.5 * np.reshape(
@@ -421,6 +422,7 @@ if __name__ == '__main__':
             predictions_ttbar[:,1], (predictions_ttbar[:,1].shape[0], )))
         
         """
+        # For use with "gaussian_loss_prec"
         sigmas_HH_01 = 1 / np.sqrt(np.reshape(
             predictions_HH_01[:,1], (predictions_HH_01[:,1].shape[0], )))
         sigmas_HH_10 = 1 / np.sqrt(np.reshape(
