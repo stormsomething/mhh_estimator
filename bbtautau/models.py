@@ -6,9 +6,14 @@ from bbtautau.SumLayer import SumLayer
 
 def keras_model_main(n_variables):
     x_1 = Input(shape=n_variables)
+    
+    """
     hidden = Dense(1024, activation='relu')(x_1)
     hidden_1 = Dense(512, activation='relu')(hidden)
     hidden_2 = Dense(256, activation='relu')(hidden_1)
+    """
+    hidden_2 = Dense(256, activation='relu')(x_1)
+    
     hidden_3 = Dense(128, activation='relu')(hidden_2)
     hidden_4 = Dense(64, activation='relu')(hidden_3)
     hidden_5 = Dense(32, activation='relu')(hidden_4)
