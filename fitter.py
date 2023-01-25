@@ -202,33 +202,33 @@ if __name__ == '__main__':
         train_features_new = np.concatenate([
             features_dihiggs_01,
             features_dihiggs_10,
-            #features_ztautau,
-            #features_ttbar
+            features_ztautau,
+            features_ttbar
         ])
 
         scaler = StandardScaler()
         train_features_new = scaler.fit_transform(X=train_features_new)
         features_dihiggs_01 = train_features_new[:len_HH_01]
         features_dihiggs_10 = train_features_new[len_HH_01:len_HH_01+len_HH_10]
-        #features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
-        #features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
+        features_ztautau = train_features_new[len_HH_01+len_HH_10:len_HH_01+len_HH_10+len_ztautau]
+        features_ttbar = train_features_new[len_HH_01+len_HH_10+len_ztautau:]
 
         features_dihiggs_01 = np.append(features_dihiggs_01, [['dihiggs_01']]*len_HH_01, 1)
         features_dihiggs_10 = np.append(features_dihiggs_10, [['dihiggs_10']]*len_HH_10, 1)
-        #features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
-        #features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
+        features_ztautau = np.append(features_ztautau, [['ztautau']]*len_ztautau, 1)
+        features_ttbar = np.append(features_ttbar, [['ttbar']]*len_ttbar, 1)
 
         train_target = ak.concatenate([
             dihiggs_01_target,
             dihiggs_10_target,
-            #ztautau_target,
-            #ttbar_target
+            ztautau_target,
+            ttbar_target
         ])
         train_features = np.concatenate([
             features_dihiggs_01,
             features_dihiggs_10,
-            #features_ztautau,
-            #features_ttbar
+            features_ztautau,
+            features_ttbar
         ])
 
         if args.library == 'scikit':
@@ -274,7 +274,6 @@ if __name__ == '__main__':
             sample_weights = []
             for i in range(len(X_train)):
                 if (X_train[i][-1] == 'ztautau'):
-                    assert(False)
                     sample_weights.append(2.00)
                 else:
                     sample_weights.append(1.00)
