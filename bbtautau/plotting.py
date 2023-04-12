@@ -15,6 +15,70 @@ mpl.rc('text', usetex=True)    # mpl.rcParams['text.latex.unicode'] = True
 
 from . import log; log = log.getChild(__name__)
 
+def k_lambda_comparison_reader_overlay(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, label, k01_reader, k10_reader):
+    weights_1 = fold_1_array_1['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_1['fold_weight']
+    weights_10 = fold_1_array_10['EventInfo___NominalAuxDyn']['evtweight'] * fold_1_array_10['fold_weight']
+    
+    weights_1 = np.array(weights_1) / sum(weights_1)
+    weights_10 = np.array(weights_10) / sum(weights_10)
+
+    k01_hist = k01_reader[0] / sum(k01_reader[0])
+    k10_hist = k10_reader[0] / sum(k10_reader[0])
+    
+    sig_sum_reader = 0
+    for i in range(len(k01_hist)):
+        if (k01_hist[i] > 0) and (k10_hist[i] > 0):
+            sig_sum_reader += (np.log(k10_hist[i] / k01_hist[i]) * k10_hist[i])
+    z_reader = np.sqrt(2 * sig_sum_reader)
+    
+    fig = plt.figure()
+    
+    plt.bar(x=0, height=0.01, width=1500, align='edge', label='CxAODReader Separation: ' + str(round(z_reader, 4)), color='white')
+    x = (k01_reader[1][1:] + k01_reader[1][:-1]) / 2
+    plt.hist(x, bins=k01_reader[1], weights=4*k01_reader[0]/sum(k01_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=1$ (x4)')
+    plt.hist(x, bins=k10_reader[1], weights=4*k10_reader[0]/sum(k10_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=10$ (x4)')
+    
+    (n_01, bins_01, patches_01) = plt.hist(
+        mhh_HH_01,
+        bins=75,
+        weights=weights_1,
+        range=(0,1500),
+        histtype='step',
+        label=r'Training Data $\kappa_\lambda=1$')
+    (n_10, bins_10, patches_10) = plt.hist(
+        mhh_HH_10,
+        bins=75,
+        weights=weights_10,
+        range=(0,1500),
+        histtype='step',
+        label=r'Training Data $\kappa_\lambda=10$')
+    sig_sum = 0
+    for i in range(len(n_01)):
+        if (n_01[i] > 0) and (n_10[i] > 0):
+            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]))
+    z = np.sqrt(2 * sig_sum)
+    plt.hist(
+        [0],
+        bins=1,
+        weights=[n_01[1]],
+        range=(0,1500),
+        label=r'Training Data Separation: ' + str(round(z, 4)),
+        color='white')
+    plt.hist(
+        [0],
+        bins=1,
+        weights=[n_01[1]],
+        range=(0,1500),
+        label='Integral Scale Factor Between Signals: ' + str(round(1 / 11.894416, 4)),
+        color='white')
+    plt.xlim((0,1500))
+    plt.ylim(bottom=0)
+    plt.xlabel(r'$m_{HH}$')
+    plt.ylabel('Events')
+    plt.legend(fontsize='x-small')
+    fig.savefig('plots/k_lambda_comparison_reader_overlay_' + label + '.pdf')
+    plt.close(fig)
+
 def separation_overlay_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_10, indices_1_1, indices_1_10, indices_2_1, indices_2_10):
     truths_1 = fold_1_array_1['universal_true_mhh']
     truths_10 = fold_1_array_10['universal_true_mhh']
@@ -639,7 +703,9 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     # Option to renormalize so that both signals have the same total weights
     if (cs_norm is None):
         cs_norm = sum(original_weights) / sum(new_weights)
-    new_weights = np.array(new_weights) * cs_norm
+    #new_weights = np.array(new_weights) * cs_norm
+    new_weights = np.array(new_weights) / sum(new_weights)
+    original_weights = np.array(original_weights) / sum(original_weights)
     
     fig = plt.figure()
     if (k10mode):
@@ -669,7 +735,7 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     sig_sum = 0
     for i in range(len(n_01)):
         if (n_01[i] > 0) and (n_10[i] > 0):
-            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
+            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]))
     z = np.sqrt(2 * sig_sum)
     
     if (k10mode):
@@ -1067,10 +1133,14 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     
     print(label + " kappa_lambda=1 Weight Sum: " + str(sum(weights_1)))
     print(label + " kappa_lambda=10 Weight Sum: " + str(sum(weights_10)))
+    """
     if (k10mode):
         weights_10 = np.array(weights_10) * 11.8944157416 # Normalization factor calculated by hand
     else:
         weights_10 = np.array(weights_10) / 11.8944157416 # Normalization factor calculated by hand
+    """
+    weights_1 = np.array(weights_1) / sum(weights_1)
+    weights_10 = np.array(weights_10) / sum(weights_10)
     
     if (slice_indices_1 is not None):
         weights_1 = weights_1[slice_indices_1]
@@ -1103,7 +1173,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     for i in range(len(n_01)):
         #print(str(n_01[i]) + " ~~~ " + str(n_10[i]))
         if (n_01[i] > 0) and (n_10[i] > 0):
-            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]) - n_10[i] + n_01[i])
+            sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]))
     z = np.sqrt(2 * sig_sum)
     plt.hist(
         [0],

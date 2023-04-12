@@ -11,7 +11,7 @@ from bbtautau.utils import features_table, universal_true_mhh, visable_mass, cle
 from bbtautau.plotting import signal_features, ztautau_pred_target_comparison, roc_plot_rnn_mmc, rnn_mmc_comparison, avg_mhh_calculation, avg_mhh_plot
 from bbtautau.database import dihiggs_01, dihiggs_10, ztautau, ttbar
 from bbtautau.models import keras_model_main
-from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot, klambda_scan_plot, reweight_and_compare, eta_plot, res_plots, simple_sigma_plot, separation_overlay_plot
+from bbtautau.plotting import nn_history, sigma_plots, resid_comparison_plots, k_lambda_comparison_plot, reweight_plot, resolution_plot, klambda_scan_plot, reweight_and_compare, eta_plot, res_plots, simple_sigma_plot, separation_overlay_plot, k_lambda_comparison_reader_overlay
 from bbtautau.mmc import mmc
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -629,16 +629,19 @@ if __name__ == '__main__':
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_0_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau)
     eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_0_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar)
     """
+    """
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_0_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_0_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_0_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
     eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_0_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
+    """
 
     log.info ('Finished RNN-MMC Comparison Plotting')
 
     # Chi-Square calculations
 
     # Relevant ROC curves
+    """
     eff_pred_HH_01_HH_10 = eff_HH_01_rnn_mmc + eff_HH_10_rnn_mmc
     eff_pred_HH_01_ztt = eff_HH_01_rnn_mmc + eff_ztt_rnn_mmc
     eff_pred_HH_01_ttbar = eff_HH_01_rnn_mmc + eff_ttbar_rnn_mmc
@@ -655,6 +658,7 @@ if __name__ == '__main__':
     roc_plot_rnn_mmc(eff_pred_HH_01_HH_10, eff_true_HH_01_HH_10, r'$\kappa_{\lambda}$ = 1', r'$\kappa_{\lambda}$ = 10')
     roc_plot_rnn_mmc(eff_pred_HH_01_ztt, eff_true_HH_01_ztt, r'$\kappa_{\lambda}$ = 1', r'$Z\to\tau\tau$ + jets')
     roc_plot_rnn_mmc(eff_pred_HH_01_ttbar, eff_true_HH_01_ttbar, r'$\kappa_{\lambda}$ = 1', 'Top Quark')
+    """
     
     """
     log.info ('Beginning Sigma-Split RNN-MMC Comparison Plotting')
@@ -802,8 +806,15 @@ if __name__ == '__main__':
     z = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth')
     original_significances.append(z)
     z = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn')
+    reader_file = uproot.open("cache/analysis_ade All Samples.root")
+    k01_reader = reader_file["HHMassNet/hhttbb_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
+    k10_reader = reader_file["HHMassNet/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
+    k_lambda_comparison_reader_overlay(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn', k01_reader, k10_reader)
     original_significances.append(z)
     z = k_lambda_comparison_plot(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mmc')
+    k01_reader = reader_file["Preselection/hhttbb_2tag_0mHH_LL_OS_GGFSR_mHH;1"].to_numpy()
+    k10_reader = reader_file["Preselection/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_mHH;1"].to_numpy()
+    k_lambda_comparison_reader_overlay(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mmc', k01_reader, k10_reader)
     original_significances.append(z)
     z0 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][0]], predictions_HH_10[index_dict['HH10'][0]], dihiggs_01.fold_0_array[index_dict['HH01'][0]], dihiggs_10.fold_0_array[index_dict['HH10'][0]], 'mdn_split_0')
     z1 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][1]], predictions_HH_10[index_dict['HH10'][1]], dihiggs_01.fold_0_array[index_dict['HH01'][1]], dihiggs_10.fold_0_array[index_dict['HH10'][1]], 'mdn_split_1')
