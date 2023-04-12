@@ -806,7 +806,7 @@ if __name__ == '__main__':
     z = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth')
     original_significances.append(z)
     z = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn')
-    reader_file = uproot.open("cache/analysis_ade All Samples.root")
+    reader_file = uproot.open("cache/analysis_ade Signal Only.root")
     k01_reader = reader_file["HHMassNet/hhttbb_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k10_reader = reader_file["HHMassNet/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k_lambda_comparison_reader_overlay(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn', k01_reader, k10_reader)

@@ -35,19 +35,19 @@ def k_lambda_comparison_reader_overlay(mhh_HH_01, mhh_HH_10, fold_1_array_1, fol
     
     plt.bar(x=0, height=0.01, width=1500, align='edge', label='CxAODReader Separation: ' + str(round(z_reader, 4)), color='white')
     x = (k01_reader[1][1:] + k01_reader[1][:-1]) / 2
-    plt.hist(x, bins=k01_reader[1], weights=4*k01_reader[0]/sum(k01_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=1$ (x4)')
-    plt.hist(x, bins=k10_reader[1], weights=4*k10_reader[0]/sum(k10_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=10$ (x4)')
+    plt.hist(x, bins=k01_reader[1], weights=k01_reader[0]/sum(k01_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=1$')
+    plt.hist(x, bins=k10_reader[1], weights=k10_reader[0]/sum(k10_reader[0]), histtype='step', label=r'CxAODReader $\kappa_\lambda=10$')
     
     (n_01, bins_01, patches_01) = plt.hist(
         mhh_HH_01,
-        bins=75,
+        bins=300,
         weights=weights_1,
         range=(0,1500),
         histtype='step',
         label=r'Training Data $\kappa_\lambda=1$')
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
-        bins=75,
+        bins=300,
         weights=weights_10,
         range=(0,1500),
         histtype='step',
@@ -711,7 +711,7 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     if (k10mode):
         (n_01, bins_01, patches_01) = plt.hist(
             mhh,
-            bins=40,
+            bins=160,
             weights=original_weights,
             range=(200,1000),
             histtype='step',
@@ -719,14 +719,14 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     else:
         (n_01, bins_01, patches_01) = plt.hist(
             mhh,
-            bins=40,
+            bins=160,
             weights=original_weights,
             range=(200,1000),
             histtype='step',
             label=r'$\kappa_\lambda=1$')
     (n_10, bins_10, patches_10) = plt.hist(
         mhh,
-        bins=40,
+        bins=160,
         weights=new_weights,
         range=(200,1000),
         histtype='step',
@@ -1157,14 +1157,14 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
     fig = plt.figure()
     (n_01, bins_01, patches_01) = plt.hist(
         mhh_HH_01,
-        bins=75,
+        bins=300,
         weights=weights_1,
         range=(0,1500),
         histtype='step',
         label=r'$\kappa_\lambda=1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)))
     (n_10, bins_10, patches_10) = plt.hist(
         mhh_HH_10,
-        bins=75,
+        bins=300,
         weights=weights_10,
         range=(0,1500),
         histtype='step',
