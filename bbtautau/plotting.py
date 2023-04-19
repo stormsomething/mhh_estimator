@@ -614,13 +614,13 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
     plt.plot(
         klambdas,
         split_significances,
-        label=r'MDN Split by Relative $\sigma$/Resolution',
+        label=r'MDN Split by Relative $\sigma$',
         color='green')
     if (split_truth is not None):
         plt.plot(
             klambdas,
             split_truth,
-            label=r'Truth Split by Relative $\sigma$/Resolution',
+            label=r'Truth Split by Relative $\sigma$',
             color='pink')
     if (bonus_pts is not None):
         if (k10mode):
@@ -645,14 +645,14 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
             plt.scatter(
                 1,
                 bonus_pts[3],
-                label=r'MDN Split by Relative $\sigma$/Resolution',
+                label=r'MDN Split by Relative $\sigma$',
                 color='green',
                 marker='o')
             if (split_truth is not None):
                 plt.scatter(
                     1,
                     bonus_pts[4],
-                    label=r'Truth Split by Relative $\sigma$/Resolution',
+                    label=r'Truth Split by Relative $\sigma$',
                     color='pink',
                     marker='o')
         else:
@@ -677,14 +677,14 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
             plt.scatter(
                 10,
                 bonus_pts[3],
-                label=r'MDN Split by Relative $\sigma$/Resolution',
+                label=r'MDN Split by Relative $\sigma$',
                 color='green',
                 marker='o')
             if (split_truth is not None):
                 plt.scatter(
                     10,
                     bonus_pts[4],
-                    label=r'Truth Split by Relative $\sigma$/Resolution',
+                    label=r'Truth Split by Relative $\sigma$',
                     color='pink',
                     marker='o')
     plt.xlim((klambdas[0],klambdas[-1]))
@@ -702,10 +702,10 @@ def klambda_scan_plot(klambdas, truth_significances, mdn_significances, mmc_sign
 def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_norm = None, k10mode = False):
     # Option to renormalize so that both signals have the same total weights
     if (cs_norm is None):
-        cs_norm = sum(original_weights) / sum(new_weights)
+        cs_norm = [sum(original_weights), sum(new_weights)]
     #new_weights = np.array(new_weights) * cs_norm
-    new_weights = np.array(new_weights) / sum(new_weights)
-    original_weights = np.array(original_weights) / sum(original_weights)
+    new_weights = np.array(new_weights) / cs_norm[1]
+    original_weights = np.array(original_weights) / cs_norm[0]
     
     fig = plt.figure()
     if (k10mode):
@@ -754,6 +754,7 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
             range=(0,1500),
             label=r'$\kappa_\lambda=$' + klambda + ' Hypothesis Significance Compared to $\kappa_\lambda=1$: $Z = $' + str(round(z, 4)),
             color='white')
+    """
     plt.hist(
         [0],
         bins=1,
@@ -761,6 +762,7 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
         range=(0,1500),
         label='Integral Scale Factor Between Signals: ' + str(round(cs_norm, 4)),
         color='white')
+    """
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
     plt.xlabel(r'$m_{HH}$')
@@ -1470,31 +1472,31 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
     
     # Split indices on sigma ranges
     if (indices_1 is None):
-        indices_1 = np.where(sigmas < 1)
+        indices_1 = np.where(sigmas/mus < .1)
     if (indices_2 is None):
-        indices_2 = np.where(sigmas > 1)
+        indices_2 = np.where(sigmas/mus > .1)
     
     fig = plt.figure()
     plt.hist(
         sigmas,
         bins=30,
         weights=weights,
-        range=(0,6),
+        range=(0,150),
         label='Mean: ' + str(round(mean_sigma, 4)) + '. Median: ' + str(round(median_sigma, 4)) + '. RMS: ' + str(round(rms_sigma, 4)),
         color='white')
     plt.hist(
         sigmas[indices_1],
         bins=30,
         weights=weights[indices_1],
-        range=(0,6))
+        range=(0,150))
     plt.hist(
         sigmas[indices_2],
         bins=30,
         weights=weights[indices_2],
-        range=(0,6))
-    plt.xlim((0,6))
+        range=(0,150))
+    plt.xlim((0,150))
     plt.ylim(bottom=0)
-    plt.xlabel(r'Relative $\sigma$/Resolution')
+    plt.xlabel(r'$\sigma$')
     plt.ylabel('Events')
     plt.legend(fontsize='small')
     fig.savefig('plots/mdn_sigma_' + label + '.pdf')
@@ -1544,7 +1546,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_1],
         range=(-5,5),
         histtype='step',
-        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<0.1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -1552,7 +1554,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_2],
         range=(-5,5),
         histtype='step',
-        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>0.1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-5,5))
     plt.ylim(bottom=0)
@@ -1585,7 +1587,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_1],
         range=(-500,500),
         histtype='step',
-        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<0.1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         data[indices_2],
@@ -1593,7 +1595,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_2],
         range=(-500,500),
         histtype='step',
-        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>0.1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((-500,500))
     plt.ylim(bottom=0)
@@ -1625,7 +1627,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_1],
         range=(0,1500),
         histtype='step',
-        label=r'Relative $\sigma<$Resolution. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
+        label=r'Relative $\sigma<0.1$. Mean: ' + str(round(mean_1, 4)) + '. RMS: ' + str(round(rms_1, 4)),
         density=True)
     plt.hist(
         truths[indices_2],
@@ -1633,7 +1635,7 @@ def sigma_plots(mus, sigmas, fold_1_array, label, mvis, indices_1 = None, indice
         weights=weights[indices_2],
         range=(0,1500),
         histtype='step',
-        label=r'Relative $\sigma>$Resolution. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
+        label=r'Relative $\sigma>0.1$. Mean: ' + str(round(mean_2, 4)) + '. RMS: ' + str(round(rms_2, 4)),
         density=True)
     plt.xlim((0,1500))
     plt.ylim(bottom=0)

@@ -502,12 +502,13 @@ if __name__ == '__main__':
     
     index_dict = {'HH01':{}, 'HH10':{}, 'ztautau':{}, 'ttbar':{}, 'all':{}}
     
-    index_dict['HH01'][0] = np.where(sigmas_HH_01 / predictions_HH_01 < 0.075)
-    index_dict['HH10'][0] = np.where(sigmas_HH_10 / predictions_HH_10 < 0.075)
-    index_dict['ztautau'][0] = np.where(sigmas_ztautau / predictions_ztautau < 0.075)
-    index_dict['ttbar'][0] = np.where(sigmas_ttbar / predictions_ttbar < 0.075)
-    index_dict['all'][0] = np.where(all_sigmas / all_predictions < 0.075)
+    index_dict['HH01'][0] = np.where(sigmas_HH_01 / predictions_HH_01 < 0.1)
+    index_dict['HH10'][0] = np.where(sigmas_HH_10 / predictions_HH_10 < 0.1)
+    index_dict['ztautau'][0] = np.where(sigmas_ztautau / predictions_ztautau < 0.1)
+    index_dict['ttbar'][0] = np.where(sigmas_ttbar / predictions_ttbar < 0.1)
+    index_dict['all'][0] = np.where(all_sigmas / all_predictions < 0.1)
     
+    """
     index_dict['HH01'][1] = np.where((sigmas_HH_01 / predictions_HH_01 > 0.075) & (sigmas_HH_01 / predictions_HH_01 < 0.085))
     index_dict['HH10'][1] = np.where((sigmas_HH_10 / predictions_HH_10 > 0.075) & (sigmas_HH_10 / predictions_HH_10 < 0.085))
     index_dict['ztautau'][1] = np.where((sigmas_ztautau / predictions_ztautau > 0.075) & (sigmas_ztautau / predictions_ztautau < 0.085))
@@ -525,12 +526,13 @@ if __name__ == '__main__':
     index_dict['ztautau'][3] = np.where((sigmas_ztautau / predictions_ztautau > 0.12) & (sigmas_ztautau / predictions_ztautau < 0.18))
     index_dict['ttbar'][3] = np.where((sigmas_ttbar / predictions_ttbar > 0.12) & (sigmas_ttbar / predictions_ttbar < 0.18))
     index_dict['all'][3] = np.where((all_sigmas / all_predictions > 0.12) & (all_sigmas / all_predictions < 0.18))
+    """
     
-    index_dict['HH01'][4] = np.where(sigmas_HH_01 / predictions_HH_01 > 0.18)
-    index_dict['HH10'][4] = np.where(sigmas_HH_10 / predictions_HH_10 > 0.18)
-    index_dict['ztautau'][4] = np.where(sigmas_ztautau / predictions_ztautau > 0.18)
-    index_dict['ttbar'][4] = np.where(sigmas_ttbar / predictions_ttbar > 0.18)
-    index_dict['all'][4] = np.where(all_sigmas / all_predictions > 0.18)
+    index_dict['HH01'][1] = np.where(sigmas_HH_01 / predictions_HH_01 > 0.1)
+    index_dict['HH10'][1] = np.where(sigmas_HH_10 / predictions_HH_10 > 0.1)
+    index_dict['ztautau'][1] = np.where(sigmas_ztautau / predictions_ztautau > 0.1)
+    index_dict['ttbar'][1] = np.where(sigmas_ttbar / predictions_ttbar > 0.1)
+    index_dict['all'][1] = np.where(all_sigmas / all_predictions > 0.1)
     
     """
     indices_1_1 = np.where(sigmas_HH_01 / predictions_HH_01 < resol_HH_01)
@@ -585,7 +587,7 @@ if __name__ == '__main__':
     simple_sigma_plot(all_sigmas, all_fold_0_arrays, 'all',)
     
     print('How many events in each split category:')
-    for i in range(5):
+    for i in range(2):
         print(i)
         print(len(index_dict['HH01'][i]))
         print(len(index_dict['HH10'][i]))
@@ -629,12 +631,10 @@ if __name__ == '__main__':
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_0_array, 'ztautau', args.library, predictions_old = mhh_original_ztautau, predictions_mmc = mhh_mmc_ztautau)
     eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_0_array, 'ttbar', args.library, predictions_old = mhh_original_ttbar, predictions_mmc = mhh_mmc_ttbar)
     """
-    """
     eff_HH_01_rnn_mmc, eff_true_HH_01, n_rnn_HH_01, n_mmc_HH_01, n_true_HH_01 = rnn_mmc_comparison(predictions_HH_01, test_target_HH_01, dihiggs_01, dihiggs_01.fold_0_array, 'dihiggs_01', args.library, predictions_mmc = mhh_mmc_HH_01)
     eff_HH_10_rnn_mmc, eff_true_HH_10, n_rnn_HH_10, n_mmc_HH_10, n_true_HH_10 = rnn_mmc_comparison(predictions_HH_10, test_target_HH_10, dihiggs_10, dihiggs_10.fold_0_array, 'dihiggs_10', args.library, predictions_mmc = mhh_mmc_HH_10)
     eff_ztt_rnn_mmc, eff_true_ztt, n_rnn_ztt, n_mmc_ztt, n_true_ztt = rnn_mmc_comparison(predictions_ztautau, test_target_ztautau, ztautau, ztautau.fold_0_array, 'ztautau', args.library, predictions_mmc = mhh_mmc_ztautau)
     eff_ttbar_rnn_mmc, eff_true_ttbar, n_rnn_ttbar, n_mmc_ttbar, n_true_ttbar = rnn_mmc_comparison(predictions_ttbar, test_target_ttbar, ttbar, ttbar.fold_0_array, 'ttbar', args.library, predictions_mmc = mhh_mmc_ttbar)
-    """
 
     log.info ('Finished RNN-MMC Comparison Plotting')
 
@@ -787,26 +787,26 @@ if __name__ == '__main__':
         
         z0, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][0]], original_weights[index_dict['HH01'][0]], new_weights[index_dict['HH01'][0]], 'mdn_split_0', klambda, cs_norm = cs_norm)
         z1, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][1]], original_weights[index_dict['HH01'][1]], new_weights[index_dict['HH01'][1]], 'mdn_split_1', klambda, cs_norm = cs_norm)
-        z2, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][2]], original_weights[index_dict['HH01'][2]], new_weights[index_dict['HH01'][2]], 'mdn_split_2', klambda, cs_norm = cs_norm)
-        z3, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][3]], original_weights[index_dict['HH01'][3]], new_weights[index_dict['HH01'][3]], 'mdn_split_3', klambda, cs_norm = cs_norm)
-        z4, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][4]], original_weights[index_dict['HH01'][4]], new_weights[index_dict['HH01'][4]], 'mdn_split_4', klambda, cs_norm = cs_norm)
-        z = np.sqrt(z0 * z0 + z1 * z1 + z2 * z2 + z3 * z3 + z4 * z4)
+        #z2, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][2]], original_weights[index_dict['HH01'][2]], new_weights[index_dict['HH01'][2]], 'mdn_split_2', klambda, cs_norm = cs_norm)
+        #z3, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][3]], original_weights[index_dict['HH01'][3]], new_weights[index_dict['HH01'][3]], 'mdn_split_3', klambda, cs_norm = cs_norm)
+        #z4, cs_norm = reweight_and_compare(predictions_HH_01[index_dict['HH01'][4]], original_weights[index_dict['HH01'][4]], new_weights[index_dict['HH01'][4]], 'mdn_split_4', klambda, cs_norm = cs_norm)
+        z = np.sqrt(z0 * z0 + z1 * z1)# + z2 * z2 + z3 * z3 + z4 * z4)
         print("MDN Splitting Improvement: " + str(z - mdn_significances[-1]))
         split_significances.append(z)
         
         z0, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][0]]['universal_true_mhh'], original_weights[index_dict['HH01'][0]], new_weights[index_dict['HH01'][0]], 'truth_split_0', klambda, cs_norm = cs_norm)
         z1, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][1]]['universal_true_mhh'], original_weights[index_dict['HH01'][1]], new_weights[index_dict['HH01'][1]], 'truth_split_1', klambda, cs_norm = cs_norm)
-        z2, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][2]]['universal_true_mhh'], original_weights[index_dict['HH01'][2]], new_weights[index_dict['HH01'][2]], 'truth_split_2', klambda, cs_norm = cs_norm)
-        z3, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][3]]['universal_true_mhh'], original_weights[index_dict['HH01'][3]], new_weights[index_dict['HH01'][3]], 'truth_split_3', klambda, cs_norm = cs_norm)
-        z4, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][4]]['universal_true_mhh'], original_weights[index_dict['HH01'][4]], new_weights[index_dict['HH01'][4]], 'truth_split_4', klambda, cs_norm = cs_norm)
-        z = np.sqrt(z0 * z0 + z1 * z1 + z2 * z2 + z3 * z3 + z4 * z4)
+        #z2, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][2]]['universal_true_mhh'], original_weights[index_dict['HH01'][2]], new_weights[index_dict['HH01'][2]], 'truth_split_2', klambda, cs_norm = cs_norm)
+        #z3, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][3]]['universal_true_mhh'], original_weights[index_dict['HH01'][3]], new_weights[index_dict['HH01'][3]], 'truth_split_3', klambda, cs_norm = cs_norm)
+        #z4, cs_norm = reweight_and_compare(dihiggs_01.fold_0_array[index_dict['HH01'][4]]['universal_true_mhh'], original_weights[index_dict['HH01'][4]], new_weights[index_dict['HH01'][4]], 'truth_split_4', klambda, cs_norm = cs_norm)
+        z = np.sqrt(z0 * z0 + z1 * z1)# + z2 * z2 + z3 * z3 + z4 * z4)
         print("Truth Splitting Improvement: " + str(z - truth_significances[-1]))
         split_truth.append(z)
     
     z = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth')
     original_significances.append(z)
     z = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn')
-    reader_file = uproot.open("cache/analysis_ade Signal Only.root")
+    reader_file = uproot.open("cache/analysis_ade All Samples.root")
     k01_reader = reader_file["HHMassNet/hhttbb_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k10_reader = reader_file["HHMassNet/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k_lambda_comparison_reader_overlay(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn', k01_reader, k10_reader)
@@ -816,24 +816,24 @@ if __name__ == '__main__':
     k10_reader = reader_file["Preselection/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_mHH;1"].to_numpy()
     k_lambda_comparison_reader_overlay(mhh_mmc_HH_01, mhh_mmc_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mmc', k01_reader, k10_reader)
     original_significances.append(z)
-    z0 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][0]], predictions_HH_10[index_dict['HH10'][0]], dihiggs_01.fold_0_array[index_dict['HH01'][0]], dihiggs_10.fold_0_array[index_dict['HH10'][0]], 'mdn_split_0')
-    z1 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][1]], predictions_HH_10[index_dict['HH10'][1]], dihiggs_01.fold_0_array[index_dict['HH01'][1]], dihiggs_10.fold_0_array[index_dict['HH10'][1]], 'mdn_split_1')
-    z2 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][2]], predictions_HH_10[index_dict['HH10'][2]], dihiggs_01.fold_0_array[index_dict['HH01'][2]], dihiggs_10.fold_0_array[index_dict['HH10'][2]], 'mdn_split_2')
-    z3 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][3]], predictions_HH_10[index_dict['HH10'][3]], dihiggs_01.fold_0_array[index_dict['HH01'][3]], dihiggs_10.fold_0_array[index_dict['HH10'][3]], 'mdn_split_3')
-    z4 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][4]], predictions_HH_10[index_dict['HH10'][4]], dihiggs_01.fold_0_array[index_dict['HH01'][4]], dihiggs_10.fold_0_array[index_dict['HH10'][4]], 'mdn_split_4')
-    z = np.sqrt(z0 * z0 + z1 * z1 + z2 * z2 + z3 * z3 + z4 * z4)
+    z0 = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn_split_0', slice_indices_1 = index_dict['HH01'][0], slice_indices_10 = index_dict['HH10'][0])
+    z1 = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn_split_1', slice_indices_1 = index_dict['HH01'][1], slice_indices_10 = index_dict['HH10'][1])
+    #z2 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][2]], predictions_HH_10[index_dict['HH10'][2]], dihiggs_01.fold_0_array[index_dict['HH01'][2]], dihiggs_10.fold_0_array[index_dict['HH10'][2]], 'mdn_split_2')
+    #z3 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][3]], predictions_HH_10[index_dict['HH10'][3]], dihiggs_01.fold_0_array[index_dict['HH01'][3]], dihiggs_10.fold_0_array[index_dict['HH10'][3]], 'mdn_split_3')
+    #z4 = k_lambda_comparison_plot(predictions_HH_01[index_dict['HH01'][4]], predictions_HH_10[index_dict['HH10'][4]], dihiggs_01.fold_0_array[index_dict['HH01'][4]], dihiggs_10.fold_0_array[index_dict['HH10'][4]], 'mdn_split_4')
+    z = np.sqrt(z0 * z0 + z1 * z1)# + z2 * z2 + z3 * z3 + z4 * z4)
     original_significances.append(z)
-    z0 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][0]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][0]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][0]], dihiggs_10.fold_0_array[index_dict['HH10'][0]], 'truth_split_0')
-    z1 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][1]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][1]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][1]], dihiggs_10.fold_0_array[index_dict['HH10'][1]], 'truth_split_1')
-    z2 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][2]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][2]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][2]], dihiggs_10.fold_0_array[index_dict['HH10'][2]], 'truth_split_2')
-    z3 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][3]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][3]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][3]], dihiggs_10.fold_0_array[index_dict['HH10'][3]], 'truth_split_3')
-    z4 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][4]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][4]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][4]], dihiggs_10.fold_0_array[index_dict['HH10'][4]], 'truth_split_4')
-    z = np.sqrt(z0 * z0 + z1 * z1 + z2 * z2 + z3 * z3 + z4 * z4)
+    z0 = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth_split_0', slice_indices_1 = index_dict['HH01'][0], slice_indices_10 = index_dict['HH10'][0])
+    z1 = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth_split_1', slice_indices_1 = index_dict['HH01'][1], slice_indices_10 = index_dict['HH10'][1])
+    #z2 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][2]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][2]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][2]], dihiggs_10.fold_0_array[index_dict['HH10'][2]], 'truth_split_2')
+    #z3 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][3]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][3]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][3]], dihiggs_10.fold_0_array[index_dict['HH10'][3]], 'truth_split_3')
+    #z4 = k_lambda_comparison_plot(dihiggs_01.fold_0_array[index_dict['HH01'][4]]['universal_true_mhh'], dihiggs_10.fold_0_array[index_dict['HH10'][4]]['universal_true_mhh'], dihiggs_01.fold_0_array[index_dict['HH01'][4]], dihiggs_10.fold_0_array[index_dict['HH10'][4]], 'truth_split_4')
+    z = np.sqrt(z0 * z0 + z1 * z1)# + z2 * z2 + z3 * z3 + z4 * z4)
     original_significances.append(z)
     
     #separation_overlay_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, indices_1_1, indices_1_10, indices_2_1, indices_2_10)
-    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances, split_truth = split_truth)
-    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances)
+    #klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances, split_truth = split_truth)
+    klambda_scan_plot(range(-8, 16), truth_significances, mdn_significances, mmc_significances, split_significances, bonus_pts = original_significances)
     
     """
     # Scan over a range of klambda values and find their significances again, but starting from klambda=10
