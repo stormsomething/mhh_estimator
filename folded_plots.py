@@ -156,6 +156,8 @@ if __name__ == '__main__':
     regressor_0 = load_model('cache/training-0.h5', custom_objects={'gaussian_loss': gaussian_loss, 'gaussian_loss_prec': gaussian_loss_prec})
     regressor_1 = load_model('cache/training-1.h5', custom_objects={'gaussian_loss': gaussian_loss, 'gaussian_loss_prec': gaussian_loss_prec})
     regressor_2 = load_model('cache/training-2.h5', custom_objects={'gaussian_loss': gaussian_loss, 'gaussian_loss_prec': gaussian_loss_prec})
+    
+    plot_model(regressor_0, to_file='plots/model_plot.pdf', show_shapes=True, show_layer_names=True)
 
     log.info('plotting')
 
