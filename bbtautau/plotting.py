@@ -32,7 +32,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
         weights=weights,
         range=(0,1500),
         #label=ak_array.title + '- RNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
-        label=ak_array.title + '- New NN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
+        label=ak_array.title + '- DNN. Raw RMS: ' + str(round(rms_rnn, 4)) + '.',
         color=ak_array.color,
         linestyle='solid',
         linewidth=2,
@@ -57,8 +57,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             bins=80,
             weights= weights,
             range=(0,1500),
-            #label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
-            label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            label = ak_array.title + '- MMC. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
+            #label = ak_array.title + '- Original RNN. Raw RMS: ' + str(round(rms_mmc, 4)) + '.',
             color='purple',
             linestyle='solid',
             linewidth=2,
@@ -96,13 +96,13 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     fig = plt.figure()
 
-    ratio_rnn = predictions_rnn / test_target
+    ratio_rnn = np.array(predictions_rnn / test_target)
     avg_ratio_rnn = np.average(ratio_rnn)
     target_ratio_rnn = [1.0] * len(ratio_rnn)
     rms_ratio_rnn = sqrt(mean_squared_error(ratio_rnn, target_ratio_rnn))
 
     if predictions_mmc is not None:
-        ratio_mmc = predictions_mmc / test_target
+        ratio_mmc = np.array(predictions_mmc / test_target)
         avg_ratio_mmc = np.average(ratio_mmc)
         target_ratio_mmc = [1.0] * len(ratio_mmc)
         rms_ratio_mmc = sqrt(mean_squared_error(ratio_mmc, target_ratio_mmc))
@@ -110,7 +110,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     (n_rat_rnn, bins_rat_rnn, patches_rat_rnn) = plt.hist(
         ratio_rnn,
         #label= ak_array.title + '- RNN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
-        label= ak_array.title + '- New NN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
+        label= ak_array.title + '- DNN. Raw Mean: ' + str(round(avg_ratio_rnn, 4)) + '. Raw RMS: ' + str(round(rms_ratio_rnn, 4)) + '.',
         color=ak_array.color,
         weights= weights,
         bins=160,
@@ -123,8 +123,8 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
     if predictions_mmc is not None:
         (n_rat_mmc, bins_rat_mmc, patches_rat_mmc) = plt.hist(
             ratio_mmc,
-            #label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
-            label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            label= ak_array.title + '- MMC. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
+            #label= ak_array.title + '- Original RNN. Raw Mean: ' + str(round(avg_ratio_mmc, 4)) + '. Raw RMS: ' + str(round(rms_ratio_mmc, 4)) + '.',
             color='purple',
             weights= weights,
             bins=160,
@@ -132,10 +132,10 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
-        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN', new_label = 2)
+        gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'MMC')
+        #gauss_fit_calculator(n_rat_mmc, bins_rat_mmc, label, 'RNN', new_label = 2)
 
-    plt.xlabel(r'$m_{HH}$: prediction / truth [GeV]')
+    plt.xlabel(r'$m_{HH}$: prediction / truth')
     plt.ylabel('Events')
     plt.ylim(bottom=0, top=max(n_rat_rnn)*1.4)
     plt.legend(fontsize='small', numpoints=3)

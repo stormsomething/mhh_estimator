@@ -301,7 +301,7 @@ def gauss_fit_calculator(n, bins, name, fitter, new_label = 0):
     mult = height / y_max
     if (fitter == 'RNN'):
         if (new_label == 1):
-            plt.plot(x, mult*y, color='black', label= 'Gaussian Fit -- New NN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
+            plt.plot(x, mult*y, color='black', label= 'Gaussian Fit -- DNN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
         elif (new_label == 2):
             plt.plot(x, mult*y, color='gray', label= 'Gaussian Fit -- Original RNN. Mu: ' + str(round(mu, 4)) + '. Sigma: ' + str(round(sigma, 4)) + '.')
         else:
