@@ -736,6 +736,9 @@ def reweight_and_compare(mhh, original_weights, new_weights, label, klambda, cs_
     for i in range(len(n_01)):
         if (n_01[i] > 0) and (n_10[i] > 0):
             sig_sum += (n_10[i] * np.log(n_10[i] / n_01[i]))
+    #print(sig_sum)
+    if (sig_sum < 0):
+        sig_sum = 0
     z = np.sqrt(2 * sig_sum)
     
     if (k10mode):
@@ -1202,7 +1205,7 @@ def k_lambda_comparison_plot(mhh_HH_01, mhh_HH_10, fold_1_array_1, fold_1_array_
             color='white')
     plt.xlim((0,1500))
     plt.ylim(bottom=0)
-    plt.xlabel(r'$m_{HH}$')
+    plt.xlabel(r'$m_{HH}$ [GeV]')
     plt.ylabel('Events')
     plt.legend(fontsize='x-small')
     fig.savefig('plots/k_lambda_comparison_' + label + '.pdf')
@@ -1755,7 +1758,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
             linewidth=2,
             histtype='step')
 
-    plt.xlabel(r'$m_{HH}$')
+    plt.xlabel(r'$m_{HH}$ [GeV]')
     plt.ylabel('Events')
     plt.ylim(bottom=0)
     plt.legend(fontsize='small', numpoints=3)
@@ -1777,7 +1780,7 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     eff_true = calculate_eff(n_true)
 
-    plt.xlabel(r'True $m_{HH}$')
+    plt.xlabel(r'True $m_{HH}$ [GeV]')
     plt.ylabel('Events')
     plt.legend(fontsize='small', numpoints=3)
     fig.savefig('plots/' + str(label) + sigma_label + '_distributions_truthonly.pdf')
@@ -1785,19 +1788,19 @@ def rnn_mmc_comparison(predictions_rnn, test_target, ak_array, ak_array_fold_1_a
 
     fig = plt.figure()
 
-    ratio_rnn = predictions_rnn / test_target
+    ratio_rnn = np.array(predictions_rnn / test_target)
     avg_ratio_rnn = np.average(ratio_rnn)
     target_ratio_rnn = [1.0] * len(ratio_rnn)
     rms_ratio_rnn = sqrt(mean_squared_error(ratio_rnn, target_ratio_rnn))
 
     if predictions_mmc is not None:
-        ratio_mmc = predictions_mmc / test_target
+        ratio_mmc = np.array(predictions_mmc / test_target)
         avg_ratio_mmc = np.average(ratio_mmc)
         target_ratio_mmc = [1.0] * len(ratio_mmc)
         rms_ratio_mmc = sqrt(mean_squared_error(ratio_mmc, target_ratio_mmc))
         
     if predictions_old is not None:
-        ratio_old = predictions_old / test_target
+        ratio_old = np.array(predictions_old / test_target)
         avg_ratio_old = np.average(ratio_old)
         target_ratio_old = [1.0] * len(ratio_old)
         rms_ratio_old = sqrt(mean_squared_error(ratio_old, target_ratio_old))

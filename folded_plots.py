@@ -149,6 +149,11 @@ if __name__ == '__main__':
     log.info('Fold 1 Events HH10: ' + str(len(dihiggs_10.fold_1_array['universal_true_mhh'])))
     log.info('Fold 1 Events ztautau: ' + str(len(ztautau.fold_1_array['universal_true_mhh'])))
     log.info('Fold 1 Events ttbar: ' + str(len(ttbar.fold_1_array['universal_true_mhh'])))
+    
+    log.info('Sum of Event Weights HH01: ' + str(sum(dihiggs_01.fold_0_array['EventInfo___NominalAuxDyn']['evtweight'])))
+    log.info('Sum of Event Weights HH10: ' + str(sum(dihiggs_10.fold_0_array['EventInfo___NominalAuxDyn']['evtweight'])))
+    log.info('Sum of Event Weights ztautau: ' + str(sum(ztautau.fold_0_array['EventInfo___NominalAuxDyn']['evtweight'])))
+    log.info('Sum of Event Weights ttbar: ' + str(sum(ttbar.fold_0_array['EventInfo___NominalAuxDyn']['evtweight'])))
         
     log.info('..done')
 
@@ -158,13 +163,14 @@ if __name__ == '__main__':
     regressor_2 = load_model('cache/training-2.h5', custom_objects={'gaussian_loss': gaussian_loss, 'gaussian_loss_prec': gaussian_loss_prec})
     
     plot_model(regressor_0, to_file='plots/model_plot.pdf', show_shapes=True, show_layer_names=True)
+    regressor_0.summary()
 
     log.info('plotting')
 
-    test_target_HH_01  = dihiggs_01.fold_0_array['universal_true_mhh']
-    test_target_HH_10  = dihiggs_10.fold_0_array['universal_true_mhh']
-    test_target_ztautau =  ztautau.fold_0_array['universal_true_mhh']
-    test_target_ttbar  = ttbar.fold_0_array['universal_true_mhh']
+    test_target_HH_01 = dihiggs_01.fold_0_array['universal_true_mhh']
+    test_target_HH_10 = dihiggs_10.fold_0_array['universal_true_mhh']
+    test_target_ztautau = ztautau.fold_0_array['universal_true_mhh']
+    test_target_ttbar = ttbar.fold_0_array['universal_true_mhh']
 
     features_test_HH_01 = features_table(dihiggs_01.fold_0_array)
     features_test_HH_10 = features_table(dihiggs_10.fold_0_array)
@@ -343,16 +349,17 @@ if __name__ == '__main__':
     else:
         mmc_ttbar, mhh_mmc_ttbar = mmc(ttbar.fold_0_array)
         
-    print("Stats for 4 samples where m_tautau is 0:")
-    print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 == 0)]))
-    print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 == 0)]))
-    print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau == 0)]))
-    print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar == 0)]))
-    print("Stats for 4 samples where m_tautau is not 0:")
+    print("Stats for 4 samples where m_tautau is less than or equal to 0:")
+    print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 <= 0)]))
+    print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 <= 0)]))
+    print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau <= 0)]))
+    print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar <= 0)]))
+    print("Stats for 4 samples where m_tautau is greater than 0:")
     print(scipy.stats.describe(mmc_HH_01[np.where(mmc_HH_01 > 0)]))
     print(scipy.stats.describe(mmc_HH_10[np.where(mmc_HH_10 > 0)]))
     print(scipy.stats.describe(mmc_ztautau[np.where(mmc_ztautau > 0)]))
     print(scipy.stats.describe(mmc_ttbar[np.where(mmc_ttbar > 0)]))
+    
     """
     print("Info about Cache Contents:")
     for field in dihiggs_01.fold_0_array.fields:
@@ -808,7 +815,7 @@ if __name__ == '__main__':
     z = k_lambda_comparison_plot(dihiggs_01.fold_0_array['universal_true_mhh'], dihiggs_10.fold_0_array['universal_true_mhh'], dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'truth')
     original_significances.append(z)
     z = k_lambda_comparison_plot(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn')
-    reader_file = uproot.open("cache/analysis_ade All Samples.root")
+    reader_file = uproot.open("cache/analysis_ade Signal Only.root")
     k01_reader = reader_file["HHMassNet/hhttbb_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k10_reader = reader_file["HHMassNet/hhttbbL10_2tag_0mHH_LL_OS_GGFSR_HHMassNet_mass;1"].to_numpy()
     k_lambda_comparison_reader_overlay(predictions_HH_01, predictions_HH_10, dihiggs_01.fold_0_array, dihiggs_10.fold_0_array, 'mdn', k01_reader, k10_reader)
